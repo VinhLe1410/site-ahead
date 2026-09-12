@@ -50,11 +50,15 @@ Configure the matching Google Web Application OAuth client with these origins an
 | --- | --- | --- |
 | Local development | `http://localhost:5173` | `https://brainy-gopher-762.convex.site/api/auth/callback/google` |
 | Hosted demo | `https://site-ahead.vercel.app` | `https://friendly-chipmunk-910.convex.site/api/auth/callback/google` |
-| Branch preview | The preview's stable frontend origin | The preview Convex HTTP Actions URL followed by `/api/auth/callback/google` |
+| Shared PR previews | Set automatically from the Vercel branch URL | `https://moonlit-roadrunner-502.convex.site/api/auth/callback/google` |
 
 Google callbacks use the Convex `.site` origin. The final redirect uses `SITE_URL`. Configure the Google audience for the intended demo accounts and use only the standard identity scopes. See [Google setup](https://labs.convex.dev/auth/config/oauth/google).
 
-Vercel deploys the frontend and backend with the build command in `vercel.json`. Its SPA rewrite supports direct page loads. Production and preview deploy keys select different Convex deployments; configuring local dev does not configure those deployments. Preview deployments can inherit [Convex project default variables](https://docs.convex.dev/production/hosting/vercel#preview-deployments), but their frontend origins and Google callbacks must still match. Never point a preview's `SITE_URL` at the hosted demo.
+Vercel runs `tools/vercel-build.mjs` through `vercel.json`. Production uses its production deploy key. Every PR preview reuses the `hackathon-preview` backend at `moonlit-roadrunner-502`, with independent signing keys and the development Google client. Add the shared callback above to that development client once, keeping the local-development callback. No per-PR Google setup is required.
+
+The preview build registers the exact `VERCEL_URL` and `VERCEL_BRANCH_URL` origins on the shared backend and sets its fallback `SITE_URL` to the branch origin. Enable Vercel's system environment variables. The browser sends its originating URL through the login flow; the backend accepts only configured or registered origins and returns the user to that same preview. Each registration has its own `AUTH_PREVIEW_ORIGIN_<sha256>` variable, so overlapping builds do not overwrite another preview's registration. `AUTH_PREVIEW_REDIRECTS=true` enables this on the shared backend only; leave it unset on dev and production.
+
+Previews share backend code and data. The latest preview build updates the backend used by every open PR. The shared deployment has automatic expiration disabled to keep its callback stable. Its origin registrations can be removed after the hackathon. A future dev branch can be used to consolidate preview changes; PRs currently still target `main`.
 
 After configuration, try Google login from `/login`, reload `/app`, log out, and revisit `/app` while signed out. Review the OpenSpec task list for completed checks and any remaining live verification.
 

@@ -4,6 +4,7 @@ Site Ahead needs accounts and private application routes for the hackathon demo.
 
 ## What Changes
 
+- Route all Vercel PR previews to one persistent `hackathon-preview` backend. Register exact preview return URLs automatically during builds and use one Google callback. Previews share backend code and data; the latest build wins.
 - Use Google as the only authentication provider. First login creates an account; later logins reuse it. No invitations or admin approval.
 - Keep a public landing page at `/` and one login screen at `/login`.
 - Protect every other application path. Restore valid sessions, preserve local return destinations, and provide logout.

@@ -21,7 +21,9 @@ export function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await signIn("google", { redirectTo: returnTo });
+      await signIn("google", {
+        redirectTo: new URL(returnTo, window.location.origin).href,
+      });
     } catch {
       setError("Could not start Google login. Please try again.");
       setIsSubmitting(false);

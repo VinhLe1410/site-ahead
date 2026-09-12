@@ -37,7 +37,7 @@ Share return-destination validation between browser and backend in `shared/auth.
 
 Only five backend variables are required: `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`, `AUTH_GOOGLE_ID`, and `AUTH_GOOGLE_SECRET`. `VITE_CONVEX_URL` remains the frontend connection setting. Generate a signing-key pair per deployment; keep credentials out of browser code and logs. Existing unused email secrets do not enable any feature and need no destructive cleanup for this change.
 
-For development, `SITE_URL` is `http://localhost:5173` and the Google callback is `https://brainy-gopher-762.convex.site/api/auth/callback/google`. For the hosted demo, the frontend origin is `https://site-ahead.vercel.app` and the callback is `https://friendly-chipmunk-910.convex.site/api/auth/callback/google`. Configure the matching Google client and Convex environment before a hosted release. Preserve the Vercel build command and SPA rewrite. Each branch preview needs its own matching frontend origin and backend callback. [Google setup](https://labs.convex.dev/auth/config/oauth/google)
+For development, `SITE_URL` is `http://localhost:5173` and the Google callback is `https://brainy-gopher-762.convex.site/api/auth/callback/google`. For the hosted demo, the frontend origin is `https://site-ahead.vercel.app` and the callback is `https://friendly-chipmunk-910.convex.site/api/auth/callback/google`. Configure the matching Google client and Convex environment before a hosted release. Preserve the Vercel build command and SPA rewrite. All Vercel PR previews reuse the persistent `hackathon-preview` backend at `moonlit-roadrunner-502`. Its Google callback is `https://moonlit-roadrunner-502.convex.site/api/auth/callback/google`, registered on the development Google client. [Google setup](https://labs.convex.dev/auth/config/oauth/google)
 
 ## Risks / Trade-offs
 
@@ -49,3 +49,13 @@ For development, `SITE_URL` is `http://localhost:5173` and the Google callback i
 ## Verification
 
 Run `npm run check`, build the frontend, and push the backend to the configured development deployment. Check public pages, direct protected navigation, return destinations, Google handoff, and rejected unauthenticated API calls. Verify real Google login, account reuse, logout, session persistence, and isolation when test accounts are available. Keep any unfinished live checks unchecked in `tasks.md`.
+
+## Shared preview builds
+
+`tools/vercel-build.mjs` selects `--preview-name hackathon-preview` only for Vercel Preview. Production still uses its production deploy key without a preview selector. The preview deployment has separate signing keys, the development Google credentials, and automatic expiration disabled to keep the callback stable. The accepted tradeoff is shared preview data and code: the latest preview backend deployment affects all open PRs. A future dev branch can consolidate changes; creating that branch is outside this change.
+
+The CLI creates or reuses the shared backend before executing the client build command. That command reads Vercel's exact `VERCEL_URL` and `VERCEL_BRANCH_URL`, registers both origins, sets the shared backend's fallback `SITE_URL` to the branch origin, then builds the frontend with the supplied `VITE_CONVEX_URL`. Google credentials and signing keys are configured once on the shared backend, not copied from production or stored in Vercel's client bundle.
+
+Each trusted origin uses an independent `AUTH_PREVIEW_ORIGIN_<sha256>` environment variable whose value is the exact origin. Independent registrations avoid one concurrent build overwriting another build's origin list. The hash is an identifier, not a secret. The callback reads these generated keys through `process.env` because their names cannot be declared statically. `AUTH_PREVIEW_REDIRECTS` is the optional typed setting that enables this behavior only on the shared backend. No public origin-registration endpoint or wildcard domain matching is added.
+
+The browser sends its full origin plus the validated local destination. The callback accepts the configured `SITE_URL` origin or an exactly registered preview origin, then applies the existing path validation. It returns the authorization code to the same browser origin that stored its verifier. Dev and production leave the preview setting unset and continue accepting their configured origin only. Existing origins remain registered as later PRs build; the registry is bounded by Convex's environment-variable limit and can be cleaned up after the hackathon.

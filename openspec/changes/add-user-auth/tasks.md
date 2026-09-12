@@ -18,6 +18,13 @@ This change owns auth and application routing. Future job changes depend on its 
 - [ ] 3.3 Complete real Google login, account reuse, reload/browser restart, logout across tabs, and two-account isolation. Record live results or the exact remaining provider/user-input blocker; do not replace Google with a mock.
 - [x] 3.4 Run `npm run check` and the frontend build. Record the browser checks, developer-confirmed Google login, and the remaining authenticated checks from task 3.3 below.
 
+## 4. Shared preview deployment
+
+- [ ] 4.1 Add a Vercel build wrapper that reuses `hackathon-preview`, registers exact deployment and branch origins independently, and preserves production deployment behavior. Verify the actual Vercel build succeeds with its Preview deploy key.
+- [ ] 4.2 Allow absolute OAuth return URLs only for the configured origin or registered preview origins. Verify original path/query/fragment preservation and rejection of unrelated origins; keep dev and production restricted to their configured origins.
+- [ ] 4.3 Provision the persistent shared backend with separate signing keys and development Google credentials. Verify its callback, environment configuration, and frontend backend URL. Record the exact Google redirect URI to add.
+- [ ] 4.4 Update setup docs, run `npm run check` and the build, commit and push to PR #9, and monitor GitHub CI and Vercel. Verify the deployed preview's public/protected pages and Google handoff; record any external setup still required.
+
 ## Verification results
 
 - `npm run check` and `npm run build` passed. The revised backend deployed successfully to dev `brainy-gopher-762`.

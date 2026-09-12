@@ -8,5 +8,6 @@ export default defineApp({
     JWKS: v.string(),
     AUTH_GOOGLE_ID: v.string(),
     AUTH_GOOGLE_SECRET: v.string(),
+    AUTH_PREVIEW_REDIRECTS: v.optional(v.literal("true")),
   },
 });

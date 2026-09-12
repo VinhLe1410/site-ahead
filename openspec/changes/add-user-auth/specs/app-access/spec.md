@@ -45,7 +45,7 @@ Every other browser page path SHALL require authentication. Until the backend ac
 
 ### Requirement: Return to a safe destination
 
-Google login SHALL return to the requested local protected path, including its query and fragment. Missing, malformed, external, protocol-relative, or public-page destinations SHALL resolve to `/app`.
+Google login SHALL return to the requested protected path on the originating frontend, including its query and fragment. The shared preview backend SHALL accept only its configured frontend or exact preview origins registered by the build. Dev and production SHALL accept only their configured frontend. Missing, malformed, unregistered, protocol-relative, or public-page destinations SHALL resolve to `/app` on an accepted origin.
 
 #### Scenario: Preserve the destination
 
@@ -74,3 +74,22 @@ Defined pages SHALL work on direct loads and reloads through the configured host
 
 - **WHEN** a visitor reloads `/`, `/login`, or `/app`
 - **THEN** the correct page and access rules apply without a hosting-level not-found error
+
+### Requirement: Shared PR previews
+
+Every Vercel PR preview SHALL use the same persistent preview backend with one Google callback. Each build SHALL register its exact deployment and branch URLs before building the frontend. Origin registrations SHALL preserve those from other builds. Preview builds SHALL NOT deploy to the production or local-development backend. Users and backend code are shared across previews; the latest preview backend deployment is used by all preview frontends.
+
+#### Scenario: Open previews from two PRs
+
+- **WHEN** two PR builds complete and a user starts Google login from either preview
+- **THEN** both use the shared preview Google callback and return to the originating preview
+
+#### Scenario: Reject an unrelated site
+
+- **WHEN** a login request supplies an unregistered return origin, including another Vercel site
+- **THEN** the shared backend does not return the login code to that origin
+
+#### Scenario: Build production
+
+- **WHEN** Vercel builds its production environment
+- **THEN** it deploys to the backend selected by its production deploy key without registering preview origins or changing shared preview settings
