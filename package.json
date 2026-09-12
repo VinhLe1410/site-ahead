@@ -7,7 +7,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "convex dev --start 'vite --open'",
+    "dev": "convex dev --start \"vite --open\"",
     "typecheck": "tsc -b",
     "build": "npm run typecheck && vite build",
     "lint": "oxlint --deny-warnings .",
