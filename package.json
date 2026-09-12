@@ -14,7 +14,9 @@
     "lint:fix": "oxlint --fix --deny-warnings .",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
-    "check": "npm run typecheck && npm run lint && npm run format:check",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run openspec:check",
+    "openspec": "openspec",
+    "openspec:check": "openspec validate --all --strict --no-interactive",
     "preview": "vite preview",
     "prepare": "husky"
   },
@@ -41,6 +43,7 @@
   },
   "devDependencies": {
     "@convex-dev/eslint-plugin": "^4.0.0",
+    "@fission-ai/openspec": "1.13.0",
     "@oxlint/plugins": "1.82.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",

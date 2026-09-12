@@ -1,4 +1,14 @@
-# Welcome to your Convex + React (Vite) app
+# Site Ahead
+
+A pre-visit planning app for contractors, built with Convex and React.
+
+## Plan and build with an agent
+
+Clone the repo and run `npm ci` with Node.js 24 or newer. OpenSpec 1.13.0 is pinned in the project, with shared workflows for Codex and Claude Code. Open the repo in your coding assistant and follow the [team workflow](docs/Workflow.md) to turn an idea into a scope, plan, and coding tasks. You need your own coding assistant access; no global OpenSpec install is required.
+
+See the [product idea](docs/Site-Ahead-Idea.md) and [architecture](docs/Site-Ahead-Architecture.html) for project context.
+
+## App setup
 
 This is a [Convex](https://convex.dev/) project created with [`npm create convex`](https://www.npmjs.com/package/create-convex).
 
@@ -28,7 +38,7 @@ npm create convex@latest -- -t react-vite
 
 Run `npm run dev` once after cloning to configure Convex and generate its local bindings. Generated files in `convex/_generated/` are not committed.
 
-Run `npm run check` for TypeScript, lint and formatting checks. Use `npm run lint:fix` to apply Oxlint fixes and `npm run format` to format files with Oxfmt. Oxlint retains the Convex plugin checks and type-aware TypeScript rules.
+Run `npm run check` for TypeScript, lint, formatting, and OpenSpec validation. Use `npm run lint:fix` to apply Oxlint fixes and `npm run format` to format files with Oxfmt. Oxlint retains the Convex plugin checks and type-aware TypeScript rules.
 
 `npm install` sets up Husky through the `prepare` script. Before each commit, lint-staged runs Oxlint fixes and Oxfmt on staged files. Remaining lint errors or warnings block the commit. Generated Convex files and installed agent skills are excluded from these checks.
 
