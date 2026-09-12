@@ -1,10 +1,11 @@
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
+import { Button } from "@/components/ui/button";
 
 export default function App() {
   return (
     <>
-      <header className="sticky top-0 z-10 bg-light dark:bg-dark p-4 border-b-2 border-slate-200 dark:border-slate-800">
+      <header className="bg-background sticky top-0 z-10 border-b p-4">
         Convex + React
       </header>
       <main className="p-8 flex flex-col gap-16">
@@ -39,14 +40,13 @@ function Content() {
         is persisted in the Convex cloud database!
       </p>
       <p>
-        <button
-          className="bg-dark dark:bg-light text-light dark:text-dark text-sm px-4 py-2 rounded-md border-2"
+        <Button
           onClick={() => {
             void addNumber({ value: Math.floor(Math.random() * 10) });
           }}
         >
           Add a random number
-        </button>
+        </Button>
       </p>
       <p>
         Numbers:{" "}
@@ -56,14 +56,14 @@ function Content() {
       </p>
       <p>
         Edit{" "}
-        <code className="text-sm font-bold font-mono bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded-md">
+        <code className="bg-muted rounded-md px-1 py-0.5 font-mono text-sm font-bold">
           convex/myFunctions.ts
         </code>{" "}
         to change your backend
       </p>
       <p>
         Edit{" "}
-        <code className="text-sm font-bold font-mono bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded-md">
+        <code className="bg-muted rounded-md px-1 py-0.5 font-mono text-sm font-bold">
           src/App.tsx
         </code>{" "}
         to change your frontend
@@ -113,7 +113,7 @@ function ResourceCard({
   href: string;
 }) {
   return (
-    <div className="flex flex-col gap-2 bg-slate-200 dark:bg-slate-800 p-4 rounded-md h-28 overflow-auto">
+    <div className="bg-muted flex h-28 flex-col gap-2 overflow-auto rounded-md p-4">
       <a href={href} className="text-sm underline hover:no-underline">
         {title}
       </a>
