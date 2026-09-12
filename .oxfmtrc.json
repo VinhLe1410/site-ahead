@@ -4,10 +4,13 @@
   "proseWrap": "never",
   "sortPackageJson": false,
   "ignorePatterns": [
+    "AGENTS.md",
+    "CLAUDE.md",
     ".agents/skills/",
     ".claude/skills/",
     ".cursor/rules/",
     "convex/_generated/",
-    "dist/"
+    "dist/",
+    "tools/oxlint/anti-slop/"
   ]
 }
