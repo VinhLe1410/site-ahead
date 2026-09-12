@@ -1,96 +1,76 @@
 ## Purpose
 
-Give visitors a public introduction to Site Ahead while requiring authentication for the application and its private content.
+Provide a public introduction to Site Ahead while requiring Google authentication for the application and private account data.
 
 ## ADDED Requirements
 
-### Requirement: Public landing page
+### Requirement: Public landing and login pages
 
-The system SHALL serve a public page at `/` that introduces Site Ahead for contractors and links to login and signup. It SHALL be accessible while signed in or signed out and SHALL NOT display private account or job data. Descriptions of planned job features SHALL NOT claim those features already work.
+The system SHALL expose `/` and `/login` without a session. The landing page SHALL introduce Site Ahead for contractors and link to login, or to `/app` when signed in. It SHALL contain no private account or job data and SHALL describe unimplemented job features as planned. Authenticated visitors to `/login` SHALL proceed to their valid requested destination or `/app`.
 
-#### Scenario: Visit without an account
+#### Scenario: Open the landing page
 
 - **WHEN** a signed-out visitor opens `/`
-- **THEN** they see the product introduction and links to `/login` and `/signup` without an authentication redirect
+- **THEN** the page shows the introduction and a login link without redirecting
 
-#### Scenario: Return while signed in
+#### Scenario: Visit while signed in
 
 - **WHEN** a signed-in user opens `/`
-- **THEN** the landing page remains available and offers a link to `/app`
-
-### Requirement: Public authentication routes
-
-The system SHALL expose `/login`, `/signup`, `/verify-email`, and `/reset-password` without requiring a session. Verification and reset screens SHALL support entering the email and code after a reload without storing credentials in the URL. Signed-in visitors to authentication screens SHALL proceed to the protected application.
-
-#### Scenario: Open recovery directly
-
-- **WHEN** a signed-out visitor opens `/reset-password` directly
-- **THEN** they can request a reset code or enter a code they already received
-
-#### Scenario: Open verification directly
-
-- **WHEN** a signed-out visitor opens `/verify-email` directly
-- **THEN** they can enter their email and verification code or return to login to request a new code
+- **THEN** the public page stays available and offers a link to `/app`
 
 #### Scenario: Open login while signed in
 
-- **WHEN** an authenticated user opens `/login` or `/signup`
-- **THEN** they proceed to their valid requested application path, or `/app` when none exists
+- **WHEN** an authenticated user opens `/login`
+- **THEN** they proceed to their valid requested application path, or `/app`
 
-### Requirement: Protect all other application paths
+### Requirement: Protect other application paths
 
-Every browser page path outside the public routes SHALL require authentication. While authentication is loading, protected content SHALL remain hidden and the page SHALL show a loading state. Unknown paths SHALL follow the same protection rule and show a not-found page only after authentication.
+Every other browser page path SHALL require authentication. Until the backend accepts the session, protected content and its data requests SHALL remain withheld. Unknown paths SHALL show a not-found page after authentication.
 
-#### Scenario: Open a protected path while signed out
+#### Scenario: Direct protected navigation
 
-- **WHEN** a signed-out visitor opens `/app` directly
-- **THEN** they are sent to `/login` with their intended destination preserved
+- **WHEN** a signed-out visitor opens `/app` or an unknown path directly
+- **THEN** they reach `/login` with the intended destination preserved
 - **AND** protected content is never displayed before authentication
 
-#### Scenario: Restore a session
+#### Scenario: Resolve authentication
 
-- **WHEN** a protected page is opened and the session is still being checked
-- **THEN** the page shows a loading state without redirecting prematurely or displaying protected content
+- **WHEN** a protected page is checking or refreshing its session
+- **THEN** it shows a loading state until authentication is resolved
 
-#### Scenario: Lose a session
+#### Scenario: Lose authentication
 
-- **WHEN** the current session expires or is invalidated while a protected page is open
-- **THEN** protected content disappears and the user is sent to login
+- **WHEN** the current session expires or is invalidated
+- **THEN** private content disappears and the user returns to login
 
-#### Scenario: Open an unknown path
+### Requirement: Return to a safe destination
 
-- **WHEN** a signed-out visitor opens `/unknown`
-- **THEN** they must authenticate before seeing a not-found page
+Google login SHALL return to the requested local protected path, including its query and fragment. Missing, malformed, external, protocol-relative, or public-page destinations SHALL resolve to `/app`.
 
-### Requirement: Return to the requested path
+#### Scenario: Preserve the destination
 
-Successful password login, verification, recovery, or Google authentication SHALL return users to the requested local protected path, including its query and fragment. Without a valid destination, the system SHALL use `/app`. Destinations outside this app or pointing to public authentication pages SHALL NOT be followed.
+- **WHEN** a visitor starts at `/app?view=recent#top` and completes Google login
+- **THEN** they return to `/app?view=recent#top`
 
-#### Scenario: Complete Google after a protected-page redirect
+#### Scenario: Reject an unsafe destination
 
-- **WHEN** a visitor starts at `/app?view=recent`, is redirected to login, and completes Google authentication
-- **THEN** they return to `/app?view=recent`
+- **WHEN** the supplied destination points outside the app or back to a public page
+- **THEN** successful login opens `/app` without following that destination
 
-#### Scenario: Reject an external destination
+### Requirement: Minimal application shell
 
-- **WHEN** a visitor supplies an external, protocol-relative, or otherwise invalid return destination
-- **THEN** successful authentication opens `/app` without navigating to that destination
+The protected `/app` page SHALL show the current account email and a logout control. Job creation, checklists, and reports are outside this change.
 
-### Requirement: Minimal protected application shell
+#### Scenario: Enter the app
 
-The system SHALL provide `/app` with the authenticated account email and a logout control. This change SHALL replace the starter numbers interface without introducing job, checklist, or report functionality.
-
-#### Scenario: Enter the application
-
-- **WHEN** a user completes authentication without another destination
+- **WHEN** a visitor completes login without another destination
 - **THEN** `/app` shows their account email and logout control
-- **AND** it does not show the starter numbers interface or controls for unimplemented job features
 
-### Requirement: Direct navigation and reloads
+### Requirement: Direct loads and browser history
 
-Application URLs SHALL work when entered directly or reloaded on the configured host. Browser back and forward navigation SHALL preserve the access rules. Static assets and authentication provider callbacks SHALL continue to load.
+Defined pages SHALL work on direct loads and reloads through the configured host. Browser back and forward navigation SHALL preserve access rules. Static assets and Google callbacks SHALL continue to load.
 
-#### Scenario: Reload on the hosted app
+#### Scenario: Reload a page
 
-- **WHEN** a visitor directly opens or reloads `/login`, `/signup`, `/verify-email`, `/reset-password`, or `/app` on the configured host
+- **WHEN** a visitor reloads `/`, `/login`, or `/app`
 - **THEN** the correct page and access rules apply without a hosting-level not-found error
