@@ -1,14 +1,16 @@
 ---
 name: "OPSX: Archive"
 description: "Archive a completed change in the experimental workflow"
-allowed-tools: Bash(openspec:*)
+allowed-tools: Bash(npm run --silent openspec -- *) Bash(npm run openspec:refresh)
 category: "Workflow"
 tags: ["workflow", "archive", "experimental"]
 ---
 
+Run all commands from the project root after `npm ci`. Use `npm run --silent openspec -- <command>` for this project's pinned CLI. If CLI output suggests a bare `openspec` command, use the same npm prefix. Regenerate these files with `npm run openspec:refresh`.
+
 Archive a completed change in the experimental workflow.
 
-**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
+**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `npm run --silent openspec -- store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `npm run --silent openspec -- status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
 
 `<capability-path>` is the spec directory relative to `specs/` (for example, `user-auth` or `identity/user-auth`). Preserve the full path from each delta spec when resolving its main spec.
 
@@ -21,7 +23,7 @@ Archive a completed change in the experimental workflow.
    If a name is provided, use it. Otherwise:
    - Infer from conversation context if the user mentioned a change
    - Auto-select if only one active change exists
-   - If ambiguous, run `openspec list --json` to get available changes and ask the user to select one
+   - If ambiguous, run `npm run --silent openspec -- list --json` to get available changes and ask the user to select one
 
    When prompting, show only active changes (not already archived). Include the schema used for each change if available.
 
@@ -32,7 +34,7 @@ Archive a completed change in the experimental workflow.
    After resolving the selected change and planning root, run:
 
    ```bash
-   openspec instructions archive --change "<name>" --json
+   npm run --silent openspec -- instructions archive --change "<name>" --json
    ```
 
    Keep the same selected-root flags on this command. This lookup is advisory and optional: it only supplies extra prompt inputs, so it must never block archiving. If it exits non-zero or returns invalid JSON — for example on an older CLI that does not support this command yet — continue the archive workflow with no context and no operation guidance. Do not report an error and do not stop.
@@ -43,7 +45,7 @@ Archive a completed change in the experimental workflow.
 
 2. **Check artifact completion status**
 
-   Run `openspec status --change "<name>" --json` to check artifact completion.
+   Run `npm run --silent openspec -- status --change "<name>" --json` to check artifact completion.
 
    Parse the JSON to understand:
    - `schemaName`: The workflow being used
@@ -87,7 +89,7 @@ Archive a completed change in the experimental workflow.
    - "Sync now" or "Sync anyway" — sync, then verify (below)
    - Anything else — ask again rather than archiving
 
-   Before a selected sync writes any main spec, run `openspec instructions specs --change "<name>" --json` once with the same selected-root flags. Require a zero exit status and valid artifact-instruction JSON. If the lookup fails or returns invalid JSON, report the error and stop before writing any main spec or moving the change. A valid response with omitted `rules` is the no-rules case. Apply returned `rules` only to the content and form of main specs produced by this merge; do not use them as archive guidance, change CLI behavior, or copy the rule text into any output file.
+   Before a selected sync writes any main spec, run `npm run --silent openspec -- instructions specs --change "<name>" --json` once with the same selected-root flags. Require a zero exit status and valid artifact-instruction JSON. If the lookup fails or returns invalid JSON, report the error and stop before writing any main spec or moving the change. A valid response with omitted `rules` is the no-rules case. Apply returned `rules` only to the content and form of main specs produced by this merge; do not use them as archive guidance, change CLI behavior, or copy the rule text into any output file.
 
    Then run the `/opsx:sync` workflow inline (agent-driven intelligent merge) for change '<name>', passing the delta spec analysis and the fetched specs-rule snapshot from above, and wait for it to finish. The inline sync must reuse that snapshot without fetching `specs` instructions again. Do not delegate it to a background task — step 5 would move `changeRoot` out from under a sync that is still reading it, leaving the change archived and the main specs never updated. If your agent can only run it by delegation, delegate synchronously and wait for the result.
 
@@ -107,7 +109,7 @@ Archive a completed change in the experimental workflow.
    mkdir -p "<planningHome.changesDir>/archive"
    ```
 
-   Generate the target name: use the change name as-is when it already starts with a `YYYY-MM-DD-` prefix; otherwise prepend the current date as `YYYY-MM-DD-<change-name>`. Never stack a second date (same rule as `openspec archive`).
+   Generate the target name: use the change name as-is when it already starts with a `YYYY-MM-DD-` prefix; otherwise prepend the current date as `YYYY-MM-DD-<change-name>`. Never stack a second date (same rule as `npm run --silent openspec -- archive`).
 
    **Check if target already exists:**
    - If yes: Fail with error, suggest renaming existing archive or using different date
@@ -181,7 +183,7 @@ Target archive directory already exists.
 **Guardrails**
 
 - Announce the selected change; prompt for selection when it is ambiguous
-- Use artifact graph (openspec status --json) for completion checking
+- Use artifact graph (npm run --silent openspec -- status --json) for completion checking
 - Don't block archive on warnings - just inform and confirm
 - Preserve .openspec.yaml when moving to archive (it moves with the directory)
 - Show clear summary of what happened

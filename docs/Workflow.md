@@ -77,20 +77,20 @@ npm run openspec -- list
 npm run openspec:check
 ```
 
-`npm run check` includes OpenSpec validation alongside TypeScript, lint, and formatting. CI runs the same checks. OpenSpec validation checks document structure; verify the app against the acceptance scenarios too.
+`npm run check` includes OpenSpec validation alongside TypeScript, lint, and formatting. CI runs the same checks. `openspec:check` also checks that all six OpenSpec workflows have the npm commands and tool declarations in both agents and the Claude commands. Spec validation checks document structure; verify the app against the acceptance scenarios too.
 
-Agents must run CLI examples written as `openspec ...` using `npm run --silent openspec -- ...`. This uses the pinned local executable and keeps JSON output readable by agents.
+Chat commands such as `$openspec-propose` and `/opsx:propose` select a workflow. Its shell commands run through `npm run --silent openspec -- ...`, which uses the pinned local executable and keeps JSON output readable by agents. A bare `openspec` shell command requires a separate installation and may use a different version. Generated skill examples and tool declarations use the npm form directly. Instructions returned by the CLI can still use upstream command names; the skills tell agents to apply the same npm prefix.
 
-To add another supported coding tool, use the pinned CLI, for example:
+To refresh the shared Codex and Claude Code integrations:
 
 ```sh
-npm run openspec -- init --tools cursor --profile core
+npm run openspec:refresh
 ```
 
-Commit the generated integration files so teammates using that tool inherit them. Keep project-specific instructions in `AGENTS.md` and `openspec/config.yaml`; generated skills and commands can be overwritten by OpenSpec.
+This runs the pinned generator with the core workflows and a temporary configuration, then adapts its output to npm. It does not depend on or change a teammate's global OpenSpec profile. Commit the generated files so teammates inherit the result. Use this command instead of direct OpenSpec init or update, which would restore upstream shell commands. To support another agent or workflow, extend `tools/openspec-skills.mjs` and its checked file list together.
 
 `grill-me` and `ticket-handoff` are team-owned skills, maintained directly in this repo. `grill-me` reuses the developer's existing interview skill with project context and an issue handoff. `ticket-handoff` defines this team's ticket workflow. They are not installed from Matt Pocock's skill collection and have no dependencies on it. Edit their canonical `SKILL.md` files in `.agents/skills/`; `.claude/skills/` contains relative directory symlinks to those copies. They do not have external-source entries in `skills-lock.json`, which tracks the installed Convex skills.
 
-For a deliberate upgrade, install an exact version with `npm install --save-dev --save-exact @fission-ai/openspec@<version>`, then regenerate the configured integrations with `npm run openspec -- init --tools codex,claude --profile core`. Include any additional tools the team has adopted. Review the generated changes, run `npm run check`, and commit the dependency, lockfile, and integrations together.
+For a deliberate upgrade, install an exact version with `npm install --save-dev --save-exact @fission-ai/openspec@<version>`, then run `npm run openspec:refresh`. Review the generated changes, run `npm run check`, and commit the dependency, lockfile, and integrations together. Keep project-specific workflow rules in `AGENTS.md` and `openspec/config.yaml`; generated skills and commands are overwritten during refresh.
 
 References: [OpenSpec setup](https://openspec.dev/docs/setup), [project configuration](https://openspec.dev/docs/project-config), and [supported tools](https://openspec.dev/docs/supported-tools).

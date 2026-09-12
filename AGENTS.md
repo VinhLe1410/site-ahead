@@ -6,6 +6,8 @@ Read relevant existing OpenSpec specs and available project documents before gri
 
 OpenSpec is a pinned local dependency. Run every CLI example written as `openspec ...` using `npm run --silent openspec -- ...` from the repo root. This includes commands inside generated skills. Do not require a global installation.
 
+Refresh the Codex and Claude Code integrations with `npm run openspec:refresh`. It regenerates the skills and commands, then adapts their CLI examples and tool declarations to npm. Use it instead of direct `openspec init` or `openspec update`. `npm run openspec:check` checks these adaptations as well as spec validity. CLI-returned instructions may still use upstream command names; apply the same npm prefix to those commands.
+
 Planning requests produce plans. Implement when the user authorizes implementation, and preserve authorization already given in the conversation. Do not add approval steps solely because a generated skill assumes a different workflow. Keep scope changes explicit.
 
 <!-- convex-ai-start -->
