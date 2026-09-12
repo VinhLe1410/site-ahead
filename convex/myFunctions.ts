@@ -21,6 +21,7 @@ export const listNumbers = query({
       // Ordered by _creationTime, return most recent
       .order("desc")
       .take(args.count);
+
     return {
       viewer: (await ctx.auth.getUserIdentity())?.name ?? null,
       numbers: numbers.reverse().map((number) => number.value),
@@ -68,6 +69,7 @@ export const myAction = action({
     const data = await ctx.runQuery(api.myFunctions.listNumbers, {
       count: 10,
     });
+
     console.log(data);
 
     //// Write data by running Convex mutations.

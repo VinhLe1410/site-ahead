@@ -20,6 +20,7 @@ function Content() {
     useQuery(api.myFunctions.listNumbers, {
       count: 10,
     }) ?? {};
+
   const addNumber = useMutation(api.myFunctions.addNumber);
 
   if (viewer === undefined || numbers === undefined) {
