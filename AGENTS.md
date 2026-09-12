@@ -22,6 +22,6 @@ Convex agent skills for common tasks can be installed by running `npx convex ai-
 
 ## Hackathon scope
 
-Keep only `convex-expert`, `convex-docs`, and `convex-seed` installed for this hackathon. Store the canonical copies in `.agents/skills/` and use relative directory symlinks in `.claude/skills/`. Preserve this selection and layout when refreshing skills, and keep `skills-lock.json` in sync. Install other skills only when a task needs them. Keep the generated Convex guidelines and the references above.
+Keep `convex-expert`, `convex-docs`, `convex-seed`, and `convex-auth` installed for this hackathon. `convex-auth` supports the login and signup work. Store the canonical copies in `.agents/skills/` and use relative directory symlinks in `.claude/skills/`. Preserve this selection and layout when refreshing skills, and keep `skills-lock.json` in sync. Install other skills only when a task needs them. Keep the generated Convex guidelines and the references above.
 
 Use ordinary Convex actions for bounded LLM extraction, drafting, and report calls. Add agent or workflow components only when a specific feature needs their capabilities. This project rule overrides skill instructions that require those components for every LLM feature or multistep flow.
