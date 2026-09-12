@@ -43,6 +43,10 @@ An engineer picks up an issue, reads it and its linked context, and asks:
 
 > Use OpenSpec propose to turn [issue URL] into a scoped change. Read the existing specs, relevant project documents, and code. Link the source issue and include requirements, technical design where needed, and implementation tasks. Preserve the issue's agreed scope and acceptance criteria.
 
+Review specs for user outcomes, business rules, user flows, required information, and relevant error states. Check requirements and scenarios for presentation details that can change without affecting the required outcome. For example, specify that users can see and remove each active filter; leave the choice of chips to design notes or implementation. Layout, positioning, styling, and component choices belong in specs only when they are explicit acceptance constraints, with a reason. Keep accessibility and interactions that affect the outcome in specs.
+
+These rules live under `rules.specs` in `openspec/config.yaml`, following OpenSpec's [spec guidance](https://github.com/Fission-AI/OpenSpec/blob/v1.13.0/schemas/spec-driven/schema.yaml) and [project configuration](https://openspec.dev/docs/project-config). They guide generation and review. Structural validation does not enforce this distinction.
+
 Engineering chooses whether one issue or several closely related issues belong in a change. It reviews the technical plan, resolves remaining design questions, and directs implementation:
 
 > Use OpenSpec apply to implement [change name]. Follow the agreed scope, keep task checkboxes current, run the required checks, and explain how to try the result.

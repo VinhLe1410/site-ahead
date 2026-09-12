@@ -18,6 +18,9 @@ rules:
     - Keep the proposal under 400 words. Record minor assumptions and resolve questions that change scope or acceptance criteria.
   specs:
     - Describe observable behavior with concrete success and relevant failure scenarios that a teammate can review without reading code.
+    - Specify user outcomes, business rules, user flows, required information, and relevant error states.
+    - Leave layout, positioning, styling, and component choices to design notes or implementation unless they are explicit acceptance constraints. State why any exception matters.
+    - Review requirements and scenarios for presentation details that can change without affecting the required outcome.
     - State when a result is simulated or a step requires a person. Do not promise live integrations absent from the agreed scope.
   design:
     - Ground decisions in the current code and dependencies. Include only sections needed for this change.
