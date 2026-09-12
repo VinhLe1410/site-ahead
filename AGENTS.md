@@ -2,7 +2,7 @@
 
 Use the installed OpenSpec skills to explore ideas, propose scoped changes, and implement their tasks. Read `openspec/config.yaml` for project context and `docs/Workflow.md` for the team workflow. Small fixes with clear scope can proceed directly when requested.
 
-Use `grill-me` when a teammate asks to clarify an idea through questions. Use `ticket-handoff` to split an agreed OpenSpec change into engineering or business tickets. Nontechnical teammates define and review behavior, then hand off to engineering. Keep these team-owned skills in `.agents/skills/` with relative directory symlinks in `.claude/skills/`.
+Read relevant existing OpenSpec specs and available project documents before grilling an idea. Use `grill-me` to clarify the outcome, then `ticket-handoff` to turn the agreed discussion into one or more actionable issues. An OpenSpec change is not required for this handoff. Engineering picks up the issues, creates a scoped OpenSpec change with design and tasks, and implements it. Nontechnical teammates define and review behavior. Keep these team-owned skills in `.agents/skills/` with relative directory symlinks in `.claude/skills/`.
 
 OpenSpec is a pinned local dependency. Run every CLI example written as `openspec ...` using `npm run --silent openspec -- ...` from the repo root. This includes commands inside generated skills. Do not require a global installation.
 

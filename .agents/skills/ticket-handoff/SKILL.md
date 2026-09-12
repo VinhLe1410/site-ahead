@@ -1,64 +1,77 @@
 ---
 name: ticket-handoff
-description: Turn an agreed OpenSpec change into reviewable tickets with acceptance criteria, owners, and blockers. Use when the user asks to split a plan into issues or prepare an engineering handoff. Publish to GitHub only when authorized.
+description: Turn agreed grilling decisions and existing project context into one or more actionable issues for engineering or business work. Use when the user asks to turn an idea or discussion into issues or prepare a handoff. Publish to GitHub only when authorized.
 disable-model-invocation: true
 ---
 
 # Ticket handoff
 
-Prepare work that a teammate can pick up without the original chat. OpenSpec holds the requirements. Tickets track delivery and ownership. This skill drafts or publishes tickets; it does not implement the feature.
+Read the project's existing knowledge, clarify the intended outcome, and prepare issues another teammate can pick up without the original chat. Engineering creates an OpenSpec change with design and tasks after picking up an issue. This skill does not require or create that change, and it does not implement the feature.
 
-## Read the source
+## Read existing context
 
 1. Read `AGENTS.md` and `openspec/config.yaml`. Run CLI examples using `npm run --silent openspec -- ...` from the repo root.
-2. Use the change named by the user or established in the conversation. Otherwise run `npm run --silent openspec -- list --json`. If several changes could fit, ask which one. If no change exists, report that the handoff needs an OpenSpec proposal and offer the installed `openspec-propose` skill. Do not invent a plan.
-3. Run `npm run --silent openspec -- status --change <name> --json`. Read the proposal, specs, design when present, and tasks from the returned artifact paths. Inspect the relevant code when needed to understand dependencies.
-4. Confirm the scope is agreed from the user's request or earlier conversation. Do not ask again for approval already given. Surface any unresolved decision that would change a ticket's behavior or acceptance criteria before treating that ticket as ready.
+2. Run `npm run --silent openspec -- list --specs` and `npm run --silent openspec -- list --json`. Read relevant existing specs in full. Inspect related active changes with `npm run --silent openspec -- status --change <name> --json` and read their returned artifact paths to avoid duplicating planned work. Empty spec or change lists do not block the handoff.
+3. Inventory the available project documents with `rg --files docs` and follow relevant links in the README and project instructions. Read the documents that inform the request, including product notes, architecture, research, and prior decisions. Use suitable readers for relevant non-Markdown documents. Inspect relevant code to distinguish implemented behavior from intended behavior. Report material sources you cannot read.
+4. Read the user's request and agreed decisions from the grilling discussion. Do not ask the user to repeat facts already available in the repo or conversation. Existing specs describe the starting point; a proposed change may intentionally alter them. Record that difference explicitly. Surface conflicts between documents and the discussion rather than silently choosing one.
 
-## Draft the breakdown
+## Settle the outcome
 
-Group tasks into small outcomes. An engineering ticket should deliver a complete behavior that can be tried, including the necessary UI and backend work. Do not create separate schema, API, and UI tickets by default. Follow real dependencies and keep the first useful demo small.
+If the user, problem, scope, or acceptance criteria remain unclear, use the installed `grill-me` skill to resolve those decisions. Resume from what is already agreed. Stop clarifying when there is enough context to describe actionable work; do not require engineering design, task lists, or answers to unrelated questions.
 
-Business tickets describe a concrete deliverable, such as contractor feedback or approved checklist content. Their acceptance criteria describe that deliverable. Do not force business work into coding tasks.
+The user owns the decisions. Preserve approval already given, and do not treat unanswered questions as agreement. If an unresolved question blocks implementation, either resolve it with the user or describe a bounded research or decision issue when that work is within the authorized scope. Downstream issues remain blocked until it is resolved. Record nonblocking questions for engineering to settle during design.
 
-Use the owners supplied by the user. Otherwise write `Unassigned`; do not guess a teammate or GitHub username. A blocker is work that must finish first, not merely related work. Identify shared files or contracts that need coordination without declaring all related work blocked.
+## Draft one issue or several
 
-Write the draft to `tickets.md` inside the selected OpenSpec change directory. If it exists, read it first and revise the existing breakdown. Preserve recorded issue URLs and IDs. Keep numbered ticket IDs stable and list blockers by ID and title. Do not mark implementation tasks complete because tickets were drafted or published.
+Default to one issue for one coherent outcome. Split only when there are distinct deliverables, different owners, real dependencies, or too much work to review as one outcome. Explain the reason for a split. Do not create a fixed number of tickets or a ticket for every interview question.
 
-Use this template for each ticket:
+Engineering issues describe small, complete behaviors that can be tried. Do not split by schema, API, and UI layers by default. Business issues describe deliverables such as contractor feedback or approved checklist content. Research issues state the question and the evidence needed to resolve it. Keep all issues within the agreed scope.
+
+Use owners supplied by the user, otherwise write `Unassigned`. Do not guess a teammate or GitHub username. A blocker is work that must finish first, not merely related work.
+
+Save the draft at the user-specified path or `docs/handoffs/<topic>.md`. Read and revise an existing draft for the same topic rather than creating a duplicate. Preserve ticket IDs and recorded issue URLs. This draft is independent of any OpenSpec change directory.
+
+Use this template for each issue:
 
 ```markdown
 ## T1: <short outcome>
 
-Type: Engineering | Business
+Type: Engineering | Business | Research
 Owner: <assigned owner or Unassigned>
-Source: <proposal and relevant spec paths>
-Tasks: <existing task IDs, or Not applicable for business work>
+Context: <relevant existing specs and project documents>
 Blocked by: <ticket IDs and titles, or None>
 
-### Outcome
+### Problem
 
-<What will work or what deliverable will exist.>
+<Who needs this and what is missing or difficult today.>
+
+### Agreed outcome
+
+<What should work or what deliverable should exist, including decisions from grilling.>
+
+### Out of scope
+
+<Explicit exclusions.>
 
 ### Acceptance criteria
 
 - [ ] <Observable result or required deliverable.>
 
-### Verification
+### Open questions
 
-<How the reviewer will check it. Reuse existing checks where relevant.>
+<Remaining questions and whether they block work, or None.>
 ```
 
-Reference requirements instead of writing a competing spec. Carry the relevant acceptance scenarios into concise ticket criteria. Include only work within the agreed scope. Show the breakdown with owners and blockers, and ask for changes only where a decision remains open.
+Capture enough agreed context in each issue for a teammate with no chat history. Reference the existing documents and explain what would change; do not write a technical design or implementation task list. Review the proposed issue or breakdown with the user if scope is not yet approved. Drafting issues never marks implementation work complete.
 
 ## Publish when requested
 
-A request to draft or hand off is not permission to create GitHub issues. If publication is already authorized, proceed after preparing the concrete breakdown. Otherwise finish with the draft location.
+A request to draft or hand off is not permission to create GitHub issues. If publication is already authorized, proceed once the issue contents are ready. Otherwise finish with the draft location.
 
-1. Identify the GitHub repository from its remote and the user's request. Read existing issues to avoid creating duplicates for the same change and ticket. Do not modify an existing issue unless that is authorized.
-2. Link to the proposal and specs at a pushed commit containing the agreed version. If those files are only local, report that publication needs reachable source files. Do not silently commit or push without authorization.
-3. Create issues in dependency order. Use each ticket's outcome, source links, acceptance criteria, verification, and blockers as its body. Refer to already-created blockers by their issue URLs. Apply an assignee only when explicitly supplied and valid for that repository.
+1. Identify the GitHub repository from its remote and the user's request. Read existing issues to avoid duplicates for the same work. Do not modify existing issues unless authorized.
+2. Link to existing specs and documents at a pushed commit when available. For local-only sources, name the path and capture the relevant decisions in the issue body. Do not invent a reachable link or require a new OpenSpec change, commit, or push to publish the issue.
+3. Create issues in dependency order. Replace draft blocker IDs with the URLs of already-created issues. Apply an assignee only when explicitly supplied and valid for that repository.
 4. Use a structured tool argument or `gh issue create --body-file` to preserve the exact Markdown. If a call fails or its result is uncertain, inspect GitHub before retrying. Report partial publication and keep the URLs already returned.
-5. Record each issue URL next to its ticket in `tickets.md`. Keep OpenSpec task checkboxes unchanged. Return the issue links and any remaining blockers.
+5. Record each issue URL beside its ticket in the draft. Return the issue links and any remaining blockers.
 
-Engineering uses `openspec-apply-change` for the selected change and authorized task scope. Completing one ticket does not authorize unrelated tickets. Nontechnical teammates review the agreed acceptance criteria and report whether the result meets them.
+Engineering reads the picked-up issue and its linked context, then uses `openspec-propose` to create a scoped change with requirements, design when needed, and tasks. It uses `openspec-apply-change` when implementation is authorized. One issue or several closely related issues may feed a change; engineering chooses that boundary and links the source issues. Nontechnical teammates review the result against the issue's acceptance criteria.

@@ -1,53 +1,55 @@
 # Team workflow
 
-Use OpenSpec to turn an idea into a small scope, a plan, and tasks a coding agent can follow. The workflow and plans live in this repo so another teammate can continue the work.
+Read existing specs and project documents, grill the idea, create one or more GitHub issues, then let engineering turn the issues into an OpenSpec change and implement it.
+
+Nontechnical teammates define and review behavior. Engineering owns technical design and implementation tasks.
 
 ## First use
 
 1. Install Node.js 24 or newer and clone the repo.
 2. Run `npm ci` in the repo folder.
-3. Open that folder in Codex or Claude Code with your own account. Restart an existing agent session to load the new skills.
+3. Open that folder in Codex or Claude Code with your own account. Restart an existing agent session to load the skills.
 4. Start with `$grill-me` in Codex or `/grill-me` in Claude Code, followed by your idea.
 
-OpenSpec 1.13.0 is pinned in `package.json` and `package-lock.json`. It requires Node.js 20.19 or newer, which this project's Node.js 24 requirement satisfies. The generated skills are included in the repo. Teammates do not need to run OpenSpec initialization or install it globally.
+OpenSpec 1.13.0 is pinned in the project. The shared skills are included in the repo, so teammates do not need to initialize OpenSpec or install it globally. Planning can start without running the app. Building and checking Convex changes requires the app setup in [README.md](../README.md).
 
-Planning can start without running the app. Building and checking Convex changes also requires the app setup described in [README.md](../README.md).
+## Read context and clarify the idea
 
-Nontechnical teammates define and review the behavior, then hand off. Engineering reviews the technical design, assigns tickets, and directs implementation.
+Paste this into agent chat and replace the feature description:
 
-## Scope an idea
+> Use grill-me to help me define the contractor intake screen. Read existing OpenSpec specs and the available project documents first. Check what already works and what is already planned. Ask short questions about the user, behavior, exclusions, and how we'll know it works. We are preparing work for engineering, not designing the implementation.
 
-Paste this into your agent chat and replace the feature description:
+The skill reads relevant specs, active changes, product notes, architecture, research, and code before asking questions. It uses the documents that inform the idea and surfaces conflicts. Having no existing specs or changes does not block this step.
 
-> Use grill-me to help me scope the contractor intake screen. Read our project context first. Ask short questions about the user, behavior, exclusions, and how we'll know it works. We are planning only.
+Stop when the outcome and scope are clear enough to describe actionable work. Technical design and coding tasks can wait for engineering.
 
-Then ask for the plan:
+## Create one issue or several
 
-> Use OpenSpec propose to turn our agreed scope into a change named contractor-intake. Include observable acceptance scenarios and small coding tasks ordered by dependency. Stop after writing the plan so I can review it.
+Use `$ticket-handoff` in Codex or `/ticket-handoff` in Claude Code after the discussion. For example:
 
-The agent writes `proposal.md`, requirements under `specs/`, `tasks.md`, and a `design.md` when the change needs technical design, inside `openspec/changes/contractor-intake/`.
+> Use ticket-handoff to draft an issue from our agreed discussion and project documents. Split it into multiple issues only if the work needs separate outcomes, owners, or dependencies. Include acceptance criteria, exclusions, and remaining questions. Leave owners unassigned unless we've chosen them.
 
-Review the proposal and scenarios. Check that they describe the outcome you want and exclude work you do not want. Ask the agent to revise anything unclear before handing it off.
+The skill saves the draft in `docs/handoffs/<topic>.md`, independently of OpenSpec changes. One coherent outcome normally needs one issue. Larger work can become several linked issues. Engineering issues describe working behavior, business issues describe deliverables, and research issues describe questions and the evidence needed to answer them.
 
-## Hand off approved work
+Review the proposed issue or breakdown, then publish it with:
 
-Use `$ticket-handoff contractor-intake` in Codex or `/ticket-handoff contractor-intake` in Claude Code. Or paste:
+> Create the GitHub issues from this approved draft and record their links. Include links to the existing specs and documents that informed the discussion.
 
-> Use ticket-handoff to split the approved contractor-intake plan into small tickets. Include acceptance criteria and blockers. Leave owners unassigned unless we've chosen them. Save the draft for engineering to review.
+A request to create issues already authorizes publication; asking only for a draft does not. The issue body includes the agreed decisions so engineering does not need the original chat. Local-only source documents do not prevent publication, and no new OpenSpec change is required.
 
-The skill saves `tickets.md` inside `openspec/changes/contractor-intake/`. Engineering tickets describe working behavior. Business tickets describe deliverables such as contractor feedback or approved checklist content. Both link to the agreed proposal.
+## Engineering plans and builds
 
-Engineering reviews the breakdown and assigns owners. To publish, ask `ticket-handoff` to create the approved GitHub issues. The proposal must be committed and pushed so each issue can link to it. The skill records the issue URLs in the draft. Drafting tickets does not publish issues or mark coding tasks complete.
+An engineer picks up an issue, reads it and its linked context, and asks:
 
-## Build and review
+> Use OpenSpec propose to turn [issue URL] into a scoped change. Read the existing specs, relevant project documents, and code. Link the source issue and include requirements, technical design where needed, and implementation tasks. Preserve the issue's agreed scope and acceptance criteria.
 
-Engineering can direct the agent with:
+Engineering chooses whether one issue or several closely related issues belong in a change. It reviews the technical plan, resolves remaining design questions, and directs implementation:
 
-> Use OpenSpec apply for contractor-intake. Implement only the tasks covered by [ticket ID or issue URL]. Read the linked requirements, keep task checkboxes current, run the required checks, and explain how to try the result.
+> Use OpenSpec apply to implement [change name]. Follow the agreed scope, keep task checkboxes current, run the required checks, and explain how to try the result.
 
-Share the branch containing the change folder so the next teammate can continue from the same plan. Commit specs and code together as implementation progresses. Agree who owns each ticket before two agents edit the same files. The teammate who requested the feature reviews the result against its acceptance criteria.
+Share the branch containing the change so another engineer can continue from the same plan. Agree who owns each issue before agents edit the same files. The teammate who requested the feature checks the result against the issue's acceptance criteria.
 
-To adjust an existing plan, ask the agent to use OpenSpec update for that change and describe the adjustment. When the result works and its tasks are complete, ask the agent to use OpenSpec archive. This moves the change into `openspec/changes/archive/` and merges its requirements into `openspec/specs/`.
+Use OpenSpec update when the plan needs revision. When the change is implemented and verified, use OpenSpec archive to move it into `openspec/changes/archive/` and merge its requirements into `openspec/specs/`.
 
 ## Explicit commands
 
@@ -63,7 +65,7 @@ Type these in agent chat, not in the terminal. Plain-language requests above wor
 | Implement a change | `$openspec-apply-change` | `/opsx:apply` |
 | Archive completed work | `$openspec-archive-change` | `/opsx:archive` |
 
-Append the change name when continuing existing work.
+For ticket-handoff, reference the discussion, topic, or draft. For OpenSpec commands, name the change when continuing existing work.
 
 ## Check and maintain the workflow
 
@@ -87,7 +89,7 @@ npm run openspec -- init --tools cursor --profile core
 
 Commit the generated integration files so teammates using that tool inherit them. Keep project-specific instructions in `AGENTS.md` and `openspec/config.yaml`; generated skills and commands can be overwritten by OpenSpec.
 
-`grill-me` and `ticket-handoff` are team-owned skills, maintained directly in this repo. `grill-me` reuses the developer's existing interview skill with project context and an OpenSpec handoff. `ticket-handoff` defines this team's ticket workflow. They are not installed from Matt Pocock's skill collection and have no dependencies on it. Edit their canonical `SKILL.md` files in `.agents/skills/`; `.claude/skills/` contains relative directory symlinks to those copies. They do not have external-source entries in `skills-lock.json`, which tracks the installed Convex skills.
+`grill-me` and `ticket-handoff` are team-owned skills, maintained directly in this repo. `grill-me` reuses the developer's existing interview skill with project context and an issue handoff. `ticket-handoff` defines this team's ticket workflow. They are not installed from Matt Pocock's skill collection and have no dependencies on it. Edit their canonical `SKILL.md` files in `.agents/skills/`; `.claude/skills/` contains relative directory symlinks to those copies. They do not have external-source entries in `skills-lock.json`, which tracks the installed Convex skills.
 
 For a deliberate upgrade, install an exact version with `npm install --save-dev --save-exact @fission-ai/openspec@<version>`, then regenerate the configured integrations with `npm run openspec -- init --tools codex,claude --profile core`. Include any additional tools the team has adopted. Review the generated changes, run `npm run check`, and commit the dependency, lockfile, and integrations together.
 
