@@ -1,0 +1,37 @@
+schema: spec-driven
+
+context: |
+  Site Ahead helps contractors prepare for site visits using job-specific checklists and reports.
+  Stack: Node.js 24+, npm, TypeScript, React, Vite, Tailwind CSS, and Convex.
+  Read docs/Site-Ahead-Idea.md for the product idea and its narrowed hackathon scope.
+  Read docs/Site-Ahead-Architecture.html when planning request or data flows.
+  These documents describe intended work, not proof of implemented behavior. Inspect the relevant code.
+  Distinguish demo data, live integrations, and roadmap ideas. Surface conflicting requirements before planning dependent work.
+  Read AGENTS.md for repository instructions. Use npm run --silent openspec -- instead of a global openspec command.
+  Before planning or changing Convex code, read convex/_generated/ai/guidelines.md and the relevant installed Convex skills.
+  Reuse existing code, types, and dependencies. Keep changes minimal. Avoid any, unsafe casts, silent fallbacks, and speculative abstractions.
+  Write short, plain sentences. Do not hard-wrap prose. Keep technical decisions in the design and tasks.
+
+rules:
+  proposal:
+    - Scope each change to a small, demonstrable outcome. State what is included and excluded.
+    - Keep the proposal under 400 words. Record minor assumptions and resolve questions that change scope or acceptance criteria.
+  specs:
+    - Describe observable behavior with concrete success and relevant failure scenarios that a teammate can review without reading code.
+    - State when a result is simulated or a step requires a person. Do not promise live integrations absent from the agreed scope.
+  design:
+    - Ground decisions in the current code and dependencies. Include only sections needed for this change.
+  tasks:
+    - Order small tasks by dependency. Name affected files or areas and state how to verify completion.
+    - Identify dependencies on other changes so teammates can choose work without overlapping edits.
+    - Prefer existing checks and manual demo steps. Adapt existing tests only when needed; do not add regression tests or tests that mirror implementation.
+    - End with npm run check and a short demo against the acceptance scenarios when the change affects the app.
+
+operations:
+  apply:
+    guidance:
+      - Read the selected change from disk, keep task checkboxes current, and stay within its authorized scope.
+      - Report completed behavior, verification results, and any remaining blockers concisely.
+  archive:
+    guidance:
+      - Verify the completed change before archiving. Keep unfinished work visible in its task list.
