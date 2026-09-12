@@ -60,6 +60,7 @@
     "lint-staged": "^17.5.1",
     "oxfmt": "^0.67.0",
     "oxlint": "1.82.0",
+    "oxlint-plugin-react-doctor": "0.9.14",
     "oxlint-tsgolint": "^7.0.2001",
     "tailwindcss": "^4.3.3",
     "typescript": "npm:@typescript/typescript6@^6.0.2",

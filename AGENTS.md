@@ -53,6 +53,10 @@ As job screens arrive, nest them under `/app`: `/app/jobs` lists jobs, `/app/job
 
 Use route parameters for resource identity, query parameters for shareable filters, and component state for unsaved form fields. Keep protected data requests beneath `ProtectedLayout`. Preserve the current access rules: `/` and `/login` are public, all other paths require authentication, and unknown paths show the not-found page after authentication. Preserve the requested path, query, and fragment through the existing auth return-destination helpers.
 
+## React quality
+
+Run `npm run check` after completing a change. Oxlint enforces React Hooks, JSX, accessibility, and selected React Doctor rules. Oxfmt enforces formatting. Generated shadcn files in `src/components/ui/` are excluded from linting and formatting; TypeScript still checks them. Keep authored wrappers outside that directory.
+
 <!-- convex-ai-start -->
 
 This project uses [Convex](https://convex.dev) as its backend.

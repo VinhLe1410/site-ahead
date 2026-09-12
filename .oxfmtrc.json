@@ -10,6 +10,7 @@
     ".claude/skills/",
     ".cursor/rules/",
     "convex/_generated/",
+    "src/components/ui/",
     "dist/",
     "tools/oxlint/anti-slop/"
   ]

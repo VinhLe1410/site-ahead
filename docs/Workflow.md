@@ -94,3 +94,9 @@ This runs the pinned generator with the core workflows and a temporary configura
 For a deliberate upgrade, install an exact version with `npm install --save-dev --save-exact @fission-ai/openspec@<version>`, then run `npm run openspec:refresh`. Review the generated changes, run `npm run check`, and commit the dependency, lockfile, and integrations together. Keep project-specific workflow rules in `AGENTS.md` and `openspec/config.yaml`; generated skills and commands are overwritten during refresh.
 
 References: [OpenSpec setup](https://openspec.dev/docs/setup), [project configuration](https://openspec.dev/docs/project-config), and [supported tools](https://openspec.dev/docs/supported-tools).
+
+## React checks
+
+`npm run lint` includes JSX, accessibility, and six React Doctor rules for derived state, fetching in effects, event logic in effects, impure state updates, and missing or incorrect effect cleanup. These rules use the pinned `oxlint-plugin-react-doctor` package and run through the existing commit hook and CI. There is no separate scanner or score requirement. `npm run lint:fix` applies available lint fixes; `npm run format` formats authored code. Review fixes before committing.
+
+Generated shadcn files in `src/components/ui/` are excluded from linting and formatting. TypeScript and the build still check them. Their usage in authored app code remains linted, including React Router link destinations and labels on shared buttons and fields. Keep authored components outside the generated directory.
