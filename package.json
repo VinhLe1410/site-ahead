@@ -1,0 +1,47 @@
+{
+  "name": "site-ahead",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "convex dev --start 'vite --open'",
+    "typecheck": "tsc -b",
+    "build": "npm run typecheck && vite build",
+    "lint": "oxlint --deny-warnings .",
+    "lint:fix": "oxlint --fix --deny-warnings .",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "check": "npm run typecheck && npm run lint && npm run format:check",
+    "preview": "vite preview",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,cjs,mjs,jsx,ts,cts,mts,tsx}": [
+      "oxlint --fix --deny-warnings",
+      "oxfmt --write --no-error-on-unmatched-pattern"
+    ],
+    "*.{css,html,json,jsonc,md,mdx,yaml,yml}": "oxfmt --write --no-error-on-unmatched-pattern"
+  },
+  "dependencies": {
+    "convex": "^1.44.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@convex-dev/eslint-plugin": "^4.0.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "@vitejs/plugin-react": "^6.0.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
+    "oxfmt": "^0.67.0",
+    "oxlint": "^1.82.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "tailwindcss": "^4.3.3",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "vite": "^8.2.0"
+  }
+}
