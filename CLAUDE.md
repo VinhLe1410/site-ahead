@@ -2,6 +2,8 @@
 
 Read `AGENTS.md` for the shared planning and implementation instructions, including how to invoke the pinned local OpenSpec CLI. These instructions also apply to the generated OpenSpec skills and commands.
 
+Run OpenSpec through `npm run --silent openspec -- <command>` from the repo root. Use `npm run openspec:refresh` to regenerate the shared integrations with matching npm commands and tool declarations.
+
 <!-- convex-ai-start -->
 
 This project uses [Convex](https://convex.dev) as its backend.

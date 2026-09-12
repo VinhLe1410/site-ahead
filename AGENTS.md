@@ -2,7 +2,11 @@
 
 Use the installed OpenSpec skills to explore ideas, propose scoped changes, and implement their tasks. Read `openspec/config.yaml` for project context and `docs/Workflow.md` for the team workflow. Small fixes with clear scope can proceed directly when requested.
 
+Read relevant existing OpenSpec specs and available project documents before grilling an idea. Use `grill-me` to clarify the outcome, then `ticket-handoff` to turn the agreed discussion into one or more actionable issues. An OpenSpec change is not required for this handoff. Engineering picks up the issues, creates a scoped OpenSpec change with design and tasks, and implements it. Nontechnical teammates define and review behavior. Keep these team-owned skills in `.agents/skills/` with relative directory symlinks in `.claude/skills/`.
+
 OpenSpec is a pinned local dependency. Run every CLI example written as `openspec ...` using `npm run --silent openspec -- ...` from the repo root. This includes commands inside generated skills. Do not require a global installation.
+
+Refresh the Codex and Claude Code integrations with `npm run openspec:refresh`. It regenerates the skills and commands, then adapts their CLI examples and tool declarations to npm. Use it instead of direct `openspec init` or `openspec update`. `npm run openspec:check` checks these adaptations as well as spec validity. CLI-returned instructions may still use upstream command names; apply the same npm prefix to those commands.
 
 Planning requests produce plans. Implement when the user authorizes implementation, and preserve authorization already given in the conversation. Do not add approval steps solely because a generated skill assumes a different workflow. Keep scope changes explicit.
 

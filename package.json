@@ -16,7 +16,8 @@
     "format:check": "oxfmt --check .",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run openspec:check",
     "openspec": "openspec",
-    "openspec:check": "openspec validate --all --strict --no-interactive",
+    "openspec:refresh": "node tools/openspec-skills.mjs --refresh && oxfmt --write .claude/commands/opsx",
+    "openspec:check": "node tools/openspec-skills.mjs --check && openspec validate --all --strict --no-interactive",
     "preview": "vite preview",
     "prepare": "husky"
   },
