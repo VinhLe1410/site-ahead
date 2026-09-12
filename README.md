@@ -32,6 +32,18 @@ Run `npm run check` for TypeScript, lint and formatting checks. Use `npm run lin
 
 `npm install` sets up Husky through the `prepare` script. Before each commit, lint-staged runs Oxlint fixes and Oxfmt on staged files. Remaining lint errors or warnings block the commit. Generated Convex files and installed agent skills are excluded from these checks.
 
+## Deploy to Vercel
+
+Vercel deploys the frontend and Convex backend. GitHub Actions checks pull requests and updates to `main`.
+
+1. Import this repository into Vercel with the Vite framework preset.
+2. Create a production deploy key in the Convex dashboard with the `deployment:deploy` permission.
+3. Add the key to Vercel as `CONVEX_DEPLOY_KEY` for the Production environment only.
+4. Create a preview deploy key in the Convex project settings.
+5. Add the preview key to Vercel as `CONVEX_DEPLOY_KEY` for the Preview environment only.
+
+The build command is stored in `vercel.json`. Convex supplies `VITE_CONVEX_URL` during the build, so it does not need to be configured in Vercel.
+
 To learn more about developing your project with Convex, check out:
 
 - The [Tour of Convex](https://docs.convex.dev/get-started) for a thorough introduction to Convex principles.
