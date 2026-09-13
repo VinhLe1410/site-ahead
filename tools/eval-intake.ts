@@ -64,6 +64,7 @@ function loadEnv() {
 
         if (trimmed && !trimmed.startsWith("#") && trimmed.includes("=")) {
           const [key, ...rest] = trimmed.split("=");
+
           const val = rest
             .join("=")
             .trim()
@@ -213,8 +214,10 @@ async function main() {
 
       const parsedJobType =
         isObject(parsed) && isString(parsed.jobType) ? parsed.jobType : "";
+
       const parsedLoc =
         isObject(parsed) && isString(parsed.location) ? parsed.location : "";
+
       const parsedDesc =
         isObject(parsed) && isString(parsed.description)
           ? parsed.description
