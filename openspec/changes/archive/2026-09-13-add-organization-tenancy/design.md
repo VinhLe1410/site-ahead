@@ -152,7 +152,7 @@ After PR #12 merged, the developer chose a clean slate instead of preserving dev
 
 Delete all application and auth records, then deploy the required organization schema. Remove the migration functions, rollout table, server gates, and maintenance screen. An empty database must allow a new account to reach onboarding immediately. Login does not create an organization; explicit creation makes the account its owner, and invitation acceptance creates staff membership only.
 
-See [organization setup and verification](../../../docs/Organization-Rollout.md) for the deployment inventory and verification record. Production and old previews still have their previous code and data; any future reset or deployment to those targets requires separate authorization.
+See [organization setup and verification](../../../../docs/Organization-Rollout.md) for the deployment inventory and verification record. Production and old previews still have their previous code and data; any future reset or deployment to those targets requires separate authorization.
 
 ## Risks / Trade-offs
 

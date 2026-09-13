@@ -1,4 +1,4 @@
-PR #12 merged. The developer replaced the preservation rollout with a clean reset of personal development databases and the shared preview. Production and old PR previews stay unchanged. Live verification is recorded in [Organization-Rollout.md](../../../docs/Organization-Rollout.md).
+PR #12 merged. The developer replaced the preservation rollout with a clean reset of personal development databases and the shared preview. Production and old PR previews stay unchanged. Live verification is recorded in [Organization-Rollout.md](../../../../docs/Organization-Rollout.md).
 
 ## 1. Schema and membership
 
@@ -31,5 +31,5 @@ PR #12 merged. The developer replaced the preservation rollout with a clean rese
 
 - [x] 5.1 Reset all three personal development databases and the shared preview, deploy the required organization schema, and verify new-account organization creation and invitation acceptance with temporary verified-user fixtures and admin identities. Leave production and old PR previews unchanged.
 - [x] 5.2 Update affected main spec purpose text and project documentation to describe organization ownership, manual invite delivery, and setup requirements.
-- [x] 5.3 Run `npm run check` and verify the implementation pushes cleanly to the intended Convex deployment. Local checks, [PR #12 CI](https://github.com/VinhLe1410/site-ahead/actions/runs/34742649192), and its Vercel preview deployment passed. Live acceptance remains under 5.4.
-- [ ] 5.4 Run a short demo with owner, staff, and unrelated Google accounts: onboard an account without an org; invite by copied link; share and edit jobs/categories; block used-category deletion; reassign and delete; revoke an invite; remove staff while their job is open; reject further direct reads/writes and old-link reuse. Verify shared data remains, reloads preserve access rules, and no invitation email is sent.
+- [x] 5.3 Run `npm run check` and verify the implementation pushes cleanly to the intended Convex deployment. Local checks, [PR #12 CI](https://github.com/VinhLe1410/site-ahead/actions/runs/34742649192), and its Vercel preview deployment passed. Browser acceptance is recorded under 5.4.
+- [x] 5.4 Run a short demo with owner, staff, and unrelated Google accounts: onboard an account without an org; invite by copied link; share and edit jobs/categories; block used-category deletion; reassign and delete; revoke an invite; remove staff while their job is open; reject further direct reads/writes and old-link reuse. Verify shared data remains, reloads preserve access rules, and no invitation email is sent. The developer confirmed the browser demo works on 2026-09-13.
