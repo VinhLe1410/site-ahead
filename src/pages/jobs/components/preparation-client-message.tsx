@@ -34,6 +34,8 @@ export function PreparationClientMessage({
   const [notice, setNotice] = useState<string | null>(null);
   const savedRevision = message?.revision ?? 0;
   const text = edit?.text ?? message?.text ?? "";
+  const needsConfirmation = edit !== null || message?.edited === true;
+
   const changedElsewhere = edit !== null && edit.revision !== savedRevision;
 
   async function save() {
@@ -69,6 +71,9 @@ export function PreparationClientMessage({
       setNotice(
         "Message regenerated from the current pending client questions.",
       );
+    } catch (caught) {
+      setError(getErrorMessage(caught, "Could not regenerate the message."));
+      throw caught;
     } finally {
       setWorking(false);
     }
@@ -180,11 +185,16 @@ export function PreparationClientMessage({
             >
               Copy message
             </Button>
-            {!canRegenerate ? (
-              <Button variant="outline" disabled>
+            {(!canRegenerate || !needsConfirmation) && (
+              <Button
+                variant="outline"
+                disabled={working || !canRegenerate}
+                onClick={() => void regenerateWithoutConfirmation()}
+              >
                 Regenerate message
               </Button>
-            ) : edit !== null || message?.edited ? (
+            )}
+            <span hidden={!canRegenerate || !needsConfirmation}>
               <ConfirmDialog
                 trigger="Regenerate message"
                 title="Replace this message draft?"
@@ -192,15 +202,7 @@ export function PreparationClientMessage({
                 confirmLabel="Regenerate message"
                 onConfirm={regenerate}
               />
-            ) : (
-              <Button
-                variant="outline"
-                disabled={working}
-                onClick={() => void regenerateWithoutConfirmation()}
-              >
-                Regenerate message
-              </Button>
-            )}
+            </span>
           </div>
           {!canRegenerate && (
             <p className="text-xs text-muted-foreground">
