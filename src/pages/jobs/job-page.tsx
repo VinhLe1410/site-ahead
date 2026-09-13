@@ -28,6 +28,7 @@ import {
 import { jobStatusLabels } from "@/pages/jobs/job-labels";
 import { ChecklistItem } from "./components/checklist-item";
 import { JobAgentControls } from "./components/job-agent-controls";
+import { JobBrief } from "./components/job-brief";
 
 function JobDetails({
   data,
@@ -187,14 +188,15 @@ function JobDetails({
           </ul>
         )}
       </section>
-      <section className="mt-8 max-w-3xl" aria-labelledby="job-brief-heading">
-        <h2 id="job-brief-heading" className="mb-3 font-semibold">
-          Job brief
-        </h2>
-        <p className="border-l-2 border-primary pl-4 text-sm leading-7 whitespace-pre-wrap wrap-anywhere">
-          {data.input.processedText}
-        </p>
-      </section>
+      <JobBrief
+        context={{
+          job: data.job,
+          input: data.input,
+          category: data.categoryTitle ? { title: data.categoryTitle } : null,
+        }}
+        items={data.checklist}
+        states={agentStates}
+      />
     </>
   );
 }
