@@ -143,9 +143,9 @@ The separate `add-pre-visit-preparation-suggestions` extension adds automatic pr
 
 The existing organization, job, category, and versioned document foundations are reused. There is no parallel form/blob catalog. Provider secrets remain server-side, and structured logs and Langfuse traces expose stages and failures without logging document contents or credentials.
 
-## Step 5: Where AI actually helps
-
 The separately approved `add-electrical-checklist-agents` extension adds the eight reviewed Electrical Work items and a prescribed replacement demo at 198 Berkeley Street, Carlton. Request skills prepare inspector email text and verified COES portal fields without local form files. Actual testing, RCD coverage and inspection remain human work. An uploaded completed certificate and confirmed recipient trigger only a clearly labeled delivery simulation for this PoC; no email is sent.
+
+## Step 5: Where AI actually helps
 
 - Speech-to-text: ElevenLabs Scribe turning a spoken client message into text, as an alternative to pasting a chat transcript.
 - Extraction: job subtype and trigger-keyword detection from that text (pasted or transcribed), used to tailor which checklist items apply beyond the job-type base list.
