@@ -14,6 +14,8 @@ export function ChecklistKindBadge({
   kind: Doc<"checklistItems">["kind"];
 }) {
   return (
-    <Badge className={kindStyles[kind]}>{checklistKindLabels[kind]}</Badge>
+    <Badge className={`w-24 justify-center ${kindStyles[kind]}`}>
+      {checklistKindLabels[kind]}
+    </Badge>
   );
 }

@@ -8,7 +8,8 @@ import { RequestError } from "@/components/layout/request-error";
 
 export function DocumentDownload({
   version,
-}: Pick<DocumentSummary, "version">) {
+  attached = false,
+}: Pick<DocumentSummary, "version"> & { attached?: boolean }) {
   const { download } = useDocumentTransfer();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,11 +30,16 @@ export function DocumentDownload({
   }
 
   return (
-    <div className="space-y-2">
+    <div className={attached ? "contents" : "space-y-2"}>
       <Button
         type="button"
         variant="outline"
         size="sm"
+        className={
+          attached
+            ? "h-auto min-h-10 self-stretch rounded-none rounded-r-md border-0 border-l bg-transparent shadow-none focus-visible:ring-inset"
+            : undefined
+        }
         disabled={pending}
         onClick={() => void startDownload()}
         aria-label={`Download ${version.filename}, version ${version.number}`}
@@ -41,7 +47,13 @@ export function DocumentDownload({
         <DownloadIcon />
         {pending ? "Downloading..." : "Download"}
       </Button>
-      {error !== null && <RequestError message={error} />}
+      {error !== null && (
+        <div
+          className={attached ? "col-span-full border-t px-3 py-2" : undefined}
+        >
+          <RequestError message={error} />
+        </div>
+      )}
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { useMutation } from "convex/react";
 import { useNavigate } from "react-router";
 import { api } from "../../../convex/_generated/api";
-import { PageHeading } from "@/components/layout/page-heading";
 import { CategoryForm } from "@/pages/categories/components/category-form";
 
 export function NewCategoryPage() {
@@ -9,15 +8,12 @@ export function NewCategoryPage() {
   const navigate = useNavigate();
 
   return (
-    <>
-      <PageHeading title="New category" />
-      <CategoryForm
-        submitLabel="Create category"
-        onSubmit={async (values) => {
-          const categoryId = await createCategory(values);
-          void navigate(`/app/categories/${categoryId}`);
-        }}
-      />
-    </>
+    <CategoryForm
+      submitLabel="Create category"
+      onSubmit={async (values) => {
+        const categoryId = await createCategory(values);
+        void navigate(`/app/categories/${categoryId}`);
+      }}
+    />
   );
 }

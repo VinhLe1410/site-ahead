@@ -113,11 +113,13 @@ export function DocumentPicker({
   selectedIds,
   savedDocuments,
   onChange,
+  onDocumentAdded,
   disabled,
 }: {
   selectedIds: Id<"documents">[];
   savedDocuments: DocumentSummary[];
   onChange: (ids: Id<"documents">[]) => void;
+  onDocumentAdded?: (document: DocumentSummary) => void;
   disabled: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -194,7 +196,7 @@ export function DocumentPicker({
           <FilePlusIcon />
           Attach documents
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="z-60 sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Attach documents</DialogTitle>
             <DialogDescription>
@@ -205,6 +207,7 @@ export function DocumentPicker({
             <DocumentChoices
               selectedIds={selectedIds}
               onSelect={(reference) => {
+                onDocumentAdded?.(reference);
                 setAddedDocuments((current) => [
                   ...current.filter((entry) =>
                     selectedIds.includes(entry.document._id),
