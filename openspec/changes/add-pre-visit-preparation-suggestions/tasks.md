@@ -8,16 +8,18 @@
 
 - [x] 2.1 Add versioned Carpentry & Renovation guidance and bounded structured-output validation; verify zero is allowed, exact excerpts and count/field bounds are enforced, known answers and duplicates are excluded, and unsupported categories do not claim coverage.
 - [x] 2.2 Add automatic generation on supported job creation and explicit existing-job generation with atomic claims, scheduled expiry, membership/revision/fingerprint guards and one bounded model call per attempt (at most one initial retry for changing findings); verify provider failure preserves work, human decisions and deletion reject late saves, and timeout permits retry.
-- [ ] 2.3 Verify live outputs for deck extension, skirting replacement, known access, vague description and injected instructions; record observed usefulness, client-message relevance, fewer-than-three/empty results and remaining quality limitations.
+- [x] 2.3 Verify live outputs for deck extension, skirting replacement, known access, vague description and injected instructions; record observed usefulness, client-message relevance, fewer-than-three/empty results and remaining quality limitations.
 
 ## 3. Contractor workflow
 
-- [x] 3.1 Compose `PreVisitPreparation` in the existing job page with direct checkoff/dismiss, source/rationale, generate/refresh and visible loading/empty/stale/unsupported/failure states; verify the main workflow, visible generation and empty/stale states in the agreed desktop browser, with backend checks for unsupported/failure guards.
+- [x] 3.1 Compose `PreVisitPreparation` in the existing job page with direct checkoff/dismiss, source/rationale, generate/refresh and visible loading/empty/stale/unsupported/failure states; verify the main workflow, visible generation and empty/stale states in the agreed desktop browser, inspect unsupported/failure rendering and verify backend access/failure guards.
 - [x] 3.2 Add editable saved client message with explicit regenerate and copy controls; verify edits/reload, stale indication, no sending or completion side effects, and omission of completed/dismissed/internal questions on regeneration.
 - [x] 3.3 Verify saved typed descriptions need no audio, organization members share preparation state, and preparation actions leave existing checklist totals, evidence, agent dispatch and job status unchanged.
 
 ## 4. Integration and verification
 
-- [ ] 4.1 Update implementation-scope notes in `docs/Site-Ahead-Idea.md` and `docs/roadmap.md`; verify the separate preparation/message extension and original roadmap exclusions remain explicit.
+- [x] 4.1 Update implementation-scope notes in `docs/Site-Ahead-Idea.md` and `docs/roadmap.md`; verify the separate preparation/message extension and original roadmap exclusions remain explicit.
 - [x] 4.2 Regenerate bindings and validate the additive backend on the existing configured development deployment; verify no schema/function validation failures or deployment identity changes.
-- [ ] 4.3 Run `npm run check` and `npm run build`, then complete a browser demo covering automatic generation, contrasting inputs, empty results, completion/reload and editable messages; use integration checks for explicit refresh, stale saves, failure/expiry retry, access denial and deletion; record evidence before marking complete.
+- [x] 4.3 Run `npm run check` and `npm run build`, then complete a browser demo covering automatic generation, contrasting inputs, empty results, completion/reload and editable messages; use integration checks for explicit refresh, stale saves, failure/expiry retry, access denial and deletion; record evidence before marking complete.
+
+Verification evidence: [Pre-Visit Preparation Verification](../../../docs/Pre-Visit-Preparation-Verification.md) records live model observations, the desktop workflow, backend integration checks and their limits.

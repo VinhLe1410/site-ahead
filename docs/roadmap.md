@@ -16,6 +16,8 @@ The current Request Agent PoC is limited to the uploaded Building Permit — Car
 
 The user's demo feedback adds individual saved road-disruption details and a live Job Brief summarizing completed work and suggested next actions in priority order. Derive this view from current checklist and Agent state, retain the original input, and keep full generated/persisted reports as later work. Preserve a demo job with genuine results from all three live automated sources; zero published road matches is a valid result, not a promise of clear access.
 
+The separate `add-pre-visit-preparation-suggestions` extension adds automatic preparation for saved Carpentry & Renovation jobs and explicit generation/refresh for existing jobs. It recommends zero to three grounded before-visit actions, directly checked off or dismissed by organization members. Refresh preserves completed tasks and their original grounding. Pending client-answerable questions also produce an editable saved message that members can review, regenerate and copy for manual use. Internal tasks are omitted from the message. Nothing is sent, and preparation never changes checklist status, job status or agent dispatch. This extends the original bounded intake approach without replacing it; additional trades, voice changes and broader reporting remain separate work.
+
 ## Broader PoC scope
 
 - Contractor signs in, enters an address and job type, and pastes or records the client's message.
