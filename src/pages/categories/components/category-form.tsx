@@ -1,13 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -39,11 +33,13 @@ const kindLabels: Record<ChecklistKind, string> = {
 export function CategoryForm({
   initialTitle = "",
   initialChecklist = [],
+  editing = false,
   submitLabel,
   onSubmit,
 }: {
   initialTitle?: string;
   initialChecklist?: TemplateItem[];
+  editing?: boolean;
   submitLabel: string;
   onSubmit: (values: {
     title: string;
@@ -100,29 +96,25 @@ export function CategoryForm({
   }
 
   return (
-    <form className="space-y-6" onSubmit={(event) => void handleSubmit(event)}>
-      <Card>
-        <CardContent>
-          <Field>
-            <FieldLabel htmlFor="category-title">Category title</FieldLabel>
-            <Input
-              id="category-title"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              disabled={isSaving}
-              required
-            />
-          </Field>
-        </CardContent>
-      </Card>
+    <form
+      className="max-w-4xl space-y-6"
+      onSubmit={(event) => void handleSubmit(event)}
+    >
+      <div className="max-w-xl">
+        <Field>
+          <FieldLabel htmlFor="category-title">Category name</FieldLabel>
+          <Input
+            id="category-title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            disabled={isSaving}
+            required
+          />
+        </Field>
+      </div>
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="font-medium">Checklist template</h2>
-            <p className="text-sm text-muted-foreground">
-              Add up to 100 checks. New jobs receive their own copy.
-            </p>
-          </div>
+          <h2 className="font-semibold">Checklist template</h2>
           <Button
             type="button"
             variant="outline"
@@ -140,16 +132,26 @@ export function CategoryForm({
         </div>
         {checklist.length === 0 && (
           <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-            This category has no checklist items yet.
+            No checklist items yet.
           </p>
         )}
-        <FieldGroup>
-          {checklist.map((item, index) => (
-            <Card key={item.key} size="sm">
-              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                <Field className="flex-1">
-                  <FieldLabel htmlFor={`item-${index}`}>
-                    Item {index + 1} title
+        {checklist.length > 0 && (
+          <div className="divide-y border bg-card">
+            <div
+              aria-hidden="true"
+              className="hidden grid-cols-[minmax(0,1fr)_11rem_2.5rem] gap-3 bg-muted/50 px-4 py-3 text-sm font-medium text-muted-foreground sm:grid"
+            >
+              <span>Item</span>
+              <span>Kind</span>
+            </div>
+            {checklist.map((item, index) => (
+              <div
+                key={item.key}
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_11rem_auto]"
+              >
+                <Field className="col-span-2 min-w-0 sm:col-span-1">
+                  <FieldLabel htmlFor={`item-${index}`} className="sm:sr-only">
+                    Item {index + 1}
                   </FieldLabel>
                   <Input
                     id={`item-${index}`}
@@ -161,8 +163,13 @@ export function CategoryForm({
                     required
                   />
                 </Field>
-                <Field className="sm:w-44">
-                  <FieldLabel htmlFor={`kind-${item.key}`}>Kind</FieldLabel>
+                <Field className="min-w-0">
+                  <FieldLabel
+                    htmlFor={`kind-${item.key}`}
+                    className="sm:sr-only"
+                  >
+                    Kind
+                  </FieldLabel>
                   <Select
                     value={item.kind}
                     onValueChange={(kind) => updateKind(index, item, kind)}
@@ -182,7 +189,8 @@ export function CategoryForm({
                 </Field>
                 <Button
                   type="button"
-                  variant="destructive"
+                  variant="ghost"
+                  className="text-muted-foreground hover:text-destructive"
                   size="icon"
                   aria-label={`Remove item ${index + 1}`}
                   onClick={() =>
@@ -194,18 +202,28 @@ export function CategoryForm({
                 >
                   <Trash2Icon />
                 </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </FieldGroup>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       {error !== null && <RequestError message={error} />}
-      <FieldError>
-        {title.trim().length === 0 ? "Enter a category title." : null}
-      </FieldError>
-      <Button type="submit" disabled={isSaving || title.trim().length === 0}>
-        {isSaving ? "Saving..." : submitLabel}
-      </Button>
+      <div className="space-y-3 border-t pt-5">
+        {editing && (
+          <p className="text-sm text-muted-foreground">
+            Template changes apply to future jobs. Existing checklists stay
+            unchanged.
+          </p>
+        )}
+        {checklist.length >= 100 && (
+          <p className="text-sm" role="status">
+            Limit reached: 100 items.
+          </p>
+        )}
+        <Button type="submit" disabled={isSaving || title.trim().length === 0}>
+          {isSaving ? "Saving..." : submitLabel}
+        </Button>
+      </div>
     </form>
   );
 }

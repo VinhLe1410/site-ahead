@@ -10,10 +10,7 @@ export function NewCategoryPage() {
 
   return (
     <>
-      <PageHeading
-        title="New category"
-        description="Define a reusable checklist for future jobs."
-      />
+      <PageHeading title="New category" />
       <CategoryForm
         submitLabel="Create category"
         onSubmit={async (values) => {

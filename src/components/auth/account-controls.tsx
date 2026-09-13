@@ -38,7 +38,7 @@ export function AccountControls({
 
   return (
     <div className="space-y-3 border-t pt-4">
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-muted-foreground wrap-anywhere">
         {user === undefined ? "Loading account..." : user.email}
       </p>
       <div className="flex flex-wrap gap-2">
@@ -48,7 +48,7 @@ export function AccountControls({
             disabled={pending}
             onClick={() => void logout(true)}
           >
-            Use a different account or sign in again
+            Use a different account
           </Button>
         )}
         <Button
