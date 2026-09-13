@@ -8,8 +8,13 @@
  * @module
  */
 
+import type * as access from "../access.js";
 import type * as auth from "../auth.js";
+import type * as categories from "../categories.js";
+import type * as checklistItems from "../checklistItems.js";
+import type * as contracts from "../contracts.js";
 import type * as http from "../http.js";
+import type * as jobs from "../jobs.js";
 import type * as users from "../users.js";
 
 import type {
@@ -19,8 +24,13 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  access: typeof access;
   auth: typeof auth;
+  categories: typeof categories;
+  checklistItems: typeof checklistItems;
+  contracts: typeof contracts;
   http: typeof http;
+  jobs: typeof jobs;
   users: typeof users;
 }>;
 

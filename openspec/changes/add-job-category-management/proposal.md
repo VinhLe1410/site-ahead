@@ -6,7 +6,7 @@ The app currently stops at an authenticated account screen. The backend owner ne
 
 - Add Input, Category, Job, and ChecklistItem records. An input can relate to many jobs; this slice creates one job with one address per submission.
 - Let users create and edit private trade categories. Each category stores a checklist JSON array of `{ title, kind }` templates.
-- Create an input behind a manual job creation form containing processed text, one address, and a selected category. Copy that category's templates into independent job checklist items.
+- Create an input behind a manual job creation form containing processed text, one address, and an optional category. Jobs without a category remain available as unclassified work. Copy a selected category's templates into independent job checklist items.
 - Let users browse and open their jobs. Job statuses are Pending, In Progress, and Done, changed manually. Checklist items are Pending or Done, toggled by checkboxes, with editable notes.
 - Keep existing job checklist items unchanged when a category template is edited. Omit template keys.
 - Add a shadcn sidebar with Jobs and Categories, breadcrumb navigation, tables, and creation/editing forms. Keep Input out of navigation and omit search.

@@ -20,11 +20,11 @@ Use Convex's generated `_id` and `_creationTime`; the discussion's `id` refers t
 | --- | --- |
 | `inputs` | `ownerId`, `processedText`, `addressText` |
 | `categories` | `ownerId`, `title`, `checklist: Array<{ title, kind }>` |
-| `jobs` | `ownerId`, `inputId`, `categoryId`, `addressText`, `status` |
+| `jobs` | `ownerId`, `inputId`, optional `categoryId`, `addressText`, `status` |
 | `checklistItems` | `jobId`, `title`, `kind`, `status`, `notes` |
 
 ```text
-User --< Inputs --< Jobs >-- Category >-- User
+User --< Inputs --< Jobs >-- [Category] >-- User
                      |
                      +--< ChecklistItems
 
@@ -33,13 +33,13 @@ Category.checklist: [{ title, kind }]
                      +-- copied into new job items
 ```
 
-`ownerId` references the existing users table and is set from the session. Store it on jobs as well as inputs so the dashboard can query an owner index directly. Checklist ownership is checked through its job. `inputId` is not unique, allowing later creation of multiple jobs for one input.
+`ownerId` references the existing users table and is set from the session. Store it on jobs as well as inputs so the dashboard can query an owner index directly. Checklist ownership is checked through its job. `inputId` is not unique, allowing later creation of multiple jobs for one input. `categoryId` is optional so unclassified jobs can be created and managed before a category is known. Assigning or changing a category after creation remains out of scope.
 
 Preserve the agreed flexible intake field as `inputs.addressText: string | string[]`. A list means candidate matches, not multiple sites. This slice's form and creation operation accept one string and save it to both the input and job. `jobs.addressText` is always one string. Candidate resolution and intake integration remain deferred; the UI does not expose the union or claim that an address was verified.
 
 Store the category checklist as validated JSON objects, not a JSON-encoded string or arbitrary data. Each entry contains only `title` and `kind`. Cap a template at 100 items to bound one creation transaction and its detail query. Allow an empty template for initial setup. Both are implementation defaults for this proposal, not additional workflows.
 
-Copy item titles and kinds when creating the job. Each item starts with `status: "pending"` and `notes: ""`. Editing templates cannot change those copies. Keep `categoryId` for the relationship and display its current category title; checklist contents and progress are the job's saved copy. Separate item records make individual updates simple. Embedding mutable checklist arrays on jobs would require rewriting the array for each checkbox or note change.
+When a category is selected, copy item titles and kinds when creating the job. Each item starts with `status: "pending"` and `notes: ""`. Editing templates cannot change those copies. Keep `categoryId` for the optional relationship and display its current category title. Display `Uncategorized` when the relationship is absent. Uncategorized jobs start with no checklist items. Checklist contents and progress are the job's saved copy. Separate item records make individual updates simple. Embedding mutable checklist arrays on jobs would require rewriting the array for each checkbox or note change.
 
 No template keys, report fields, agent state, or speculative result payloads are added. Job status values are `pending`, `in_progress`, and `done`; item status values are `pending` and `done`. Kind values are `automated`, `third_party`, and `on_site`. UI labels use the agreed readable names. Kind describes the work; it triggers no behavior in this slice.
 
@@ -52,12 +52,12 @@ Add `by_ownerId` indexes to inputs, categories, and jobs; `by_inputId` on jobs; 
 | Area | Client operations |
 | --- | --- |
 | `convex/categories.ts` | List/get owned categories; create/update title and template |
-| `convex/jobs.ts` | List/get owned jobs; create from processed text, one address, and owned category; set job status |
+| `convex/jobs.ts` | List/get owned jobs; create from processed text, one address, and an optional owned category; set job status |
 | `convex/checklistItems.ts` | Set item status; save item notes |
 
-Every public operation derives identity server-side using the existing auth approach. Do not accept owner IDs from clients. Job details can return its input, category label, and checklist after checking ownership; Input needs no standalone CRUD API. Share the small ownership checks where needed. Use object-form functions with argument and return validators.
+Every public operation derives identity server-side using the existing auth approach. Do not accept owner IDs from clients. Job details can return its input, nullable category label, and checklist after checking ownership; Input needs no standalone CRUD API. Share the small ownership checks where needed. Use object-form functions with argument and return validators.
 
-One `jobs.create` mutation validates the selected category, inserts the input and job, copies the template items, and returns the job ID. All writes succeed or roll back together. The form disables resubmission while pending. There is no scheduler, LLM, or provider call. This is a manual creation contract; T1/T2 integration must agree any additional calls in a later change.
+One `jobs.create` mutation accepts a nullable category ID. It validates an ID when supplied, inserts the input and job, copies the selected template items, and returns the job ID. With no category, it saves the job without checklist items. All writes succeed or roll back together. The form disables resubmission while pending. There is no scheduler, LLM, or provider call. This is a manual creation contract; T1/T2 integration must agree any additional calls in a later change.
 
 Status and notes mutations patch only their own fields. Users can select any of the three job statuses and toggle any item regardless of kind or job status. Neither operation derives the other's status. No category/job deletion, job reassignment, or manual addition/removal of items on an existing job is included.
 
@@ -69,7 +69,7 @@ Keep Declarative React Router and the complete route hierarchy in `src/routes.ts
 | --- | --- |
 | `/app` | Redirect to `/app/jobs`, retaining query and fragment |
 | `/app/jobs` | `JobsPage`: shadcn table of address, category, status, and an open action |
-| `/app/jobs/new` | `NewJobPage`: processed text, address, category selection |
+| `/app/jobs/new` | `NewJobPage`: processed text, address, optional category selection |
 | `/app/jobs/:jobId` | `JobPage`: input text, address, category, manual status select, checklist checkboxes and notes |
 | `/app/categories` | `CategoriesPage`: private category table and create/open actions |
 | `/app/categories/new` | `NewCategoryPage`: title and editable template rows |
@@ -87,12 +87,12 @@ Use Convex subscriptions for saved data and local state for unsaved fields. Save
 
 - Users can mark jobs Done while items remain Pending. This is the agreed manual behavior; display both saved states without imposing a dependency.
 - Template copies will not follow later edits. This preserves job progress; no versioning or migration UI is needed.
-- Category titles are displayed from the related category, while item definitions are copied. Renaming a category does not rewrite any job item.
+- Category titles are displayed from the related category, while item definitions are copied. Renaming a category does not rewrite any job item. Jobs without that relationship display as Uncategorized.
 - The manual form does not interpret trades or validate addresses geographically. Its entered values let the team exercise persistence while intake work continues separately.
 - Preview deployments share a backend. Coordinate schema deployment with teammates and keep changes additive.
 
 ## Migration Plan
 
-Add the four tables and indexes, deploy to the existing configured development backend, and regenerate Convex bindings. Do not alter auth tables, provider settings, preview origins, or existing deployment selection. No backfill is needed for the new tables. Categories are created through the UI; this change does not seed another owner's records or install seed tooling.
+Add the four tables and indexes, deploy to the existing configured development backend, and regenerate Convex bindings. Make `jobs.categoryId` optional so existing categorized jobs remain valid and new jobs may omit it. Do not alter auth tables, provider settings, preview origins, or existing deployment selection. No backfill is needed. Categories are created through the UI; this change does not seed another owner's records or install seed tooling.
 
 Verify the typed backend before connecting the pages. Deploy the frontend through the existing process. If the UI needs rollback, restore the previous frontend and leave the additive tables and their data intact. Do not delete stored user data as part of rollback.

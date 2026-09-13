@@ -64,6 +64,17 @@ Previews share backend code and data. The latest preview build updates the backe
 
 After configuration, try Google login from `/login`, reload `/app`, log out, and revisit `/app` while signed out. Review the OpenSpec task list for completed checks and any remaining live verification.
 
+## Manual category and job flow
+
+1. Open `/app/categories`, create a category, and add checklist items with Automated, Third party, and On site kinds.
+2. Open `/app/jobs/new`, enter processed intake text and one address, then select a category or leave the job Uncategorized.
+3. Change the job status, check and uncheck items, save and clear notes, then reload the page to confirm each value persists.
+4. Create a second job from the same category and confirm its checklist progress is independent.
+5. Edit the category template, create a third job, and confirm only the third job uses the changed template.
+6. Create a job without a category and confirm it remains available with an empty checklist and editable manual status.
+
+This flow is manual. It does not run agents, interpret intake, verify addresses, call external services, draft requests, or create reports. Those integrations remain separate work.
+
 If you're reading this README on GitHub and want to use this template, run:
 
 ```

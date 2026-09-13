@@ -6,26 +6,31 @@ Let contractors create private jobs from saved input and category templates, the
 
 ### Requirement: Manual job creation with saved input
 
-An authenticated user SHALL be able to create a job by providing nonblank processed text, one nonblank address, and a category they own. A successful submission SHALL save the input, link one new job to that input and category, and give the job that address. The user SHALL reach the new job after creation. Input SHALL have no separate management page. This flow SHALL work without chat, agents, voice, or address lookup services.
+An authenticated user SHALL be able to create a job by providing nonblank processed text, one nonblank address, and an optional category they own. A successful submission SHALL save the input, link one new job to that input, optionally link the category, and give the job that address. A job without a category SHALL remain available as unclassified work and start without checklist items. The user SHALL reach the new job after creation. Input SHALL have no separate management page. This flow SHALL work without chat, agents, voice, or address lookup services.
 
 #### Scenario: Create a job for hand-testing
 
 - **WHEN** a user submits processed text, a single address, and their Electrical Work category
 - **THEN** a job and its associated input are saved and the job opens with the submitted text and address
 
+#### Scenario: Create an unclassified job
+
+- **WHEN** a user submits processed text and an address without selecting a category
+- **THEN** the job opens as Uncategorized with no checklist items and remains available for manual status management
+
 #### Scenario: Reject an invalid submission
 
-- **WHEN** the text or address is blank, or the selected category is missing or belongs to another user
+- **WHEN** the text or address is blank, or a selected category is missing or belongs to another user
 - **THEN** creation fails with an actionable error and no partial input, job, or checklist is saved
 
 #### Scenario: Start without categories
 
 - **WHEN** a user opens job creation without an available category
-- **THEN** the user is directed to create a category before submitting a job
+- **THEN** the user can submit the job as Uncategorized
 
 ### Requirement: Private job dashboard and details
 
-The user SHALL be able to browse their saved jobs, see each job's address, category, and status, and open its details. Job details SHALL show the processed input, single job address, category, status, and checklist. Saved data SHALL remain available after reload. Empty, loading, missing-record, and failed-request states SHALL be distinguishable. The user SHALL be able to retry failed requests.
+The user SHALL be able to browse their saved jobs, see each job's address, category or Uncategorized label, and status, and open its details. Job details SHALL show the processed input, single job address, category or Uncategorized label, status, and checklist. Saved data SHALL remain available after reload. Empty, loading, missing-record, and failed-request states SHALL be distinguishable. The user SHALL be able to retry failed requests.
 
 #### Scenario: Open a saved job
 
