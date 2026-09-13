@@ -13,15 +13,15 @@ import {
 
 function findMatchingCategory(
   categories: Array<{ _id: Id<"categories">; title: string }>,
-  jobType: "excavation_and_trenching" | "electrical_work" | "other",
+  jobType: "carpentry" | "electrical" | "other",
 ): Id<"categories"> | null {
-  if (jobType === "excavation_and_trenching") {
-    const match = categories.find((c) => /excavation|trench/i.test(c.title));
+  if (jobType === "carpentry") {
+    const match = categories.find((c) => /carpent|timber|deck/i.test(c.title));
 
     return match ? match._id : null;
   }
 
-  if (jobType === "electrical_work") {
+  if (jobType === "electrical") {
     const match = categories.find((c) => /electric/i.test(c.title));
 
     return match ? match._id : null;

@@ -36,8 +36,8 @@ export const documentDetailsValidator = v.object({
 });
 
 export const intakeJobTypeValidator = v.union(
-  v.literal("excavation_and_trenching"),
-  v.literal("electrical_work"),
+  v.literal("carpentry"),
+  v.literal("electrical"),
   v.literal("other"),
 );
 
