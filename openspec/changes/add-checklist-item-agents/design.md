@@ -69,6 +69,14 @@ Reuse the existing Langfuse/OpenTelemetry integration and enable telemetry on ev
 
 Keep `checklistItemStatusValidator` as `pending | done` and keep the existing checkbox and notes mutations. Automated results may move an item from pending to done only after validated persistence. Third-party drafts remain pending until later human actions. On-site items have no Agent state that runs work and can become done only through the existing manual control. Manual checkbox or note changes do not dispatch Agent actions and do not overwrite Agent output.
 
+### Show useful road details and a current Job Brief
+
+Render the validated road records already stored in the finding: road/locality, event and impact, publisher status, published start/end, description and source/update information. Show a few examples immediately with the remaining records expandable. Treat descriptions as plain text. A restriction is not necessarily a full closure; retain exact road/locality scope and the zero-match coverage caveat. Do not infer a safe route or detour.
+
+Derive the Job Brief in the frontend from current checklist records and Agent states, without another LLM call, report record or route. Summarize saved completed checks, prepared drafts still awaiting review, and manual completion separately. Show suggested next actions in an explainable order: outstanding on-site assessment, failed or unresolved checks, request review and arrangements, then relevant travel preparation. Preserve current running/loading states and identify earlier outputs rather than claiming they are current successes. Keep the original processed input accessible underneath. Suggested ordering is workflow guidance, not a safety clearance or statutory determination.
+
+Preserve a separate development demo with a DataVic-covered address, saved site coordinates and exact road/locality. Verify all three actual automated findings; do not supply a fictional year or fabricate a disruption. Retain the earlier Collins Street job for its published road-record examples.
+
 ## Risks / Trade-offs
 
 - [DataVic coverage is limited and may not match an address] → After a successful lookup with no usable year, use an available validated contractor-provided year with manual provenance; otherwise remain unresolved and pending. Never infer a year or hide an API failure with fallback data.

@@ -62,4 +62,20 @@ On 14 September 2026, against the personal `sleek-lyrebird-565` development depl
 
 Run the full Request check on the preserved development demo with `npm run verify:request-agents -- <QA job ID> <active QA user ID>`. It regenerates both pending request drafts and retries the first once. `REQUEST_FORM_QA_DIRECTORY` chooses where exported files and verification evidence are saved. This command is for the development QA organization, not customer jobs.
 
-The preserved job is `kh7365vewzsy06ztg58xmgw47s8eant3`. It has downloadable draft records for both Request items; the three source versions remain intact. The UI displayed both drafts and their review fields, and both download buttons completed without an application error. The final native browser save/download check remains unverified because the Mac locked during that check. Authenticated download HTTP responses and cross-organization denial passed automated tests; actual stored draft bytes were separately downloaded and visually reviewed. OpenSpec task 6.1 remains unchecked until native browser delivery is confirmed.
+The original Collins Street job is `kh7365vewzsy06ztg58xmgw47s8eant3`. It remains available for its 15 published road-disruption examples and its original drafts.
+
+### Demo feedback verification
+
+The new demo is [80 Wellington Parade, East Melbourne](http://localhost:5173/app/jobs/kh7cx5v7k03kqxex6cca8j0c9x8eaacf), created on 14 September 2026 in the same personal development QA organization. Its saved coordinates are -37.816357, 144.987376, with road `Wellington Parade` and locality `East Melbourne`. No manual construction year was supplied.
+
+- DataVic returned an exact match: construction year **1940**, census year 2019, record 235354.
+- EPA AirWatch returned Melbourne CBD **PM2.5 7.03 µg/m³**, 1.8 km from the saved site. The reading was within the adapter's freshness window; it is a nearby ambient reading, not a worksite assessment.
+- The complete Transport Victoria snapshot returned **zero** exact road/locality matches. The first Road item run recorded `item_model_or_persistence_failed`; an explicit retry on the same thread saved the validated result without changing sibling outputs. Zero matches does not guarantee a clear route.
+- All three automated items are `done` with `finished` Agent states. Asbestos remains human-controlled and pending. Both form items have saved drafts and remain pending/waiting.
+- Both draft buttons delivered actual files into the browser's Downloads folder. Their SHA-256 hashes match the latest stored draft metadata and both contain the Wellington Parade address. All four rendered pages were inspected; the address fits and signatures remain blank. This closes the earlier native download verification gap in task 6.1.
+- The Collins Street browser view displays three specific disruption records and expands to all 15. Examples include utility-work lane restrictions, daily work windows, published dates and expected delay. Publisher status is labeled as published; the view does not claim that every record closes the entire road.
+
+- The new Job Brief shows three completed checks, two prepared drafts and three pending items. Its suggestions order the asbestos assessment, Building Permit review, and Occupancy/final inspection on completion. The original input remains accessible. A browser checkbox test immediately updated the brief to four marked done with explicit manual completion, then restored the demo to three done and the human assessment pending.
+- Final feedback checks passed: **56 tests**, frontend/backend type checks, lint, formatting and strict OpenSpec validation. The production build passed; Vite retains its advisory about a bundle over 500 kB. No quality rules or size warnings were disabled.
+
+Live feed values can change. Use Job information for a different site's real coordinates and road/locality; never insert fictional automated evidence to make a demonstration pass.

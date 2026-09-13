@@ -1,4 +1,4 @@
-> PR #17 preserves the completed automated backend checkpoint. The active follow-up adds exactly two Carpentry form skills, GPT-5.5 Request execution, labeled fictional general demo data, and minimal existing-checklist review/download controls. Only actual saved job input supplies the property address. Human confirmation fields remain blank. The user approved replacing the temporary-structure Occupancy upload with the Boroondara general building application as a new immutable version. Implementation and live verification are complete except the final native browser download-save check in 6.1, which is blocked by the locked Mac. See docs/verification/request-form-agents.md for evidence.
+> PR #17 preserves the completed automated backend checkpoint. The active follow-up adds exactly two Carpentry form skills, GPT-5.5 Request execution, labeled fictional general demo data, and minimal existing-checklist review/download controls. Only actual saved job input supplies the property address. Human confirmation fields remain blank. The user approved replacing the temporary-structure Occupancy upload with the Boroondara general building application as a new immutable version. The final native browser download-save check in 6.1 has now passed. The follow-up demo refinements are tracked in section 8. See docs/verification/request-form-agents.md for evidence.
 
 ## 1. Establish the shared Convex contract
 
@@ -36,7 +36,7 @@
 
 ## 6. Integrate contractor controls and adversarial checks
 
-- [ ] 6.1 Automatically schedule server-derived full-record classification after job creation saves its checklist; add minimal authenticated controls to start existing saved-checklist processing, retry classification or resume one item, inspect progress/findings, supply structured missing job data and contractor-confirmed year, and download request drafts. Verify reload persistence and preserve manual notes/checkbox behavior without automatic dispatch.
+- [x] 6.1 Automatically schedule server-derived full-record classification after job creation saves its checklist; add minimal authenticated controls to start existing saved-checklist processing, retry classification or resume one item, inspect progress/findings, supply structured missing job data and contractor-confirmed year, and download request drafts. Verify reload persistence and preserve manual notes/checkbox behavior without automatic dispatch.
 - [x] 6.2 Verify atomic duplicate claims, bounded concurrency, explicit crash recovery, stale late writes, job/item deletion or editing during runs, initiating member removal, and classification/execution retry isolation. Verify rejected saves preserve human changes and other item outputs.
 - [x] 6.3 Verify form tools derive values only from saved records and the approved demo profile, preserve pins across library replacement, reject unsupported templates/model field fabrication, and deny cross-organization draft downloads. Verify both actual PDF/DOCX drafts, blank signatures, protected human fields, source preservation and cleanup of rejected or superseded generated files.
 
@@ -45,3 +45,9 @@
 - [x] 7.1 Run the Carpentry & Renovation acceptance journey with construction year, Air Quality, and Road Closure as automated items, Asbestos as on-site, and the permit/occupancy items as third-party; verify valid kind updates, independent concurrent states, binary checklist statuses, and no Powerlines work.
 - [x] 7.2 Demonstrate a DataVic no-match item using an available valid manual year and saving its attribution before completion; demonstrate no manual year leaving the item automated and pending, an API failure remaining failed despite an available manual year and retrying on the same thread, and a third-party item producing a reviewable PDF or DOCX draft with missing fields. Verify other item runs continue independently.
 - [x] 7.3 Run `npm run verify:classification`, `npm run verify:langfuse`, `npm run build`, and `npm run check`; resolve TypeScript, lint, formatting, OpenSpec, and Convex deployment validation failures before handoff.
+
+## 8. Address demo feedback
+
+- [x] 8.1 Show specific saved road-disruption examples with timing, impact, description and source, an expandable remainder, and honest zero-match coverage.
+- [x] 8.2 Derive a current Job Brief with completed findings and suggested next actions in priority order; preserve original input and distinguish pending drafts, failures, running work and manual completion. Verify state-sensitive summary behavior.
+- [x] 8.3 Preserve a demo job with live construction-year, air-quality and road findings, and drafts using that same saved address. Verify the revised browser journey and run the quality checks.
