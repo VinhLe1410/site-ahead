@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/select";
 import { jobStatusLabels } from "@/pages/jobs/job-labels";
 import { ChecklistItem } from "./components/checklist-item";
+import { JobAgentControls } from "./components/job-agent-controls";
+import { JobBrief } from "./components/job-brief";
 
 function JobDetails({
   data,
@@ -36,6 +38,11 @@ function JobDetails({
   const setStatus = useMutation(api.jobs.setStatus);
   const update = useMutation(api.jobs.update);
   const remove = useMutation(api.jobs.remove);
+
+  const agentStates = useQuery(api.checklistExecution.list, {
+    jobId: data.job._id,
+  });
+
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -147,6 +154,21 @@ function JobDetails({
             </span>
           )}
         </div>
+        {data.checklist.length > 0 && (
+          <JobAgentControls
+            job={data.job}
+            items={data.checklist}
+            busy={
+              agentStates === undefined ||
+              agentStates.some(
+                (state) =>
+                  state.queued ||
+                  state.execution === "running" ||
+                  state.classification.status === "running",
+              )
+            }
+          />
+        )}
         {data.checklist.length === 0 ? (
           <p className="px-5 py-8 text-sm text-muted-foreground">
             No checklist items.
@@ -158,19 +180,23 @@ function JobDetails({
                 key={item._id}
                 item={item}
                 documents={data.documents}
+                agentState={agentStates?.find(
+                  (state) => state.itemId === item._id,
+                )}
               />
             ))}
           </ul>
         )}
       </section>
-      <section className="mt-8 max-w-3xl" aria-labelledby="job-brief-heading">
-        <h2 id="job-brief-heading" className="mb-3 font-semibold">
-          Job brief
-        </h2>
-        <p className="border-l-2 border-primary pl-4 text-sm leading-7 whitespace-pre-wrap wrap-anywhere">
-          {data.input.processedText}
-        </p>
-      </section>
+      <JobBrief
+        context={{
+          job: data.job,
+          input: data.input,
+          category: data.categoryTitle ? { title: data.categoryTitle } : null,
+        }}
+        items={data.checklist}
+        states={agentStates}
+      />
     </>
   );
 }
@@ -192,5 +218,5 @@ export function JobPage() {
       </>
     );
 
-  return <JobDetails data={data} />;
+  return <JobDetails key={data.job._id} data={data} />;
 }

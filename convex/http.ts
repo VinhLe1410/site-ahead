@@ -1,6 +1,6 @@
 import { httpRouter } from "convex/server";
 import { auth } from "./auth";
-import { upload, download, preflight } from "./documentFiles";
+import { upload, download, downloadDraft, preflight } from "./documentFiles";
 
 const http = httpRouter();
 
@@ -23,3 +23,7 @@ http.route({
 });
 
 export default http;
+
+http.route({ path: "/documents/draft", method: "GET", handler: downloadDraft });
+
+http.route({ path: "/documents/draft", method: "OPTIONS", handler: preflight });

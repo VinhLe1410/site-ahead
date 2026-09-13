@@ -11,13 +11,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { ChecklistKindBadge } from "./checklist-kind-badge";
+import { ItemAgentProgress } from "./item-agent-progress";
 
 export function ChecklistItem({
   item,
   documents,
+  agentState,
 }: {
   item: Doc<"checklistItems">;
   documents: DocumentSummary[];
+  agentState: Doc<"checklistAgentStates"> | undefined;
 }) {
   const setStatus = useMutation(api.checklistItems.setStatus);
   const setNotes = useMutation(api.checklistItems.setNotes);
@@ -169,6 +172,7 @@ export function ChecklistItem({
           })}
         </ul>
       )}
+      <ItemAgentProgress item={item} state={agentState} />
       {editing && (
         <form
           id={`note-editor-${item._id}`}

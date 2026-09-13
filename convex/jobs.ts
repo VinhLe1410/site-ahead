@@ -1,3 +1,5 @@
+import { internal } from "./_generated/api";
+import { invalidateItemWork, removeItemWork } from "./itemAgentData";
 import {
   paginationOptsValidator,
   paginationResultValidator,
@@ -31,7 +33,7 @@ export const create = mutation({
   },
   returns: v.id("jobs"),
   handler: async (ctx, args) => {
-    const { organizationId } = await requireMembership(ctx);
+    const { organizationId, userId } = await requireMembership(ctx);
 
     const category =
       args.categoryId === null
@@ -83,6 +85,18 @@ export const create = mutation({
         documentVersionIds: item.documentVersionIds,
       });
     }
+
+    const items = await ctx.db
+      .query("checklistItems")
+      .withIndex("by_jobId", (q) => q.eq("jobId", jobId))
+      .take(100);
+
+    if (items.length > 0)
+      await ctx.scheduler.runAfter(
+        0,
+        internal.agents.checklist.processChecklist.run,
+        { items, initiatedBy: userId },
+      );
 
     return jobId;
   },
@@ -240,6 +254,13 @@ export const update = mutation({
       .withIndex("by_inputId", (q) => q.eq("inputId", input._id))
       .take(2);
 
+    const items = await ctx.db
+      .query("checklistItems")
+      .withIndex("by_jobId", (q) => q.eq("jobId", job._id))
+      .take(100);
+
+    for (const item of items) await invalidateItemWork(ctx, item._id);
+
     // Legacy imports may share an input. Editing one job must preserve the other.
     let inputId = input._id;
 
@@ -285,8 +306,11 @@ export const remove = mutation({
     if (checklist.length > 100)
       throw new ConvexError("Job checklist exceeds its supported size");
 
-    for (const item of checklist)
+    for (const item of checklist) {
+      await removeItemWork(ctx, item._id);
       await ctx.db.delete("checklistItems", item._id);
+    }
+
     await ctx.db.delete("jobs", job._id);
 
     const remaining = await ctx.db
