@@ -145,6 +145,8 @@ The existing organization, job, category, and versioned document foundations are
 
 ## Step 5: Where AI actually helps
 
+The separately approved `add-electrical-checklist-agents` extension adds the eight reviewed Electrical Work items and a prescribed replacement demo at 198 Berkeley Street, Carlton. Request skills prepare inspector email text and verified COES portal fields without local form files. Actual testing, RCD coverage and inspection remain human work. An uploaded completed certificate and confirmed recipient trigger only a clearly labeled delivery simulation for this PoC; no email is sent.
+
 - Speech-to-text: ElevenLabs Scribe turning a spoken client message into text, as an alternative to pasting a chat transcript.
 - Extraction: job subtype and trigger-keyword detection from that text (pasted or transcribed), used to tailor which checklist items apply beyond the job-type base list.
 - Classification: sorting each checklist item into the right category (Automated / Third-Party / On-Site), and generating the right set of items for a given job type.

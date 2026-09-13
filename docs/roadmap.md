@@ -20,6 +20,8 @@ The separate `add-pre-visit-preparation-suggestions` extension adds automatic pr
 
 ## Broader PoC scope
 
+The separately approved `add-electrical-checklist-agents` extension adds eight Electrical Work items, a prescribed main-switchboard/consumer-mains replacement demo at 198 Berkeley Street, Carlton, two structured LEI email/COES portal skills and a completed-certificate upload/recipient-confirmation flow. The user chose simulated delivery: completion records a clearly labeled simulation and no email is sent. This extends the earlier Carpentry-only boundary for this change; human testing, RCD checks and inspection confirmation remain manual.
+
 - Contractor signs in, enters an address and job type, and pastes or records the client's message.
 - The platform creates a tailored checklist for **Carpentry & Renovation** or **Electrical Work**.
 - Each eligible checklist item gets its own sub-agent, which progresses that item independently.
