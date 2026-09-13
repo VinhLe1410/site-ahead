@@ -66,8 +66,8 @@ export function InviteStaffDialog({
         <DialogHeader>
           <DialogTitle>Invite staff</DialogTitle>
           <DialogDescription>
-            Staff can create, edit, and delete this organization’s jobs and
-            categories. You must share the invitation link yourself.
+            Staff can create, edit, and delete shared jobs and categories. You
+            share the invitation link yourself.
           </DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={(event) => void submit(event)}>

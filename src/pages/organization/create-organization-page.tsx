@@ -80,7 +80,7 @@ function OrganizationForm({
         description={
           removed
             ? "Your shared work stays with the organization. Create your own organization or accept a new invitation."
-            : "Create an organization to manage shared jobs and categories, or accept an invitation below."
+            : undefined
         }
       >
         <div className="space-y-6">
@@ -93,11 +93,7 @@ function OrganizationForm({
           <section className="space-y-3" aria-label="Your invitations">
             {invitations.status === "LoadingFirstPage" ? (
               <p className="text-sm">Checking invitations...</p>
-            ) : invitations.results.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No pending invitations.
-              </p>
-            ) : (
+            ) : invitations.results.length > 0 ? (
               <>
                 <h2 className="font-medium">Your invitations</h2>
                 {invitations.results.map(({ invitation, organizationName }) => (
@@ -136,7 +132,7 @@ function OrganizationForm({
                   </div>
                 ))}
               </>
-            )}
+            ) : null}
             {invitations.status === "CanLoadMore" && (
               <Button
                 variant="outline"
