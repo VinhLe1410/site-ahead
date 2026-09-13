@@ -24,6 +24,7 @@ import type * as agents_requests_occupancyPermitSkill from "../agents/requests/o
 import type * as agents_requests_requestProfile from "../agents/requests/requestProfile.js";
 import type * as agents_requests_requestSkills from "../agents/requests/requestSkills.js";
 import type * as agents_requests_requestWorker from "../agents/requests/requestWorker.js";
+import type * as agents_requests_verification from "../agents/requests/verification.js";
 import type * as agents_shared_agentLogging from "../agents/shared/agentLogging.js";
 import type * as agents_shared_observability from "../agents/shared/observability.js";
 import type * as agents_shared_observabilitySmokeTest from "../agents/shared/observabilitySmokeTest.js";
@@ -71,6 +72,7 @@ declare const fullApi: ApiFromModules<{
   "agents/requests/requestProfile": typeof agents_requests_requestProfile;
   "agents/requests/requestSkills": typeof agents_requests_requestSkills;
   "agents/requests/requestWorker": typeof agents_requests_requestWorker;
+  "agents/requests/verification": typeof agents_requests_verification;
   "agents/shared/agentLogging": typeof agents_shared_agentLogging;
   "agents/shared/observability": typeof agents_shared_observability;
   "agents/shared/observabilitySmokeTest": typeof agents_shared_observabilitySmokeTest;

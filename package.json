@@ -27,7 +27,8 @@
     "eval:audio": "node tools/eval-audio-intake.ts",
     "preview": "vite preview",
     "prepare": "husky",
-    "test:agents": "vitest run"
+    "test:agents": "vitest run",
+    "verify:request-agents": "node scripts/verify-request-agents.mjs"
   },
   "lint-staged": {
     "*.{js,cjs,mjs,jsx,ts,cts,mts,tsx}": [
