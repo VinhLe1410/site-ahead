@@ -151,19 +151,18 @@ export function OrganizationPage() {
 
   return (
     <>
-      <PageHeading
-        title="Organization"
-        description="Manage the organization name, staff, and invitation links."
-      />
+      <PageHeading title="Organization" />
       <div className="space-y-6">
         <Card>
           <CardContent className="flex flex-wrap items-center justify-between gap-4">
-            <h2 className="text-lg font-medium">{organization.name}</h2>
+            <h2 className="min-w-0 text-lg font-medium wrap-anywhere">
+              {organization.name}
+            </h2>
             <RenameOrganizationDialog name={organization.name} />
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <CardHeader className="flex flex-wrap items-center justify-between gap-3 border-b">
             <CardTitle>Members</CardTitle>
             <InviteStaffDialog onReady={setReadyInvitation} />
           </CardHeader>
@@ -196,7 +195,7 @@ export function OrganizationPage() {
                         <ConfirmDialog
                           trigger="Remove"
                           title={`Remove ${name ?? email ?? "this member"}?`}
-                          description="Their organization access ends immediately. Shared jobs, inputs, categories, and checklists stay with the organization."
+                          description="Their access ends immediately. The organization's jobs and checklists stay available to other members."
                           confirmLabel="Remove staff"
                           onConfirm={() =>
                             removeStaff({ membershipId: membership._id })
@@ -219,7 +218,7 @@ export function OrganizationPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
+          <CardHeader className="border-b">
             <CardTitle>Invitations</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">

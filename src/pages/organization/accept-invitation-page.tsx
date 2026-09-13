@@ -66,7 +66,7 @@ function InvitationDetails({ token }: { token: string }) {
         }
         description={
           invitation.state === "pending"
-            ? "You’ve been invited as staff. Manage shared jobs and categories."
+            ? "Join as staff to access this organization's jobs and categories."
             : unavailableMessages[invitation.state]
         }
       >

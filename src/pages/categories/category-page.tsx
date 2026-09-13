@@ -15,6 +15,7 @@ function CategoryEditor({
 
   return (
     <CategoryForm
+      editing
       initialTitle={category.title}
       initialChecklist={category.checklist}
       documents={category.documents}
@@ -52,12 +53,11 @@ export function CategoryPage() {
     <>
       <PageHeading
         title={category.title}
-        description="This category is shared with your organization. Template changes apply only to jobs created after you save."
         action={
           <ConfirmDialog
             trigger="Delete category"
             title={`Delete ${category.title}?`}
-            description="First reassign all jobs using this category or make them Uncategorized. Their existing checklists will stay unchanged."
+            description="Reassign jobs using this category before deleting it. Their checklists and progress will stay unchanged."
             confirmLabel="Delete category"
             onConfirm={async () => {
               await remove({ categoryId: category._id });

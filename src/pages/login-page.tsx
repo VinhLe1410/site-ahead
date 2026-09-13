@@ -33,8 +33,8 @@ export function LoginPage() {
   return (
     <AuthPage>
       <AuthCard
-        title="Log in to Site Ahead"
-        description="Use your Google account. Your first login creates your Site Ahead account."
+        title="Log in"
+        description="Your first Google login creates an account."
       >
         <div className="flex flex-col gap-5">
           <AuthError message={error} />

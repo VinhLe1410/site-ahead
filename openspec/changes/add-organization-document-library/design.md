@@ -73,6 +73,8 @@ Use `src/pages/library/library-page.tsx` for paginated listing, title/descriptio
 
 Add an active-document picker to each category template row. The picker supports title/description search, selected-file labels and downloads, and removal of archived references. Show assigned document filenames, versions, and download actions beside each job checklist item. Reuse a small download helper/component outside generated UI primitives across the library, category form, and job page.
 
+The shared UI change from `origin/main` moves checklist rows into `src/pages/jobs/components/checklist-item.tsx`. Document downloads render in that row alongside its checkbox and expandable note editor. Category document pickers occupy the full width beneath each template row. Library pages use the shared title/action heading and flat bordered lists; document descriptions remain visible as document data.
+
 ## Risks / Trade-offs
 
 - Original files and every assigned version consume storage. Archive preserves them deliberately; deletion policy is deferred.

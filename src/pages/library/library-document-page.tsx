@@ -10,7 +10,6 @@ import { PageHeading } from "@/components/layout/page-heading";
 import { RequestError } from "@/components/layout/request-error";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -80,10 +79,10 @@ export function LibraryDocumentPage() {
   if (data === null)
     return (
       <>
-        <PageHeading
-          title="Document not found"
-          description="This document does not exist or you cannot access it."
-        />
+        <PageHeading title="Document not found" />
+        <p className="mb-4 text-sm text-muted-foreground">
+          This document does not exist or you cannot access it.
+        </p>
         <Link to="/app/library" className="underline">
           Back to Library
         </Link>
@@ -102,7 +101,6 @@ export function LibraryDocumentPage() {
     <>
       <PageHeading
         title={document.title}
-        description={document.description}
         action={
           document.archived ? (
             <Badge variant="secondary">Archived</Badge>
@@ -111,34 +109,35 @@ export function LibraryDocumentPage() {
           )
         }
       />
+      {document.description.length > 0 && (
+        <p className="mb-6 max-w-3xl text-sm leading-6 whitespace-pre-wrap text-muted-foreground wrap-anywhere">
+          {document.description}
+        </p>
+      )}
       {document.archived && (
         <p className="mb-4 text-sm text-muted-foreground">
           This document is archived. Existing jobs can still download their
           assigned versions.
         </p>
       )}
-      <Card className="mb-6">
-        <CardContent className="flex flex-wrap items-center justify-between gap-4">
-          <div className="min-w-0 space-y-1">
-            <p className="break-words font-medium">{version.filename}</p>
-            <p className="text-sm text-muted-foreground">
-              Version {version.number} · {fileSize}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Uploaded {new Date(version._creationTime).toLocaleString()}
-              {uploader !== null && ` by ${uploader}`}
-            </p>
-          </div>
-          <DocumentDownload version={version} />
-        </CardContent>
-      </Card>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border bg-card p-5">
+        <div className="min-w-0 space-y-1">
+          <p className="break-words font-medium">{version.filename}</p>
+          <p className="text-sm text-muted-foreground">
+            Version {version.number} · {fileSize}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Uploaded {new Date(version._creationTime).toLocaleString()}
+            {uploader !== null && ` by ${uploader}`}
+          </p>
+        </div>
+        <DocumentDownload version={version} />
+      </div>
       {!document.archived && (
         <div className="space-y-6">
-          <Card>
-            <CardContent>
-              <DocumentDetailsForm key={document._id} document={document} />
-            </CardContent>
-          </Card>
+          <div className="max-w-3xl">
+            <DocumentDetailsForm key={document._id} document={document} />
+          </div>
           <ConfirmDialog
             trigger="Archive document"
             title={`Archive ${document.title}?`}
