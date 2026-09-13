@@ -95,6 +95,19 @@ Success criteria:
 - [ ] Able to choose the API that matches the task.
 - [ ] Request to the API succeeds and returns a correctly-formatted response.
 
+#### A3.2. Create Agent tools for each Automated Check API
+
+- [ ] For each Automated Check API confirmed working in A3.1, wrap it as a standard Agent tool (name, description, input schema, and clear guidance on when to use it), following this codebase's existing tool-definition conventions.
+- [ ] Write each tool's description specifically enough that an agent can correctly pick the right tool for a given checklist item — not a generic "call an API" description.
+
+Success criteria:
+
+- [ ] Every Automated Check API from A3.1 has a corresponding tool with name, description, and input schema.
+- [ ] Tool descriptions are specific enough to disambiguate between tools when more than one exists.
+- [ ] A basic agent call can actually invoke a tool and get back the same correctly-formatted response already confirmed in A3.1.
+
+#### A3.3. Spawn per-item agents and handle Third-Party Requests (deferred — not scheduled yet)
+
 - [ ] Define reusable Evidence and Request agents with OpenAI, focused instructions, and item-specific tools.
 - [ ] For each eligible item, create its Agent thread once, save the association, and run the agent with the job context and assigned item. Skip on-site items entirely.
 - [ ] Evidence tools return seeded responses or deterministic rule results. Save the finding and its provenance; unknown answers remain unresolved or become on-site checks.

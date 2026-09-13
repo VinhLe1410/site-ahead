@@ -1,0 +1,82 @@
+## Context
+
+See `proposal.md` for the motivation and behavioral scope. The current Convex app mounts `@convex-dev/agent` and already contains a classifier, Langfuse/OpenTelemetry handlers, and live AirWatch, VicTraffic, and DataVic resolver code in `convex/agents/checklist`. The public classifier currently accepts a simplified checklist payload and returns normalized classifications; it does not update saved items or dispatch work. `checklistItems` currently contains only `jobId`, `title`, `kind`, `status`, and `notes`, with `kind` limited to the three canonical values and `status` limited to `pending | done`. There is no per-item Agent state table or form catalog.
+
+Backend owns `convex/schema.ts`, `convex/contracts.ts`, generated bindings, and persistence operations. The Agent owner owns `convex/agents/**`. Existing authentication and manual checklist mutations remain the public ownership boundary.
+
+## Goals / Non-Goals
+
+**Goals:**
+
+- Process server-provided full checklist item records without trusting client-supplied copies.
+- Classify pending items, persist valid kind changes, and dispatch independent resumable work.
+- Resolve the agreed live automated checks and persist validated evidence or explicit failures.
+- Give each third-party request a form-specific skill that can fill a PDF or DOCX draft from verified job data.
+- Persist item execution, structured output, trace IDs, and failure reasons so progress survives reloads and never silently disappears.
+
+**Non-Goals:**
+
+- Changing the checklist item's binary status vocabulary or replacing manual on-site work.
+- Automatic sending, email watching, inbox matching, or portal submission.
+- Powerline checks, additional trades, a general agent network, or a workflow engine for unrelated work.
+- Moving Codex/Claude development skills into the runtime Agent. Runtime skills are authored beside the Convex Agent code.
+
+## Decisions
+
+### Use the existing item record as the input boundary
+
+The dispatcher receives full server-provided `checklistItems` documents. It passes each item's `_id` and `jobId` to internal Agent actions; no separate top-level job ID is required. The action loads the associated job, input, category, and current item again before executing. It considers only `pending` items and skips `done` items on retries. This keeps the database authoritative and prevents stale or client-modified context from driving API calls.
+
+### Keep checklist status separate from Agent execution state
+
+Add one per-item Agent-state record, keyed by checklist item ID, rather than adding operational fields to `checklistItems`. The record contains the persistent Agent thread ID, latest run ID, execution state (`idle`, `running`, `waiting`, `finished`, or `failed`), current step, error, Langfuse trace ID, finding or draft output, provenance, missing information, next action, and draft/source Storage IDs when applicable. A uniqueness check prevents two state records or active runs for the same item.
+
+The classification mutation updates `checklistItems.kind` only after validating a complete, one-to-one classifier result. A missing, duplicate, or unsupported result preserves the previous kind, writes a failed Agent state, and does not dispatch the item. A valid result is followed by deterministic dispatch: automated and third-party items are eligible, and on-site items are skipped.
+
+### Use bounded Convex Agent actions and persistent threads
+
+Use reusable Evidence and Request `Agent` definitions from `@convex-dev/agent`. A dispatcher schedules one bounded action per eligible item so items can run concurrently. The action claims the item state before starting, records each stage, and releases it as `waiting`, `finished`, or `failed`. Retries and newly supplied information reuse the same thread and run only that item. A run guard checks the stored run ID and state before saving results, so a late or duplicate action cannot overwrite a newer run.
+
+The parent dispatcher decides eligibility from the saved `kind`; an LLM is not used to decide whether an on-site item receives an agent. Each specialist Agent receives only the tools allowed for its item. Tool descriptions state the checklist titles they serve, required inputs, response shape, and stopping condition. A job-context tool reads the item-associated job and input through internal Convex operations rather than accepting owner IDs or arbitrary database paths.
+
+### Wrap the three live automated sources behind validated tools
+
+Expose separate tools for construction year, air quality, and road closures. Construction year queries the DataVic CKAN `datastore_search` endpoint for the building-information resource and applies the `constructionYear < 1990` rule after validating the returned record. A valid DataVic year takes precedence. A successful exact-address miss or matching record with no year allows a fallback to an available validated contractor-provided year for that job. Save the chosen year, `manual_fallback` resolution, supplying member and time, and the DataVic lookup outcome as provenance. Do not describe a manual result as API-verified. If neither source supplies a year, save an explicit unresolved result and leave the item pending. Air Quality uses the existing EPA AirWatch endpoint and selects a valid statewide or nearest-site response. Road Closure uses the existing bounded VicTraffic pagination and location filtering. Each adapter validates the external payload before returning a typed result with source, observed time, and relevant records.
+
+The current adapter accepts optional `context.constructionYear`, but the job database has no persisted manual-year field. Backend must provide an optional contractor-confirmed year and its attribution through the server-derived job context, scoped to the item's organization and job. Leave it absent when no value has been supplied; do not require a new top-level Agent input or alter the checklist item fields. Reuse the current year validation: an integer from 1800 through the current UTC year. The Agent must not turn notes, estimates, or model guesses into confirmed manual input. Loading and validating this optional value is part of the shared Backend contract, not a requirement to collect a year for every job.
+
+The Agent marks an automated item done only after its result has been validated and persisted, including a finding based on a validated manual year. A timeout, non-2xx response, unsuccessful CKAN response, malformed payload, invalid year, or save failure keeps the item pending and records a failed state with the attempted source and current step. These failures must not activate the manual fallback. A successful lookup with no matching building or an absent year is a data-coverage outcome; it becomes unresolved only when no manual year is available. Provider keys and secrets remain server-side.
+
+### Implement one runtime skill per third-party form
+
+Runtime skills are small form-specific modules with a name, a description explaining when to use them, and instructions for filling that form. Each skill includes the form's request type, supported PDF or DOCX method, required fields, trusted job-data sources, formatting rules, and explicit missing-value behavior. The guidance is the form-specific knowledge; it is not a generic agent prompt.
+
+Keep a small Convex form catalog that maps the skill's stable form key to the active PDF or DOCX file's Storage ID, file type, and version. Skills do not hardcode deployment-specific Storage IDs. Backend can seed or replace a catalog entry without changing the skill. The original form is immutable. A Request sub-agent loads the matching skill and catalog entry, reads verified job data, fills available fields, and stores a new draft file. It records the source form ID, draft ID, missing fields, provenance, and next action. It never sends the request or overwrites the original. Unsupported or non-fillable input produces an explicit failure instead of a misleading draft.
+
+### Make observability part of the state machine
+
+Reuse the existing Langfuse/OpenTelemetry integration and enable telemetry on every model generation or stream call. Extend the shared handlers with structured stage logs for classification, dispatch, skill selection, database lookup, API call, form read/fill, persistence, and wait conditions. Logs identify the item, thread, run, tool or skill, and outcome while redacting provider secrets, authorization headers, and unnecessary document contents. The saved trace ID links the item state to Langfuse. A run cannot be reported as finished unless its required structured output and persistence mutation succeed.
+
+### Preserve manual checklist behavior
+
+Keep `checklistItemStatusValidator` as `pending | done` and keep the existing checkbox and notes mutations. Automated results may move an item from pending to done only after validated persistence. Third-party drafts remain pending until later human actions. On-site items have no Agent state that runs work and can become done only through the existing manual control. Manual checkbox or note changes do not dispatch Agent actions and do not overwrite Agent output.
+
+## Risks / Trade-offs
+
+- [DataVic coverage is limited and may not match an address] → After a successful lookup with no usable year, use an available validated contractor-provided year with manual provenance; otherwise remain unresolved and pending. Never infer a year or hide an API failure with fallback data.
+- [External APIs change response shapes or availability] → Keep per-source adapters with strict validators, bounded timeouts, and explicit failed states; verify each live source before dispatch integration.
+- [PDF and DOCX filling differs by file structure] → Require each skill to declare its supported filling method and fail visibly for unsupported or non-fillable files; preserve the original file.
+- [Concurrent retries race with earlier actions] → Claim runs atomically, persist a run ID, and reject stale result writes.
+- [Agent logs can expose sensitive job or form data] → Redact secrets and minimize payload logging while retaining stage, outcome, and trace identifiers.
+- [Backend schema and generated bindings are shared with other owners] → Land the state/catalog validators and internal mutations through the Backend owner before enabling dispatch; keep the change additive and preserve existing public APIs.
+
+## Migration Plan
+
+1. Agree and land the shared validators, per-item Agent-state table, form catalog table, indexes, internal persistence mutations, and optional contractor-provided construction-year context with Backend.
+2. Seed the initial PDF/DOCX form files and catalog entries, then add the form-specific runtime skills and database/form tools.
+3. Extend the existing classifier to consume full item records, persist valid kind changes, and record failed classification states.
+4. Add the live DataVic, AirWatch, and VicTraffic tools behind the specialist Evidence Agent and verify live success, manually sourced fallback, unresolved, and explicit failure paths.
+5. Add the Request Agent, concurrent dispatcher, same-thread retry path, and stale-run guards.
+6. Enable Langfuse telemetry and structured stage logging for every Agent action, then run the acceptance scenarios and `npm run check`.
+
+Rollback is additive: disable dispatch or stop scheduling new runs, leave existing checklist statuses and manual mutations available, and retain Agent-state and draft files for diagnosis. Do not delete original form files or saved drafts during rollback.
