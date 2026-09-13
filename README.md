@@ -64,14 +64,26 @@ Previews share backend code and data. The latest preview build updates the backe
 
 After configuration, try Google login from `/login`, reload `/app`, log out, and revisit `/app` while signed out. Review the OpenSpec task list for completed checks and any remaining live verification.
 
+## Organizations
+
+Each account belongs to one organization. The owner and staff share full access to its jobs and categories. The owner can rename the organization, invite staff, and remove staff from `/app/organization`. Staff do not have access to organization management. Role changes, ownership transfer, switching organizations, and organization deletion are outside this demo.
+
+Accounts without an organization create one after Google login or accept a pending invitation. The owner copies an invitation link and shares it manually. No email or notification is sent. Invitations match the recipient’s verified Google email, expire after seven days, and can be renewed with a new link. Existing sessions must sign in again before accepting invitations because old verification timestamps do not establish the Google claim.
+
+Removing staff ends new reads and writes immediately. Connected screens show access removal when their membership subscription updates. Shared work stays in the organization. The accepted invitation cannot restore removed access; rejoining requires a new invitation.
+
+Organization sharing starts paused on deployments that have not migrated. The app shows “Organization setup in progress” until an operator completes the [organization rollout](docs/Organization-Rollout.md). Existing accounts receive separate organizations, including accounts without saved data. No migration runs during login or a frontend build. Coordinate the shared preview before deployment; no new auth keys or email setup are needed.
+
 ## Manual category and job flow
 
-1. Open `/app/categories`, create a category, and add checklist items with Automated, Third party, and On site kinds.
+1. Complete organization setup or accept a staff invitation. Open `/app/categories`, create a category, and add checklist items with Automated, Third party, and On site kinds.
 2. Open `/app/jobs/new`, enter processed intake text and one address, then select a category or leave the job Uncategorized.
 3. Change the job status, check and uncheck items, save and clear notes, then reload the page to confirm each value persists.
 4. Create a second job from the same category and confirm its checklist progress is independent.
 5. Edit the category template, create a third job, and confirm only the third job uses the changed template.
 6. Create a job without a category and confirm it remains available with an empty checklist and editable manual status.
+7. Use Edit job to change its intake, address, or category. Reassigning or clearing the category keeps its checklist, status, and notes.
+8. Confirm job deletion to remove it and its checklist for the organization. Delete a category only after every referencing job is reassigned or made Uncategorized. Both owner and staff can perform these changes.
 
 This flow is manual. It does not run agents, interpret intake, verify addresses, call external services, draft requests, or create reports. Those integrations remain separate work.
 

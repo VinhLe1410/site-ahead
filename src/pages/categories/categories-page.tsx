@@ -24,7 +24,7 @@ export function CategoriesPage() {
     <>
       <PageHeading
         title="Categories"
-        description="Manage private trade categories and checklist templates."
+        description="Manage shared trade categories and checklist templates."
         action={
           <Button nativeButton={false} render={<Link to="new" />}>
             Create category

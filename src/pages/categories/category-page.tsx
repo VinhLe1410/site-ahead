@@ -1,7 +1,8 @@
 import { useMutation, useQuery } from "convex/react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PageHeading } from "@/components/layout/page-heading";
 import { CategoryForm } from "@/pages/categories/components/category-form";
 
@@ -22,6 +23,8 @@ function CategoryEditor({ category }: { category: Doc<"categories"> }) {
 
 export function CategoryPage() {
   const { categoryId } = useParams();
+  const remove = useMutation(api.categories.remove);
+  const navigate = useNavigate();
 
   const category = useQuery(api.categories.get, {
     categoryId: categoryId ?? "",
@@ -44,7 +47,19 @@ export function CategoryPage() {
     <>
       <PageHeading
         title={category.title}
-        description="Changes apply only to jobs created after you save."
+        description="This category is shared with your organization. Template changes apply only to jobs created after you save."
+        action={
+          <ConfirmDialog
+            trigger="Delete category"
+            title={`Delete ${category.title}?`}
+            description="First reassign all jobs using this category or make them Uncategorized. Their existing checklists will stay unchanged."
+            confirmLabel="Delete category"
+            onConfirm={async () => {
+              await remove({ categoryId: category._id });
+              void navigate("/app/categories", { replace: true });
+            }}
+          />
+        }
       />
       <CategoryEditor key={category._id} category={category} />
     </>

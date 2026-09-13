@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Let contractors create private jobs from saved input and category templates, then manage job status and checklist progress manually.
+Let organization members create shared jobs from saved input and category templates, then manage job details, status, and checklist progress manually.
 
 ## Requirements
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Provide a public introduction to Site Ahead while requiring Google authentication for the application and private account data.
+Provide a public introduction to Site Ahead while requiring Google authentication for account data and active organization membership for shared work.
 
 ## Requirements
 

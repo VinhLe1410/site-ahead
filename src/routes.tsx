@@ -1,4 +1,11 @@
 import { Route, Routes } from "react-router";
+import {
+  MembershipLayout,
+  OwnerLayout,
+} from "@/components/auth/membership-layout";
+import { CreateOrganizationPage } from "@/pages/organization/create-organization-page";
+import { AcceptInvitationPage } from "@/pages/organization/accept-invitation-page";
+import { OrganizationPage } from "@/pages/organization/organization-page";
 import { AuthLayout } from "@/components/auth/auth-layout";
 import { ProtectedLayout } from "@/components/auth/protected-layout";
 import { AppIndexRedirect } from "@/components/layout/app-index-redirect";
@@ -21,14 +28,24 @@ export function AppRoutes() {
         <Route path="/login" element={<LoginPage />} />
       </Route>
       <Route element={<ProtectedLayout />}>
-        <Route path="/app" element={<AppLayout />}>
-          <Route index element={<AppIndexRedirect />} />
-          <Route path="jobs" element={<JobsPage />} />
-          <Route path="jobs/new" element={<NewJobPage />} />
-          <Route path="jobs/:jobId" element={<JobPage />} />
-          <Route path="categories" element={<CategoriesPage />} />
-          <Route path="categories/new" element={<NewCategoryPage />} />
-          <Route path="categories/:categoryId" element={<CategoryPage />} />
+        <Route
+          path="/app/organization/new"
+          element={<CreateOrganizationPage />}
+        />
+        <Route path="/invite/:token" element={<AcceptInvitationPage />} />
+        <Route element={<MembershipLayout />}>
+          <Route path="/app" element={<AppLayout />}>
+            <Route index element={<AppIndexRedirect />} />
+            <Route path="jobs" element={<JobsPage />} />
+            <Route path="jobs/new" element={<NewJobPage />} />
+            <Route path="jobs/:jobId" element={<JobPage />} />
+            <Route path="categories" element={<CategoriesPage />} />
+            <Route path="categories/new" element={<NewCategoryPage />} />
+            <Route path="categories/:categoryId" element={<CategoryPage />} />
+            <Route element={<OwnerLayout />}>
+              <Route path="organization" element={<OrganizationPage />} />
+            </Route>
+          </Route>
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>
