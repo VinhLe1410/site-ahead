@@ -157,3 +157,51 @@ export const cleanup = internalMutation({
     return null;
   },
 });
+
+export const configureEvidence = internalMutation({
+  args: {
+    organizationId: v.id("organizations"),
+    initiatedBy: v.id("users"),
+    jobId: v.id("jobs"),
+    address: v.string(),
+    year: v.union(v.number(), v.null()),
+  },
+  returns: v.array(schema.doc("checklistItems")),
+  handler: async (ctx, args) => {
+    const organization = await ctx.db.get("organizations", args.organizationId);
+    const job = await ctx.db.get("jobs", args.jobId);
+    const user = await ctx.db.get("users", args.initiatedBy);
+
+    if (
+      organization?.name !== fixtureName ||
+      user?.name !== fixtureName ||
+      job?.organizationId !== args.organizationId
+    )
+      throw new Error("Only this verification fixture can be configured.");
+    await ctx.db.patch("jobs", job._id, {
+      addressText: args.address,
+      confirmedConstructionYear:
+        args.year === null
+          ? undefined
+          : {
+              year: args.year,
+              suppliedBy: args.initiatedBy,
+              suppliedAt: Date.now(),
+            },
+      agentContext: {
+        latitude: -37.816357,
+        longitude: 144.987376,
+        roadName: "Wellington Parade",
+        locality: "East Melbourne",
+        suppliedBy: args.initiatedBy,
+        suppliedAt: Date.now(),
+      },
+    });
+    await ctx.db.patch("inputs", job.inputId, { addressText: args.address });
+
+    return await ctx.db
+      .query("checklistItems")
+      .withIndex("by_jobId", (q) => q.eq("jobId", job._id))
+      .take(10);
+  },
+});

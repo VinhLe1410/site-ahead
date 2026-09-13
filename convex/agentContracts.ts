@@ -1,4 +1,5 @@
 import { ConvexError, v } from "convex/values";
+import { agentFindingValidator } from "./evidenceContracts";
 
 export const formKeyValidator = v.union(
   v.literal("building-permit-request"),
@@ -54,21 +55,6 @@ export const missingFieldValidator = v.object({
   field: v.string(),
   label: v.string(),
   reason: v.string(),
-});
-
-export const agentFindingValidator = v.object({
-  kind: v.union(
-    v.literal("construction_year"),
-    v.literal("air_quality"),
-    v.literal("road_closures"),
-  ),
-  summary: v.string(),
-  observedAt: v.number(),
-  constructionYear: v.optional(v.number()),
-  pre1990: v.optional(v.boolean()),
-  resolution: v.optional(
-    v.union(v.literal("live_api"), v.literal("manual_fallback")),
-  ),
 });
 
 export const agentDraftValidator = v.object({
