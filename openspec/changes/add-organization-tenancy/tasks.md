@@ -1,4 +1,4 @@
-Implementation tasks below record completed code and documentation. Their live acceptance checks are consolidated in [Organization-Rollout.md](../../../docs/Organization-Rollout.md) and remain pending under 5.1, 5.3, and 5.4. No deployment, migration, Google flow, or browser demo has run. Final schema tightening and creator-field removal remain pending.
+Implementation tasks below record completed code and documentation. Their live acceptance checks are consolidated in [Organization-Rollout.md](../../../docs/Organization-Rollout.md) and remain pending under 5.1 and 5.4. PR #12 CI and Vercel preview deployment passed. No migration, Google flow, or browser demo has run. Final schema tightening and creator-field removal remain pending.
 
 ## 1. Schema and membership
 
@@ -31,5 +31,5 @@ Implementation tasks below record completed code and documentation. Their live a
 
 - [ ] 5.1 Coordinate the additive deployment, export, backfill, server-side write pause, final validation, and switch to required organization IDs from the migration plan. Remove creator access fields and indexes after validation. Verify every existing user owns an org and all related records remain within the correct org. Coordinate the shared preview backend; this change has no active OpenSpec dependencies but overlaps auth, schema, domain functions, and routing work.
 - [x] 5.2 Update affected main spec purpose text and project documentation to describe organization ownership, manual invite delivery, and setup requirements.
-- [ ] 5.3 Run `npm run check` and verify the implementation pushes cleanly to the intended Convex deployment. Use existing checks and manual acceptance scenarios; do not add a new test framework.
+- [x] 5.3 Run `npm run check` and verify the implementation pushes cleanly to the intended Convex deployment. Local checks, [PR #12 CI](https://github.com/VinhLe1410/site-ahead/actions/runs/34742649192), and its Vercel preview deployment passed. Live acceptance remains under 5.4.
 - [ ] 5.4 Run a short demo with owner, staff, and unrelated Google accounts: migrate existing users including one without data; onboard an account without an org; invite by copied link; share and edit jobs/categories; block used-category deletion; reassign and delete; revoke an invite; remove staff while their job is open; reject further direct reads/writes and old-link reuse. Verify shared data remains, reloads preserve access rules, and no invitation email is sent.

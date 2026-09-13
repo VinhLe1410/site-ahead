@@ -2,7 +2,7 @@
 
 The implementation is additive and sharing starts paused. Existing records remain schema-valid because `organizationId` and the legacy `ownerId` are optional during rollout. Domain functions use only active membership and organization IDs. They never fall back to creator access.
 
-Deployment, export, migration, Google sign-in, and the live demo have not been run for this change. These are operator steps after the target is authorized. The occupied development backend and `localhost:5173` must remain untouched.
+PR #12 CI and its additive Vercel preview deployment passed. Export, migration, activation, Google sign-in, and the live demo remain operator steps after the target is authorized. The occupied development backend and `localhost:5173` must remain untouched.
 
 ## Target and backup
 
@@ -10,7 +10,7 @@ Coordinate the shared `hackathon-preview` backend at `moonlit-roadrunner-502` be
 
 The commands below target that preview explicitly. Run them with a Convex account that has access to it. Do not use a deployment key for another environment; Convex deployment keys can override deployment selection. Confirm the target in the Convex dashboard before proceeding. Use a separate authorized rollout for production.
 
-Export before the additive deployment. Store the export outside the repository. Pick an unused backup filename.
+Export before running the migration. The additive preview deployment does not run migration or remove existing data. Store the export outside the repository. Pick an unused backup filename.
 
 ```sh
 npx --no-install convex export --deployment-name moonlit-roadrunner-502 --include-file-storage --path /tmp/site-ahead-before-organizations.zip
