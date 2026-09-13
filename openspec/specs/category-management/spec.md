@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Let contractors maintain private trade categories and reusable checklist templates for manually creating jobs.
+Let organization members maintain shared trade categories and reusable checklist templates for manually creating jobs.
 
 ## Requirements
 

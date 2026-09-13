@@ -1,8 +1,19 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
+import type { FunctionReturnType } from "convex/server";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { JobForm } from "./components/job-form";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { PageHeading } from "@/components/layout/page-heading";
 import { RequestError } from "@/components/layout/request-error";
 import { Badge } from "@/components/ui/badge";
@@ -113,14 +124,13 @@ function ChecklistItem({ item }: { item: Doc<"checklistItems"> }) {
 function JobDetails({
   data,
 }: {
-  data: {
-    job: Doc<"jobs">;
-    input: Doc<"inputs">;
-    categoryTitle: string | null;
-    checklist: Doc<"checklistItems">[];
-  };
+  data: NonNullable<FunctionReturnType<typeof api.jobs.get>>;
 }) {
   const setStatus = useMutation(api.jobs.setStatus);
+  const update = useMutation(api.jobs.update);
+  const remove = useMutation(api.jobs.remove);
+  const navigate = useNavigate();
+  const [editing, setEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -147,6 +157,49 @@ function JobDetails({
       <PageHeading
         title={data.job.addressText}
         description={data.categoryTitle ?? "Uncategorized"}
+        action={
+          <div className="flex gap-2">
+            <Dialog open={editing} onOpenChange={setEditing}>
+              <DialogTrigger
+                render={<Button variant="outline" aria-label="Edit job" />}
+              >
+                Edit job
+              </DialogTrigger>
+              <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+                <DialogHeader>
+                  <DialogTitle>Edit job</DialogTitle>
+                  <DialogDescription>
+                    Update the shared job. Its checklist and progress stay
+                    unchanged.
+                  </DialogDescription>
+                </DialogHeader>
+                <JobForm
+                  editing
+                  initialValues={{
+                    processedText: data.input.processedText,
+                    addressText: data.job.addressText,
+                    categoryId: data.job.categoryId ?? null,
+                  }}
+                  initialCategoryTitle={data.categoryTitle}
+                  onSubmit={async (values) => {
+                    await update({ jobId: data.job._id, ...values });
+                    setEditing(false);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+            <ConfirmDialog
+              trigger="Delete job"
+              title={`Delete ${data.job.addressText}?`}
+              description="This removes the job and its checklist for everyone in the organization. Other jobs and category templates stay unchanged."
+              confirmLabel="Delete job"
+              onConfirm={async () => {
+                await remove({ jobId: data.job._id });
+                void navigate("/app/jobs", { replace: true });
+              }}
+            />
+          </div>
+        }
       />
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-6">

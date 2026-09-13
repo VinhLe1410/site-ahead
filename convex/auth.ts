@@ -11,6 +11,18 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
     Google({
       clientId: env.AUTH_GOOGLE_ID,
       clientSecret: env.AUTH_GOOGLE_SECRET,
+      authorization: { params: { prompt: "select_account" } },
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          image: profile.picture,
+          email: profile.email,
+          emailVerified: profile.email_verified === true,
+          googleEmailVerified: profile.email_verified === true,
+          normalizedEmail: profile.email.trim().toLowerCase(),
+        };
+      },
     }),
   ],
   callbacks: {

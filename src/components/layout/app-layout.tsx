@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useQuery } from "convex/react";
-import { BriefcaseBusinessIcon, FolderCogIcon } from "lucide-react";
+import { BriefcaseBusinessIcon, FolderCogIcon, UsersIcon } from "lucide-react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { api } from "../../../convex/_generated/api";
+import { useMembership } from "@/components/auth/use-membership";
 import { AuthError } from "@/components/auth/auth-card";
 import {
   Breadcrumb,
@@ -41,7 +42,14 @@ function AppBreadcrumbs() {
   const parts = pathname.split("/").filter(Boolean);
   const section = parts[1];
   const detail = parts[2];
-  const sectionLabel = section === "categories" ? "Categories" : "Jobs";
+
+  const sectionLabel =
+    section === "organization"
+      ? "Organization"
+      : section === "categories"
+        ? "Categories"
+        : "Jobs";
+
   const sectionPath = `/app/${section ?? "jobs"}`;
 
   if (detail === undefined) {
@@ -79,6 +87,16 @@ function AppBreadcrumbs() {
 
 export function AppLayout() {
   const user = useQuery(api.users.currentUser);
+  const { organization, membership } = useMembership();
+
+  const visibleNavigation =
+    membership.role === "owner"
+      ? [
+          ...navigation,
+          { to: "/app/organization", label: "Organization", icon: UsersIcon },
+        ]
+      : navigation;
+
   const { signOut } = useAuthActions();
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -106,12 +124,15 @@ export function AppLayout() {
             <Link to="/app/jobs" className="text-lg font-semibold">
               Site Ahead
             </Link>
+            <p className="break-words text-sm text-muted-foreground">
+              {organization.name}
+            </p>
           </SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigation.map((item) => (
+                  {visibleNavigation.map((item) => (
                     <SidebarMenuItem key={item.to}>
                       <SidebarMenuButton
                         render={<Link to={item.to} />}
@@ -129,9 +150,13 @@ export function AppLayout() {
           </SidebarContent>
           <SidebarFooter className="gap-3 p-4">
             <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{user?.name}</p>
               <p className="text-xs text-muted-foreground">Signed in as</p>
               <p className="truncate text-sm font-medium">
                 {user === undefined ? "Loading account..." : user.email}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {membership.role === "owner" ? "Owner" : "Staff"}
               </p>
             </div>
             <Button
