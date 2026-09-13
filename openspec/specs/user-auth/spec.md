@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Let contractors create accounts and access their private workspace using Google during the Site Ahead hackathon demo.
+Let contractors create accounts and authenticate with Google before accessing their organization during the Site Ahead hackathon demo.
 
 ## Requirements
 

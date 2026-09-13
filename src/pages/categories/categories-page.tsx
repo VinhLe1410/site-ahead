@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { api } from "../../../convex/_generated/api";
 import { PageHeading } from "@/components/layout/page-heading";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { ChevronRightIcon, PlusIcon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -24,80 +24,78 @@ export function CategoriesPage() {
     <>
       <PageHeading
         title="Categories"
-        description="Manage private trade categories and checklist templates."
         action={
           <Button nativeButton={false} render={<Link to="new" />}>
+            <PlusIcon />
             Create category
           </Button>
         }
       />
-      <Card>
-        <CardContent>
-          {categories.status === "LoadingFirstPage" ? (
-            <p className="text-sm text-muted-foreground">
-              Loading categories...
-            </p>
-          ) : categories.results.length === 0 ? (
-            <div className="py-10 text-center">
-              <p className="font-medium">No categories yet</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Create one before adding a job.
-              </p>
-              <Button
-                className="mt-4"
-                nativeButton={false}
-                render={<Link to="new" />}
-              >
-                Create category
-              </Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {categories.results.map((category) => (
-                  <TableRow key={category._id}>
-                    <TableCell className="font-medium">
+      <div className="border bg-card">
+        {categories.status === "LoadingFirstPage" ? (
+          <p className="p-6 text-sm text-muted-foreground" role="status">
+            Loading categories...
+          </p>
+        ) : categories.results.length === 0 ? (
+          <div className="py-10 text-center">
+            <p className="font-medium">No categories yet</p>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Items</TableHead>
+                <TableHead className="w-16">
+                  <span className="sr-only">Open category</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {categories.results.map((category) => (
+                <TableRow key={category._id}>
+                  <TableCell className="font-medium wrap-anywhere">
+                    <Link
+                      to={category._id}
+                      className="hover:underline hover:underline-offset-4"
+                    >
                       {category.title}
-                    </TableCell>
-                    <TableCell>{category.checklist.length}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        nativeButton={false}
-                        render={<Link to={category._id} />}
-                      >
-                        Open
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-          {categories.status === "CanLoadMore" && (
-            <Button
-              className="mt-4"
-              variant="outline"
-              onClick={() => categories.loadMore(20)}
-            >
-              Load more
-            </Button>
-          )}
-          {categories.status === "LoadingMore" && (
-            <p className="mt-4 text-sm text-muted-foreground">
-              Loading more...
-            </p>
-          )}
-        </CardContent>
-      </Card>
+                    </Link>
+                  </TableCell>
+                  <TableCell className="tabular-nums">
+                    {category.checklist.length}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Open ${category.title}`}
+                      nativeButton={false}
+                      render={<Link to={category._id} />}
+                    >
+                      <ChevronRightIcon />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+        {categories.status === "CanLoadMore" && (
+          <Button
+            className="m-4"
+            variant="outline"
+            onClick={() => categories.loadMore(20)}
+          >
+            Load more
+          </Button>
+        )}
+        {categories.status === "LoadingMore" && (
+          <p className="p-4 text-sm text-muted-foreground" role="status">
+            Loading more...
+          </p>
+        )}
+      </div>
     </>
   );
 }

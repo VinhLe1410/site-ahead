@@ -2,9 +2,14 @@ import {
   paginationOptsValidator,
   paginationResultValidator,
 } from "convex/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireOwnedCategory, requireOwnedJob, requireUserId } from "./access";
+import {
+  requireOrganizationCategory,
+  requireOrganizationJob,
+  requireMembership,
+  activeMembership,
+} from "./access";
 import { jobStatusValidator, requireText } from "./contracts";
 import { schema } from "./schema";
 
@@ -21,18 +26,22 @@ export const create = mutation({
   },
   returns: v.id("jobs"),
   handler: async (ctx, args) => {
-    const ownerId = await requireUserId(ctx);
+    const { organizationId } = await requireMembership(ctx);
 
     const category =
       args.categoryId === null
         ? null
-        : await requireOwnedCategory(ctx.db, args.categoryId, ownerId);
+        : await requireOrganizationCategory(
+            ctx.db,
+            args.categoryId,
+            organizationId,
+          );
 
     const processedText = requireText(args.processedText, "Processed text");
     const addressText = requireText(args.addressText, "Address");
 
     const inputId = await ctx.db.insert("inputs", {
-      ownerId,
+      organizationId,
       processedText,
       addressText,
     });
@@ -40,13 +49,13 @@ export const create = mutation({
     const jobId =
       category === null
         ? await ctx.db.insert("jobs", {
-            ownerId,
+            organizationId,
             inputId,
             addressText,
             status: "pending",
           })
         : await ctx.db.insert("jobs", {
-            ownerId,
+            organizationId,
             inputId,
             categoryId: category._id,
             addressText,
@@ -73,11 +82,17 @@ export const list = query({
   args: { paginationOpts: paginationOptsValidator },
   returns: paginationResultValidator(jobListItemValidator),
   handler: async (ctx, args) => {
-    const ownerId = await requireUserId(ctx);
+    const membership = await activeMembership(ctx);
+
+    if (membership === null)
+      return { page: [], isDone: true, continueCursor: "" };
+    const { organizationId } = membership;
 
     const result = await ctx.db
       .query("jobs")
-      .withIndex("by_ownerId", (q) => q.eq("ownerId", ownerId))
+      .withIndex("by_organizationId", (q) =>
+        q.eq("organizationId", organizationId),
+      )
       .order("desc")
       .paginate(args.paginationOpts);
 
@@ -89,7 +104,7 @@ export const list = query({
 
         const category = await ctx.db.get("categories", job.categoryId);
 
-        if (category === null || category.ownerId !== ownerId) {
+        if (category === null || category.organizationId !== organizationId) {
           throw new Error("Job category not found");
         }
 
@@ -113,7 +128,10 @@ export const get = query({
     v.null(),
   ),
   handler: async (ctx, args) => {
-    const ownerId = await requireUserId(ctx);
+    const membership = await activeMembership(ctx);
+
+    if (membership === null) return null;
+    const { organizationId } = membership;
     const jobId = ctx.db.normalizeId("jobs", args.jobId);
 
     if (jobId === null) {
@@ -122,7 +140,7 @@ export const get = query({
 
     const job = await ctx.db.get("jobs", jobId);
 
-    if (job === null || job.ownerId !== ownerId) {
+    if (job === null || job.organizationId !== organizationId) {
       return null;
     }
 
@@ -134,7 +152,7 @@ export const get = query({
         .take(101),
     ]);
 
-    if (input === null || input.ownerId !== ownerId) {
+    if (input === null || input.organizationId !== organizationId) {
       throw new Error("Job input not found");
     }
 
@@ -143,7 +161,7 @@ export const get = query({
     if (job.categoryId !== undefined) {
       const category = await ctx.db.get("categories", job.categoryId);
 
-      if (category === null || category.ownerId !== ownerId) {
+      if (category === null || category.organizationId !== organizationId) {
         throw new Error("Job category not found");
       }
 
@@ -162,9 +180,104 @@ export const setStatus = mutation({
   args: { jobId: v.id("jobs"), status: jobStatusValidator },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const ownerId = await requireUserId(ctx);
-    await requireOwnedJob(ctx.db, args.jobId, ownerId);
+    const { organizationId } = await requireMembership(ctx);
+    await requireOrganizationJob(ctx.db, args.jobId, organizationId);
     await ctx.db.patch("jobs", args.jobId, { status: args.status });
+
+    return null;
+  },
+});
+
+export const update = mutation({
+  args: {
+    jobId: v.id("jobs"),
+    processedText: v.string(),
+    addressText: v.string(),
+    categoryId: v.union(v.id("categories"), v.null()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const { organizationId } = await requireMembership(ctx);
+
+    const job = await requireOrganizationJob(
+      ctx.db,
+      args.jobId,
+      organizationId,
+    );
+
+    if (args.categoryId !== null)
+      await requireOrganizationCategory(
+        ctx.db,
+        args.categoryId,
+        organizationId,
+      );
+    const processedText = requireText(args.processedText, "Processed text");
+    const addressText = requireText(args.addressText, "Address");
+    const input = await ctx.db.get("inputs", job.inputId);
+
+    if (input === null || input.organizationId !== organizationId)
+      throw new ConvexError("Job input not found");
+
+    const references = await ctx.db
+      .query("jobs")
+      .withIndex("by_inputId", (q) => q.eq("inputId", input._id))
+      .take(2);
+
+    // Legacy imports may share an input. Editing one job must preserve the other.
+    let inputId = input._id;
+
+    if (references.length > 1)
+      inputId = await ctx.db.insert("inputs", {
+        organizationId,
+        processedText,
+        addressText,
+      });
+    else await ctx.db.patch("inputs", inputId, { processedText, addressText });
+    await ctx.db.patch("jobs", job._id, {
+      inputId,
+      addressText,
+      categoryId: args.categoryId ?? undefined,
+    });
+
+    return null;
+  },
+});
+
+export const remove = mutation({
+  args: { jobId: v.id("jobs") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const { organizationId } = await requireMembership(ctx);
+
+    const job = await requireOrganizationJob(
+      ctx.db,
+      args.jobId,
+      organizationId,
+    );
+
+    const input = await ctx.db.get("inputs", job.inputId);
+
+    if (input === null || input.organizationId !== organizationId)
+      throw new ConvexError("Job input not found");
+
+    const checklist = await ctx.db
+      .query("checklistItems")
+      .withIndex("by_jobId", (q) => q.eq("jobId", job._id))
+      .take(101);
+
+    if (checklist.length > 100)
+      throw new ConvexError("Job checklist exceeds its supported size");
+
+    for (const item of checklist)
+      await ctx.db.delete("checklistItems", item._id);
+    await ctx.db.delete("jobs", job._id);
+
+    const remaining = await ctx.db
+      .query("jobs")
+      .withIndex("by_inputId", (q) => q.eq("inputId", job.inputId))
+      .first();
+
+    if (remaining === null) await ctx.db.delete("inputs", job.inputId);
 
     return null;
   },

@@ -14,7 +14,10 @@ import type * as categories from "../categories.js";
 import type * as checklistItems from "../checklistItems.js";
 import type * as contracts from "../contracts.js";
 import type * as http from "../http.js";
+import type * as invitationActions from "../invitationActions.js";
+import type * as invitations from "../invitations.js";
 import type * as jobs from "../jobs.js";
+import type * as organizations from "../organizations.js";
 import type * as users from "../users.js";
 
 import type {
@@ -30,7 +33,10 @@ declare const fullApi: ApiFromModules<{
   checklistItems: typeof checklistItems;
   contracts: typeof contracts;
   http: typeof http;
+  invitationActions: typeof invitationActions;
+  invitations: typeof invitations;
   jobs: typeof jobs;
+  organizations: typeof organizations;
   users: typeof users;
 }>;
 

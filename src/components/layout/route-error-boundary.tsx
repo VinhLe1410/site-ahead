@@ -29,7 +29,6 @@ export class RouteErrorBoundary extends Component<
         <Alert variant="destructive">
           <AlertTitle>Could not load this page</AlertTitle>
           <AlertDescription className="mt-2">
-            <p>Your saved data has not changed.</p>
             <Button className="mt-3" variant="outline" onClick={this.retry}>
               Try again
             </Button>
