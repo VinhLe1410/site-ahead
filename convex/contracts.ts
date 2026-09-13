@@ -47,6 +47,12 @@ export const intakeResultValidator = v.object({
   description: v.string(),
 });
 
+export const jobInputValidator = v.object({
+  processedText: v.string(),
+  addressText: v.string(),
+  categoryId: v.union(v.id("categories"), v.null()),
+});
+
 export const transcriptionResultValidator = v.object({
   text: v.string(),
   languageCode: v.optional(v.string()),

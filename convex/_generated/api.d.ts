@@ -17,6 +17,7 @@ import type * as agents_checklist_itemWorker from "../agents/checklist/itemWorke
 import type * as agents_checklist_liveEvidence from "../agents/checklist/liveEvidence.js";
 import type * as agents_checklist_processChecklist from "../agents/checklist/processChecklist.js";
 import type * as agents_checklist_verification from "../agents/checklist/verification.js";
+import type * as agents_intake_draftAgent from "../agents/intake/draftAgent.js";
 import type * as agents_requests_buildingPermitPdf from "../agents/requests/buildingPermitPdf.js";
 import type * as agents_requests_buildingPermitSkill from "../agents/requests/buildingPermitSkill.js";
 import type * as agents_requests_occupancyPermitDocx from "../agents/requests/occupancyPermitDocx.js";
@@ -44,6 +45,7 @@ import type * as invitationActions from "../invitationActions.js";
 import type * as invitations from "../invitations.js";
 import type * as itemAgentData from "../itemAgentData.js";
 import type * as jobAgentContext from "../jobAgentContext.js";
+import type * as jobDrafts from "../jobDrafts.js";
 import type * as jobs from "../jobs.js";
 import type * as organizations from "../organizations.js";
 import type * as requestDocuments from "../requestDocuments.js";
@@ -65,6 +67,7 @@ declare const fullApi: ApiFromModules<{
   "agents/checklist/liveEvidence": typeof agents_checklist_liveEvidence;
   "agents/checklist/processChecklist": typeof agents_checklist_processChecklist;
   "agents/checklist/verification": typeof agents_checklist_verification;
+  "agents/intake/draftAgent": typeof agents_intake_draftAgent;
   "agents/requests/buildingPermitPdf": typeof agents_requests_buildingPermitPdf;
   "agents/requests/buildingPermitSkill": typeof agents_requests_buildingPermitSkill;
   "agents/requests/occupancyPermitDocx": typeof agents_requests_occupancyPermitDocx;
@@ -92,6 +95,7 @@ declare const fullApi: ApiFromModules<{
   invitations: typeof invitations;
   itemAgentData: typeof itemAgentData;
   jobAgentContext: typeof jobAgentContext;
+  jobDrafts: typeof jobDrafts;
   jobs: typeof jobs;
   organizations: typeof organizations;
   requestDocuments: typeof requestDocuments;

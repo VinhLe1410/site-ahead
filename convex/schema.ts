@@ -8,6 +8,7 @@ import {
   templateItemValidator,
   documentDetailsValidator,
   documentFileValidator,
+  jobInputValidator,
 } from "./contracts";
 
 import {
@@ -99,6 +100,23 @@ export const schema = defineSchema({
     title: v.string(),
     checklist: v.array(templateItemValidator),
   }).index("by_organizationId", ["organizationId"]),
+  jobDrafts: defineTable({
+    ...jobInputValidator.fields,
+    userId: v.id("users"),
+    organizationId: v.id("organizations"),
+    threadId: v.string(),
+    status: v.union(v.literal("draft"), v.literal("submitted")),
+    revision: v.number(),
+    jobId: v.optional(v.id("jobs")),
+    runId: v.optional(v.string()),
+    promptMessageId: v.optional(v.string()),
+    deadlineAt: v.optional(v.number()),
+    error: v.optional(v.string()),
+  }).index("by_userId_and_organizationId_and_status", [
+    "userId",
+    "organizationId",
+    "status",
+  ]),
   jobs: defineTable({
     organizationId: v.id("organizations"),
     inputId: v.id("inputs"),
