@@ -6,6 +6,8 @@ import { getErrorMessage } from "../../../../shared/errors";
 import { useDocumentTransfer } from "@/components/documents/use-document-transfer";
 import { RequestError } from "@/components/layout/request-error";
 import { Button } from "@/components/ui/button";
+import type { BriefContext } from "../job-brief-summary";
+import { currentItemOutput } from "../job-brief-summary";
 import { RoadFindingDetails } from "./road-finding-details";
 import { ElectricalRequestDraft } from "./electrical-request-draft";
 
@@ -34,9 +36,11 @@ function progressMessage(value: string) {
 export function ItemAgentProgress({
   item,
   state,
+  context,
 }: {
   item: Doc<"checklistItems">;
   state: Doc<"checklistAgentStates"> | undefined;
+  context: BriefContext;
 }) {
   const retry = useMutation(api.checklistExecution.retry);
   const { downloadDraft } = useDocumentTransfer();
@@ -44,7 +48,10 @@ export function ItemAgentProgress({
   const [error, setError] = useState<string | null>(null);
   const classifying = state?.classification.status === "running";
   const classificationFailed = state?.classification.status === "failed";
-  const busy = classifying || state?.queued || state?.execution === "running";
+
+  const { busy, failed, current, finding, draft, nextAction } =
+    currentItemOutput(context, item, state);
+
   const humanOnly = item.kind === "on_site" && !classificationFailed;
 
   if (humanOnly || (state === undefined && item.status === "done")) return null;
@@ -57,13 +64,18 @@ export function ItemAgentProgress({
         ? "Queued"
         : state?.execution === "running"
           ? "Working"
-          : state?.execution === "failed"
+          : failed
             ? "Failed"
-            : state?.execution === "waiting"
-              ? "Waiting for you"
-              : state?.execution === "finished"
-                ? "Result saved"
-                : "Ready to process";
+            : item.status === "done"
+              ? "Marked done"
+              : (state?.finding || state?.draft || state?.requestDraft) &&
+                  !current
+                ? "Earlier output · Needs review"
+                : state?.execution === "waiting"
+                  ? "Waiting for you"
+                  : state?.execution === "finished"
+                    ? "Earlier result · Item reopened"
+                    : "Ready to process";
 
   async function run() {
     setPending(true);
@@ -97,7 +109,7 @@ export function ItemAgentProgress({
   }
 
   return (
-    <div className="mt-2 space-y-3 border-l-2 border-primary/30 pl-3 text-sm sm:ml-8">
+    <div className="space-y-4 text-sm">
       <p role="status" className="font-medium">
         {status}
         {busy && state?.currentStep && (
@@ -107,10 +119,35 @@ export function ItemAgentProgress({
           </span>
         )}
       </p>
-      {state?.nextAction && (
-        <p className="text-muted-foreground">
-          {progressMessage(state.nextAction)}
-        </p>
+      {state?.draft && (
+        <div className="space-y-2">
+          <p className="leading-6 text-muted-foreground">
+            Demo draft. Nothing submitted or approved. Council and form
+            suitability are unverified. Review the details and complete the
+            human fields before use.
+            {(!draft || item.status === "done") &&
+              " This file is from an earlier saved run."}
+          </p>
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            disabled={pending}
+            onClick={() => void download()}
+            aria-label={`Download draft for ${item.title}`}
+          >
+            Download draft
+          </Button>
+        </div>
+      )}
+      {state?.requestDraft && (
+        <ElectricalRequestDraft
+          draft={state.requestDraft}
+          current={Boolean(draft) && item.status === "pending"}
+        />
+      )}
+      {nextAction && (
+        <p className="text-muted-foreground">{progressMessage(nextAction)}</p>
       )}
       {(state?.error || state?.classification.error) && (
         <RequestError
@@ -121,19 +158,18 @@ export function ItemAgentProgress({
       )}
       {state?.finding && (
         <div className="space-y-1">
-          {(busy ||
-            state.snapshot === undefined ||
-            state.execution !== "finished" ||
-            item.status !== "done") && (
+          {(!finding || item.status !== "done") && (
             <p className="text-xs font-medium text-muted-foreground">
               Earlier saved result; this item is not currently resolved by this
               result.
             </p>
           )}
           <p>{state.finding.summary}</p>
-          <p className="text-xs text-muted-foreground">
-            {state.finding.coverage}
-          </p>
+          {state.finding.kind !== "road_closures" && (
+            <p className="text-xs text-muted-foreground">
+              {state.finding.coverage}
+            </p>
+          )}
           {state.finding.kind === "road_closures" && (
             <RoadFindingDetails finding={state.finding} />
           )}
@@ -152,37 +188,6 @@ export function ItemAgentProgress({
             ))}
           </ul>
         </div>
-      )}
-      {state?.draft && (
-        <div className="space-y-2">
-          <p className="text-muted-foreground">
-            Demo draft. Review all details and complete the human fields before
-            any use.
-            {state.execution !== "waiting" &&
-              " This file is from an earlier saved run."}
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={pending}
-            onClick={() => void download()}
-            aria-label={`Download draft for ${item.title}`}
-          >
-            Download draft
-          </Button>
-        </div>
-      )}
-      {state?.requestDraft && (
-        <ElectricalRequestDraft
-          draft={state.requestDraft}
-          current={
-            state.snapshot !== undefined &&
-            state.execution === "waiting" &&
-            !busy &&
-            item.status === "pending"
-          }
-        />
       )}
       {state && state.provenance.length > 0 && (
         <details className="text-xs text-muted-foreground">
@@ -216,7 +221,9 @@ export function ItemAgentProgress({
               ? "Retry classification"
               : state?.draft || state?.requestDraft
                 ? "Regenerate draft"
-                : "Process item"}
+                : failed
+                  ? "Retry check"
+                  : "Process item"}
         </Button>
       )}
       {error !== null && <RequestError message={error} />}

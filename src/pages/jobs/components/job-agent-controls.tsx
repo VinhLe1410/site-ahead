@@ -210,10 +210,11 @@ export function JobAgentControls({
   }
 
   return (
-    <div className="space-y-3 border-b px-4 py-4 sm:px-5">
+    <div className="space-y-3 border-t pt-4">
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
+          variant="ghost"
           size="sm"
           disabled={starting || busy || pendingIds.length === 0}
           onClick={() => void process()}

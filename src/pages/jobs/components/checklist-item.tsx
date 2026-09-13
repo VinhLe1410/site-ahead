@@ -1,51 +1,112 @@
-import type { DocumentSummary } from "../../../../convex/documentData";
-import { DocumentDownload } from "@/components/documents/document-download";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useState } from "react";
 import { useMutation } from "convex/react";
 import { MessageSquareIcon } from "lucide-react";
 import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
+import type { BriefContext } from "../job-brief-summary";
+import { getErrorMessage } from "../../../../shared/errors";
 import { RequestError } from "@/components/layout/request-error";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Field, FieldLabel } from "@/components/ui/field";
-import { Textarea } from "@/components/ui/textarea";
-import { ChecklistKindBadge } from "./checklist-kind-badge";
-import { ItemAgentProgress } from "./item-agent-progress";
-import { isCertificateDelivery } from "../../../../shared/electrical";
-import { CertificateDeliveryControls } from "./certificate-delivery-controls";
+import { checklistKindLabels } from "../job-labels";
+import { currentItemOutput } from "../job-brief-summary";
+
+function itemSummary(
+  context: BriefContext,
+  item: Doc<"checklistItems">,
+  state: Doc<"checklistAgentStates"> | undefined,
+  loading: boolean,
+) {
+  if (loading) return { text: "Loading progress..." };
+
+  const { busy, failed, finding, draft } = currentItemOutput(
+    context,
+    item,
+    state,
+  );
+
+  if (busy) return { text: state?.queued ? "Queued" : "Processing" };
+
+  if (failed) return { text: "Needs attention · Processing failed" };
+
+  if (item.status === "done" && finding) {
+    switch (finding.kind) {
+      case "electrical_classification":
+        return {
+          text: `${finding.classification.replace(/_/g, " ")} work`,
+          caveat:
+            "Based on the saved scope. Confirm the actual work before use.",
+        };
+      case "simulated_certificate_delivery":
+        return {
+          text: "Delivery simulated",
+          caveat: "PoC only — no email sent.",
+        };
+      case "construction_year":
+        return {
+          text: `${finding.constructionYear} · ${finding.resolution === "manual_fallback" ? "Contractor-confirmed" : "DataVic"}`,
+        };
+      case "air_quality":
+        return {
+          text: `${finding.pollutant}: ${finding.value} ${finding.unit}`,
+          caveat: `Nearby station, ${finding.distanceKm.toFixed(1)} km away. Not measured at the property.`,
+        };
+      case "road_closures":
+        return {
+          text: `${finding.matchCount} published ${finding.matchCount === 1 ? "disruption" : "disruptions"} matched`,
+          caveat: `Exact road: ${finding.roadName}, ${finding.locality}. Does not establish clear access.`,
+        };
+    }
+  }
+
+  if (item.status === "done")
+    return {
+      text: "Marked done",
+      caveat: state?.finding
+        ? "Earlier result. Not current for this job."
+        : undefined,
+    };
+
+  if (draft)
+    return {
+      text: "Demo draft ready",
+      caveat: "Nothing submitted or approved.",
+    };
+
+  if (item.kind === "on_site") return { text: "Human check required" };
+
+  if (state?.finding || state?.draft || state?.requestDraft)
+    return { text: "Earlier output · Needs review" };
+
+  if (state?.execution === "waiting") return { text: "Needs information" };
+
+  return { text: "Ready to process" };
+}
 
 export function ChecklistItem({
   item,
-  documents,
   agentState,
+  context,
+  loading,
+  selected,
+  onOpen,
 }: {
   item: Doc<"checklistItems">;
-  documents: DocumentSummary[];
   agentState: Doc<"checklistAgentStates"> | undefined;
+  context: BriefContext;
+  loading: boolean;
+  selected: boolean;
+  onOpen: (trigger: HTMLButtonElement, editNote?: boolean) => void;
 }) {
   const setStatus = useMutation(api.checklistItems.setStatus);
-  const setNotes = useMutation(api.checklistItems.setNotes);
-  const [notes, setLocalNotes] = useState(item.notes);
-  const [editing, setEditing] = useState(false);
-  const [isSavingStatus, setIsSavingStatus] = useState(false);
-  const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const noteButton = useRef<HTMLButtonElement>(null);
-  const wasEditing = useRef(false);
+  const summary = itemSummary(context, item, agentState, loading);
   const noteAction = item.notes.length === 0 ? "Add note" : "Edit note";
 
-  useEffect(() => {
-    if (wasEditing.current && !editing) {
-      noteButton.current?.focus();
-    }
-
-    wasEditing.current = editing;
-  }, [editing]);
-
   async function updateStatus(checked: boolean) {
+    setSaving(true);
     setError(null);
-    setIsSavingStatus(true);
 
     try {
       await setStatus({
@@ -54,171 +115,67 @@ export function ChecklistItem({
       });
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : "Could not update this item. Try again.",
+        getErrorMessage(caught, "Could not update this item. Try again."),
       );
     } finally {
-      setIsSavingStatus(false);
+      setSaving(false);
     }
-  }
-
-  async function saveNotes(event: FormEvent) {
-    event.preventDefault();
-    setError(null);
-    setIsSavingNotes(true);
-
-    try {
-      await setNotes({ itemId: item._id, notes });
-      setEditing(false);
-    } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Could not save the note. Try again.",
-      );
-    } finally {
-      setIsSavingNotes(false);
-    }
-  }
-
-  function closeEditor() {
-    setEditing(false);
-    setError(null);
   }
 
   return (
-    <li className="px-4 py-3 sm:px-5">
-      <div className="grid grid-cols-[1.25rem_minmax(0,1fr)_auto] items-start gap-x-3">
+    <li className={`py-3.5 ${selected ? "bg-primary/5" : ""}`}>
+      <div className="flex items-start gap-3">
         <Checkbox
           id={`item-${item._id}`}
-          aria-labelledby={`item-title-${item._id}`}
-          className="mt-2.5"
+          className="mt-1"
           checked={item.status === "done"}
+          disabled={saving}
           onCheckedChange={(checked) => void updateStatus(checked)}
-          disabled={isSavingStatus}
         />
-        <div className="min-w-0 py-2">
-          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-            <label
-              id={`item-title-${item._id}`}
-              htmlFor={`item-${item._id}`}
-              className="min-w-0 cursor-pointer text-sm leading-6 font-medium wrap-anywhere"
-            >
-              {item.title}
-            </label>
-            <ChecklistKindBadge kind={item.kind} />
-          </div>
-          {!editing && item.notes.length > 0 && (
-            <p className="mt-2 line-clamp-2 border-l-2 pl-3 text-sm leading-6 whitespace-pre-wrap text-muted-foreground wrap-anywhere">
-              {item.notes}
+        <div className="min-w-0 flex-1">
+          <label
+            htmlFor={`item-${item._id}`}
+            className="cursor-pointer text-sm font-medium leading-6 wrap-anywhere"
+          >
+            {item.title}
+          </label>
+          <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
+            {checklistKindLabels[item.kind]} · {summary.text}
+          </p>
+          {summary.caveat && (
+            <p className="text-xs leading-5 text-muted-foreground">
+              {summary.caveat}
+            </p>
+          )}
+          {item.notes && (
+            <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
+              Note: {item.notes}
             </p>
           )}
         </div>
-        <Button
-          ref={noteButton}
-          variant="ghost"
-          size="icon"
-          className={
-            item.notes.length > 0 ? "text-foreground" : "text-muted-foreground"
-          }
-          aria-label={`${noteAction} for ${item.title}`}
-          title={noteAction}
-          aria-expanded={editing}
-          aria-controls={editing ? `note-editor-${item._id}` : undefined}
-          disabled={isSavingNotes}
-          onClick={() => {
-            if (editing) {
-              closeEditor();
-            } else {
-              setLocalNotes(item.notes);
-              setError(null);
-              setEditing(true);
-            }
-          }}
-        >
-          <MessageSquareIcon />
-        </Button>
+        <div className="flex shrink-0 items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`${noteAction} for ${item.title}`}
+            title={noteAction}
+            onClick={(event) => onOpen(event.currentTarget, true)}
+          >
+            <MessageSquareIcon className="size-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={`Details: ${item.title}`}
+            aria-expanded={selected}
+            onClick={(event) => onOpen(event.currentTarget)}
+          >
+            Details
+          </Button>
+        </div>
       </div>
-      {(item.documentVersionIds?.length ?? 0) > 0 && (
-        <ul
-          className="mt-2 divide-y border-t sm:ml-8"
-          aria-label={`Documents for ${item.title}`}
-        >
-          {item.documentVersionIds?.map((versionId) => {
-            const reference = documents.find(
-              (entry) => entry.version._id === versionId,
-            );
-
-            if (reference === undefined)
-              throw new Error("Assigned document version is missing");
-
-            return (
-              <li
-                key={versionId}
-                className="flex flex-wrap items-center justify-between gap-3 py-3"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium wrap-anywhere">
-                    {reference.document.title}
-                  </p>
-                  <p className="text-xs text-muted-foreground wrap-anywhere">
-                    {reference.version.filename} · Version{" "}
-                    {reference.version.number}
-                    {reference.document.archived && " · Archived"}
-                  </p>
-                </div>
-                <DocumentDownload version={reference.version} />
-              </li>
-            );
-          })}
-        </ul>
-      )}
-      <ItemAgentProgress item={item} state={agentState} />
-      {isCertificateDelivery(item.title) && (
-        <CertificateDeliveryControls
-          item={item}
-          busy={Boolean(
-            agentState?.queued ||
-            agentState?.execution === "running" ||
-            agentState?.classification.status === "running",
-          )}
-        />
-      )}
-      {editing && (
-        <form
-          id={`note-editor-${item._id}`}
-          className="mt-2 space-y-3 pb-2 sm:ml-8"
-          onSubmit={(event) => void saveNotes(event)}
-        >
-          <Field>
-            <FieldLabel htmlFor={`notes-${item._id}`}>Note</FieldLabel>
-            <Textarea
-              id={`notes-${item._id}`}
-              autoFocus
-              value={notes}
-              onChange={(event) => setLocalNotes(event.target.value)}
-              disabled={isSavingNotes}
-            />
-          </Field>
-          <div className="flex gap-2">
-            <Button type="submit" size="sm" disabled={isSavingNotes}>
-              {isSavingNotes ? "Saving..." : "Save note"}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              disabled={isSavingNotes}
-              onClick={closeEditor}
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      )}
-      {error !== null && (
-        <div className="mt-3 sm:ml-8">
+      {error && (
+        <div className="mt-2">
           <RequestError message={error} />
         </div>
       )}

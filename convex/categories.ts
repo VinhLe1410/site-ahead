@@ -2,18 +2,15 @@ import {
   paginationOptsValidator,
   paginationResultValidator,
 } from "convex/server";
-import { ConvexError, v } from "convex/values";
+import { ConvexError, v, type Infer } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import {
   requireOrganizationCategory,
   requireMembership,
   activeMembership,
 } from "./access";
-import {
-  requireText,
-  templateItemValidator,
-  validateTemplate,
-} from "./contracts";
+import { requireText, validateTemplate } from "./contracts";
+import { MAX_CATEGORY_DESCRIPTION_LENGTH } from "../shared/categories";
 import { schema } from "./schema";
 import {
   documentSummaryValidator,
@@ -21,10 +18,20 @@ import {
   templateDocumentVersions,
 } from "./documentData";
 
-const categoryFields = {
-  title: v.string(),
-  checklist: v.array(templateItemValidator),
-};
+const categoryFieldsValidator = schema
+  .doc("categories")
+  .pick("title", "description", "checklist");
+
+function normalizeDescription(description: string) {
+  const normalized = description.trim();
+
+  if (normalized.length > MAX_CATEGORY_DESCRIPTION_LENGTH)
+    throw new ConvexError(
+      `Keep the category description to ${MAX_CATEGORY_DESCRIPTION_LENGTH.toLocaleString("en-AU")} characters or fewer.`,
+    );
+
+  return normalized === "" ? undefined : normalized;
+}
 
 export const list = query({
   args: { paginationOpts: paginationOptsValidator },
@@ -82,7 +89,7 @@ export const get = query({
 });
 
 export const create = mutation({
-  args: categoryFields,
+  args: categoryFieldsValidator.fields,
   returns: v.id("categories"),
   handler: async (ctx, args) => {
     const { organizationId } = await requireMembership(ctx);
@@ -93,13 +100,17 @@ export const create = mutation({
     return await ctx.db.insert("categories", {
       organizationId,
       title: requireText(args.title, "Category title"),
+      description:
+        args.description === undefined
+          ? undefined
+          : normalizeDescription(args.description),
       checklist,
     });
   },
 });
 
 export const update = mutation({
-  args: { categoryId: v.id("categories"), ...categoryFields },
+  args: { categoryId: v.id("categories"), ...categoryFieldsValidator.fields },
   returns: v.null(),
   handler: async (ctx, args) => {
     const { organizationId } = await requireMembership(ctx);
@@ -107,10 +118,15 @@ export const update = mutation({
     const checklist = validateTemplate(args.checklist);
 
     await templateDocumentVersions(ctx.db, organizationId, checklist);
-    await ctx.db.patch("categories", args.categoryId, {
+
+    const patch: Infer<typeof categoryFieldsValidator> = {
       title: requireText(args.title, "Category title"),
       checklist,
-    });
+    };
+
+    if (args.description !== undefined)
+      patch.description = normalizeDescription(args.description);
+    await ctx.db.patch("categories", args.categoryId, patch);
 
     return null;
   },

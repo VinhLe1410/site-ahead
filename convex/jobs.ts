@@ -14,7 +14,11 @@ import {
   requireMembership,
   activeMembership,
 } from "./access";
-import { jobStatusValidator, requireText } from "./contracts";
+import {
+  jobInputValidator,
+  jobStatusValidator,
+  requireText,
+} from "./contracts";
 import { schema } from "./schema";
 import {
   checklistDocuments,
@@ -28,11 +32,7 @@ const jobListItemValidator = v.object({
 });
 
 export const create = mutation({
-  args: {
-    processedText: v.string(),
-    addressText: v.string(),
-    categoryId: v.union(v.id("categories"), v.null()),
-  },
+  args: jobInputValidator.fields,
   returns: v.id("jobs"),
   handler: async (ctx, args) => {
     const { organizationId, userId } = await requireMembership(ctx);

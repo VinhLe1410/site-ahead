@@ -44,22 +44,22 @@ export function PreVisitPreparation({ jobId }: { jobId: Id<"jobs"> }) {
 
   return (
     <section
-      className="mt-6 border bg-card"
+      className="mt-5 border-t pt-5"
       aria-labelledby="preparation-heading"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-4 sm:px-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 id="preparation-heading" className="font-semibold">
+          <h3 id="preparation-heading" className="font-semibold">
             Before the visit
-          </h2>
+          </h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            AI-generated preparation. Review the reasons and check off work
-            yourself.
+            AI suggestions. Track these separately from your checklist.
           </p>
         </div>
         {data?.supported && (
           <Button
-            variant="outline"
+            variant="ghost"
+            size="sm"
             disabled={
               working ||
               running ||
@@ -76,7 +76,7 @@ export function PreVisitPreparation({ jobId }: { jobId: Id<"jobs"> }) {
           </Button>
         )}
       </div>
-      <div className="space-y-3 px-4 py-4 sm:px-5">
+      <div className="mt-3 space-y-3">
         {data === undefined && (
           <p className="text-sm text-muted-foreground" role="status">
             Loading preparation…
@@ -141,9 +141,9 @@ export function PreVisitPreparation({ jobId }: { jobId: Id<"jobs"> }) {
         )}
       </div>
       {visible.length > 0 && (
-        <ul className="divide-y border-t">
+        <ul className="mt-2 divide-y">
           {visible.map((entry) => (
-            <li key={entry.id} className="px-4 py-4 sm:px-5">
+            <li key={entry.id} className="py-3">
               <div className="flex items-start gap-3">
                 <Checkbox
                   id={`preparation-${entry.id}`}
@@ -167,12 +167,19 @@ export function PreVisitPreparation({ jobId }: { jobId: Id<"jobs"> }) {
                   >
                     {entry.action}
                   </label>
-                  <p className="text-sm text-muted-foreground wrap-anywhere">
-                    {entry.rationale}
-                  </p>
-                  <blockquote className="border-l-2 pl-3 text-sm text-muted-foreground wrap-anywhere">
-                    “{entry.excerpt}”
-                  </blockquote>
+                  <details className="text-sm text-muted-foreground">
+                    <summary className="w-fit cursor-pointer text-xs font-medium">
+                      Why this helps
+                    </summary>
+                    <div className="mt-2 space-y-2">
+                      <p className="text-sm text-muted-foreground wrap-anywhere">
+                        {entry.rationale}
+                      </p>
+                      <blockquote className="border-l-2 pl-3 text-sm text-muted-foreground wrap-anywhere">
+                        “{entry.excerpt}”
+                      </blockquote>
+                    </div>
+                  </details>
                   {data?.staleEntryIds.includes(entry.id) && (
                     <p className="text-xs text-amber-800 dark:text-amber-300">
                       Based on earlier job details
@@ -207,18 +214,26 @@ export function PreVisitPreparation({ jobId }: { jobId: Id<"jobs"> }) {
         </ul>
       )}
       {record && (
-        <PreparationClientMessage
-          jobId={jobId}
-          message={record.message}
-          stale={data?.messageStale ?? false}
-          canRegenerate={Boolean(
-            data?.supported && !data.contextError && !pendingStale && !running,
-          )}
-          hasQuestions={entries.some(
-            (entry) =>
-              entry.status === "pending" && entry.clientQuestion !== null,
-          )}
-        />
+        <details className="mt-3">
+          <summary className="w-fit cursor-pointer text-sm font-medium underline underline-offset-4">
+            Review client message{data?.messageStale ? " · Needs review" : ""}
+          </summary>
+          <PreparationClientMessage
+            jobId={jobId}
+            message={record.message}
+            stale={data?.messageStale ?? false}
+            canRegenerate={Boolean(
+              data?.supported &&
+              !data.contextError &&
+              !pendingStale &&
+              !running,
+            )}
+            hasQuestions={entries.some(
+              (entry) =>
+                entry.status === "pending" && entry.clientQuestion !== null,
+            )}
+          />
+        </details>
       )}
     </section>
   );

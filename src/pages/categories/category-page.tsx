@@ -17,6 +17,7 @@ function CategoryEditor({
     <CategoryForm
       editing
       initialTitle={category.title}
+      initialDescription={category.description}
       initialChecklist={category.checklist}
       documents={category.documents}
       submitLabel="Save changes"

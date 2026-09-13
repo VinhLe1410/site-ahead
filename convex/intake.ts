@@ -2,6 +2,7 @@
 
 import { v } from "convex/values";
 import { action } from "./_generated/server";
+import { internal } from "./_generated/api";
 import {
   audioIntakeResultValidator,
   intakeResultValidator,
@@ -175,6 +176,13 @@ async function runElevenLabsTranscription(
   mimeType: string,
   overrideApiKey?: string,
 ) {
+  if (
+    audioBase64.length > 819_200 ||
+    !/^[A-Za-z0-9+/]+={0,2}$/.test(audioBase64)
+  )
+    throw new Error("Choose a valid audio recording under 600 KiB.");
+
+  if (!mimeType.startsWith("audio/")) throw new Error("Choose an audio file.");
   const apiKey = overrideApiKey || process.env.ELEVENLABS_API_KEY;
 
   if (!apiKey) {
@@ -224,7 +232,8 @@ export const extractFromTranscript = action({
     apiKey: v.optional(v.string()),
   },
   returns: intakeResultValidator,
-  handler: async (_ctx, args) => {
+  handler: async (ctx, args) => {
+    await ctx.runQuery(internal.access.authorizeIntake, {});
     const rawTranscript = requireText(args.transcript, "Transcript");
 
     return await runExtraction(rawTranscript, args.apiKey);
@@ -238,7 +247,8 @@ export const transcribeAudio = action({
     apiKey: v.optional(v.string()),
   },
   returns: transcriptionResultValidator,
-  handler: async (_ctx, args) => {
+  handler: async (ctx, args) => {
+    await ctx.runQuery(internal.access.authorizeIntake, {});
     requireText(args.audioBase64, "Audio base64");
     requireText(args.mimeType, "MIME type");
 
@@ -258,7 +268,8 @@ export const extractFromAudio = action({
     openAiApiKey: v.optional(v.string()),
   },
   returns: audioIntakeResultValidator,
-  handler: async (_ctx, args) => {
+  handler: async (ctx, args) => {
+    await ctx.runQuery(internal.access.authorizeIntake, {});
     requireText(args.audioBase64, "Audio base64");
     requireText(args.mimeType, "MIME type");
 

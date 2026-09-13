@@ -4,7 +4,11 @@ import {
   executionSnapshot,
   type SnapshotContext,
 } from "../../../shared/item-agent-snapshots";
-import { summarizeJobBrief } from "./job-brief-summary";
+import {
+  summarizeJobBrief,
+  currentItemOutput,
+  type BriefContext,
+} from "./job-brief-summary";
 
 function id<Table extends TableNames | "_storage">(value: string): Id<Table> {
   // SAFETY: These inert presentation fixtures never call Convex or persist IDs.
@@ -106,6 +110,109 @@ const roads: NonNullable<Doc<"checklistAgentStates">["finding"]> = {
   maxSnapshotAgeHours: 48,
   coverage: "Exact road only",
 };
+
+test("Electrical portal drafts and certificate simulations stay current only for their saved context", () => {
+  const request = item(
+    "Prepare COES information for ESVConnect",
+    "third_party",
+  );
+
+  const delivery = item(
+    "Send the completed COES to the client",
+    "automated",
+    "done",
+  );
+
+  const certificate: Doc<"electricalCertificates"> = {
+    _id: id<"electricalCertificates">("certificate"),
+    _creationTime: 1,
+    itemId: delivery._id,
+    jobId: context.job._id,
+    organizationId: context.job.organizationId,
+    storageId: id<"_storage">("certificate-file"),
+    filename: "TEST.pdf",
+    size: 100,
+    sha256: "test",
+    uploadedBy: id<"users">("member"),
+    uploadedAt: 1,
+    snapshot: "saved",
+    recipient: "customer@example.com",
+    confirmedAt: 2,
+    confirmationKey: "confirmed",
+  };
+
+  const electricalContext: BriefContext = {
+    ...context,
+    certificates: [certificate],
+  };
+
+  const requestState = state(request, {
+    execution: "waiting",
+    requestDraft: {
+      skillKey: "coes-portal",
+      title: "COES draft",
+      destinationUrl: "https://example.com",
+      guidanceUrl: "https://example.com",
+      guidance: "Review before use",
+      savedAt: 2,
+      fields: [],
+    },
+  });
+
+  const deliveryState = state(delivery, {
+    snapshot: executionSnapshot({
+      ...context,
+      item: { ...delivery, status: "pending" },
+      certificate,
+    }),
+    finding: {
+      kind: "simulated_certificate_delivery",
+      mode: "simulation",
+      emailSent: false,
+      summary: "Delivery simulated. No email sent.",
+      coverage: "PoC only",
+      observedAt: 2,
+      certificateId: certificate._id,
+      filename: certificate.filename,
+      recipient: certificate.recipient!,
+      confirmationKey: "confirmed",
+    },
+  });
+
+  const summary = summarizeJobBrief(
+    electricalContext,
+    [request, delivery],
+    [requestState, deliveryState],
+  );
+
+  expect(summary.drafts[0].detail).toContain(
+    "COES portal information prepared",
+  );
+  expect(summary.completed[0].detail).toContain("No email sent");
+  expect(
+    currentItemOutput(electricalContext, request, requestState).draft,
+  ).toEqual(requestState.requestDraft);
+  expect(
+    currentItemOutput(
+      {
+        ...electricalContext,
+        certificates: [{ ...certificate, recipient: "changed@example.com" }],
+      },
+      delivery,
+      deliveryState,
+    ).finding,
+  ).toBeUndefined();
+  expect(
+    currentItemOutput(
+      {
+        ...electricalContext,
+        job: { ...context.job, addressText: "Changed address" },
+      },
+      request,
+      requestState,
+    ).draft,
+  ).toBeUndefined();
+});
 
 test("empty checklist has no invented completion or action", () => {
   expect(summarizeJobBrief(context, [], [])).toEqual({

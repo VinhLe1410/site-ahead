@@ -4,6 +4,13 @@ import { useParams, useNavigate } from "react-router";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import type { FunctionReturnType } from "convex/server";
+import { MoreHorizontalIcon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { JobForm } from "./components/job-form";
 import {
@@ -29,7 +36,10 @@ import { jobStatusLabels } from "@/pages/jobs/job-labels";
 import { ChecklistItem } from "./components/checklist-item";
 import { JobAgentControls } from "./components/job-agent-controls";
 import { JobBrief } from "./components/job-brief";
-import { PreVisitPreparation } from "./components/pre-visit-preparation";
+import { JobNextActions } from "./components/job-next-actions";
+import { ChecklistItemDetails } from "./components/checklist-item-details";
+import { ChecklistDetailsPanel } from "./components/checklist-details-panel";
+import { currentItemOutput, summarizeJobBrief } from "./job-brief-summary";
 
 function JobDetails({
   data,
@@ -46,6 +56,88 @@ function JobDetails({
 
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
+
+  const [selected, setSelected] = useState<{
+    itemId: string;
+    trigger: HTMLButtonElement;
+    editNote: boolean;
+    open: boolean;
+  } | null>(null);
+
+  const [noteDrafts, setNoteDrafts] = useState<
+    Map<Doc<"checklistItems">["_id"], string>
+  >(() => new Map());
+
+  const selectedItem = data.checklist.find(
+    (item) => item._id === selected?.itemId,
+  );
+
+  const context = {
+    certificates: data.certificates,
+    job: data.job,
+    input: data.input,
+    category: data.categoryTitle ? { title: data.categoryTitle } : null,
+  };
+
+  const summary =
+    agentStates === undefined
+      ? undefined
+      : summarizeJobBrief(context, data.checklist, agentStates);
+
+  const selectedState = agentStates?.find(
+    (state) => state.itemId === selected?.itemId,
+  );
+
+  const selectedAction = summary?.actions.find(
+    (entry) => entry.itemId === selected?.itemId,
+  );
+
+  const selectedNextAction = selectedItem
+    ? currentItemOutput(context, selectedItem, selectedState).nextAction
+    : undefined;
+
+  function openItem(
+    itemId: string,
+    trigger: HTMLButtonElement,
+    editNote = false,
+  ) {
+    setSelected({ itemId, trigger, editNote, open: true });
+  }
+
+  function closeItem() {
+    setSelected((current) =>
+      current === null ? null : { ...current, open: false },
+    );
+  }
+
+  function changeNoteDraft(
+    itemId: Doc<"checklistItems">["_id"],
+    notes: string | undefined,
+  ) {
+    setNoteDrafts((current) => {
+      const next = new Map(current);
+
+      if (notes === undefined) next.delete(itemId);
+      else next.set(itemId, notes);
+
+      return next;
+    });
+  }
+
+  function clearSavedNoteDraft(
+    itemId: Doc<"checklistItems">["_id"],
+    notes: string,
+  ) {
+    setNoteDrafts((current) => {
+      // A completed save must not clear newer edits made after reopening the sheet.
+      if (current.get(itemId) !== notes) return current;
+      const next = new Map(current);
+      next.delete(itemId);
+
+      return next;
+    });
+  }
+
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,16 +193,37 @@ function JobDetails({
                 />
               </DialogContent>
             </Dialog>
-            <ConfirmDialog
-              trigger="Delete job"
-              title={`Delete ${data.job.addressText}?`}
-              description="This deletes the job and its checklist for everyone in your organization."
-              confirmLabel="Delete job"
-              onConfirm={async () => {
-                await remove({ jobId: data.job._id });
-                void navigate("/app/jobs", { replace: true });
-              }}
-            />
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="More job actions"
+                  />
+                }
+              >
+                <MoreHorizontalIcon />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <ConfirmDialog
+                  trigger="Delete job"
+                  triggerRender={
+                    <DropdownMenuItem
+                      closeOnClick={false}
+                      variant="destructive"
+                    />
+                  }
+                  title={`Delete ${data.job.addressText}?`}
+                  description="This deletes the job and its checklist for everyone in your organization."
+                  confirmLabel="Delete job"
+                  onConfirm={async () => {
+                    await remove({ jobId: data.job._id });
+                    void navigate("/app/jobs", { replace: true });
+                  }}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         }
       />
@@ -143,63 +256,100 @@ function JobDetails({
           <RequestError message={error} />
         </div>
       )}
-      <section className="border bg-card" aria-labelledby="checklist-heading">
-        <div className="flex items-center justify-between gap-4 border-b px-4 py-4 sm:px-5">
-          <h2 id="checklist-heading" className="font-semibold">
-            Checklist
-          </h2>
-          {data.checklist.length > 0 && (
-            <span className="text-sm text-muted-foreground tabular-nums">
-              {data.checklist.filter((item) => item.status === "done").length} /{" "}
-              {data.checklist.length} done
-            </span>
+      <div className="min-w-0">
+        <JobBrief
+          context={context}
+          items={data.checklist}
+          states={agentStates}
+        />
+        <JobNextActions
+          context={context}
+          items={data.checklist}
+          states={agentStates}
+          onOpenItem={openItem}
+        />
+        <section className="border-t pt-6" aria-labelledby="checklist-heading">
+          <div className="mb-2 flex items-center justify-between gap-4">
+            <h2 id="checklist-heading" className="text-lg font-semibold">
+              Checklist
+            </h2>
+            {data.checklist.length > 0 && (
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {data.checklist.filter((item) => item.status === "done").length}{" "}
+                of {data.checklist.length} done
+              </span>
+            )}
+          </div>
+          {data.checklist.length === 0 ? (
+            <p className="py-5 text-sm text-muted-foreground">
+              No checklist items.
+            </p>
+          ) : (
+            <ul className="divide-y">
+              {data.checklist.map((item) => (
+                <ChecklistItem
+                  key={item._id}
+                  item={item}
+                  context={context}
+                  loading={agentStates === undefined}
+                  agentState={agentStates?.find(
+                    (state) => state.itemId === item._id,
+                  )}
+                  selected={
+                    selected?.open === true && selected.itemId === item._id
+                  }
+                  onOpen={(trigger, editNote) =>
+                    openItem(item._id, trigger, editNote)
+                  }
+                />
+              ))}
+            </ul>
           )}
-        </div>
-        {data.checklist.length > 0 && (
-          <JobAgentControls
-            job={data.job}
-            items={data.checklist}
-            busy={
-              agentStates === undefined ||
-              agentStates.some(
-                (state) =>
-                  state.queued ||
-                  state.execution === "running" ||
-                  state.classification.status === "running",
-              )
+          {data.checklist.length > 0 && (
+            <JobAgentControls
+              job={data.job}
+              items={data.checklist}
+              busy={
+                agentStates === undefined ||
+                agentStates.some(
+                  (state) =>
+                    state.queued ||
+                    state.execution === "running" ||
+                    state.classification.status === "running",
+                )
+              }
+            />
+          )}
+        </section>
+      </div>
+      {selected && selectedItem && (
+        <ChecklistDetailsPanel
+          key={`${selected.itemId}-${selected.editNote}`}
+          title={selectedItem.title}
+          returnFocus={selected.trigger}
+          open={selected.open}
+          onClose={closeItem}
+        >
+          {selectedAction && !selectedNextAction && (
+            <p className="mb-5 border-b pb-4 text-sm leading-6 text-muted-foreground">
+              {selectedAction.detail}
+            </p>
+          )}
+          <ChecklistItemDetails
+            item={selectedItem}
+            documents={data.documents}
+            context={context}
+            agentState={selectedState}
+            loading={agentStates === undefined}
+            editNote={selected.editNote}
+            noteDraft={noteDrafts.get(selectedItem._id)}
+            onNoteChange={(notes) => changeNoteDraft(selectedItem._id, notes)}
+            onNoteSaved={(notes) =>
+              clearSavedNoteDraft(selectedItem._id, notes)
             }
           />
-        )}
-        {data.checklist.length === 0 ? (
-          <p className="px-5 py-8 text-sm text-muted-foreground">
-            No checklist items.
-          </p>
-        ) : (
-          <ul className="divide-y">
-            {data.checklist.map((item) => (
-              <ChecklistItem
-                key={item._id}
-                item={item}
-                documents={data.documents}
-                agentState={agentStates?.find(
-                  (state) => state.itemId === item._id,
-                )}
-              />
-            ))}
-          </ul>
-        )}
-      </section>
-      <PreVisitPreparation key={data.job._id} jobId={data.job._id} />
-      <JobBrief
-        context={{
-          job: data.job,
-          input: data.input,
-          certificates: data.certificates,
-          category: data.categoryTitle ? { title: data.categoryTitle } : null,
-        }}
-        items={data.checklist}
-        states={agentStates}
-      />
+        </ChecklistDetailsPanel>
+      )}
     </>
   );
 }

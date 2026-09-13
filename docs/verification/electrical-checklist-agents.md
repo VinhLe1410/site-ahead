@@ -72,3 +72,13 @@ Browser checks confirmed that **Copy email draft** includes the supplied contrac
 - `13bf147` adds the approved general demo values, provenance and planned wording.
 
 The Mac became accessible during the demo-information update. Browser upload and confirmation were exercised in a separate disposable job using the **TEST FILE — NOT A COES** PDF and `qa@example.invalid`. The Job Brief displayed **Simulated delivery — no email sent**, marked only that test item done, and retained the result after reload. The temporary tab, job and category were removed. The main Carlton demo retains its pending real certificate requirements.
+
+## Integration with main's compact UI — 14 September 2026
+
+Merged `origin/main` at `a30412f` into the Electrical branch. Retained main's compact checklist, next-action layout, details panel and conversational intake. Electrical request drafts and certificate controls now render inside that details panel. Shared output freshness includes the per-item certificate, and both Electrical finding types and portal/email drafts remain represented in checklist summaries.
+
+`npm run check` passes with 79 tests in 11 files, including a presentation integration case for Electrical drafts, simulated completion and invalidation after recipient/address changes. `npm run build` passes with the existing bundle-size advisory. The combined backend deployed successfully to the existing development deployment `sleek-lyrebird-565`; production was not changed.
+
+Browser verification on the Carlton demo confirmed the prescribed classification, saved road result, two ready drafts, inspector email copy, COES customer-email copy, and the completed-certificate upload controls with explicit simulation labeling. Both drafts retain the exact job address, supplied contractor details and labeled demo data. No certificate was uploaded or sent during this merge verification, and the job remains at two of eight checklist items done. The earlier full delivery simulation verification above still applies; backend delivery implementation was unchanged by the merge.
+
+Unfinished all-job preparation and alternate compact-UI work was stashed separately before merging and is excluded from this integration.

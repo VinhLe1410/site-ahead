@@ -1,9 +1,11 @@
 import { getErrorMessage } from "../../../../shared/errors";
+import { MAX_CATEGORY_DESCRIPTION_LENGTH } from "../../../../shared/categories";
 import { useState, type FormEvent } from "react";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -14,6 +16,8 @@ import {
 import { RequestError } from "@/components/layout/request-error";
 
 import type { Infer } from "convex/values";
+import type { FunctionArgs } from "convex/server";
+import type { api } from "../../../../convex/_generated/api";
 import type { templateItemValidator } from "../../../../convex/contracts";
 import type { DocumentSummary } from "../../../../convex/documentData";
 import { DocumentPicker } from "./document-picker";
@@ -38,6 +42,7 @@ const kindLabels: Record<ChecklistKind, string> = {
 
 export function CategoryForm({
   initialTitle = "",
+  initialDescription = "",
   initialChecklist = [],
   documents = [],
   editing = false,
@@ -45,16 +50,17 @@ export function CategoryForm({
   onSubmit,
 }: {
   initialTitle?: string;
+  initialDescription?: string;
   initialChecklist?: TemplateItem[];
   documents?: DocumentSummary[];
   editing?: boolean;
   submitLabel: string;
-  onSubmit: (values: {
-    title: string;
-    checklist: TemplateItem[];
-  }) => Promise<void>;
+  onSubmit: (
+    values: FunctionArgs<typeof api.categories.create>,
+  ) => Promise<void>;
 }) {
   const [title, setTitle] = useState(initialTitle);
+  const [description, setDescription] = useState(initialDescription);
 
   const [checklist, setChecklist] = useState<TemplateRow[]>(() =>
     initialChecklist.map((item) => ({ ...item, key: crypto.randomUUID() })),
@@ -87,6 +93,7 @@ export function CategoryForm({
     try {
       await onSubmit({
         title,
+        description,
         checklist: checklist.map(({ key: _key, ...item }) => item),
       });
       setIsSaving(false);
@@ -106,7 +113,7 @@ export function CategoryForm({
       className="max-w-4xl space-y-6"
       onSubmit={(event) => void handleSubmit(event)}
     >
-      <div className="max-w-xl">
+      <div className="max-w-xl space-y-4">
         <Field>
           <FieldLabel htmlFor="category-title">Category name</FieldLabel>
           <Input
@@ -116,6 +123,23 @@ export function CategoryForm({
             disabled={isSaving}
             required
           />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="category-description">Description</FieldLabel>
+          <Textarea
+            id="category-description"
+            aria-describedby="category-description-help"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            maxLength={MAX_CATEGORY_DESCRIPTION_LENGTH}
+            disabled={isSaving}
+          />
+          <FieldDescription id="category-description-help">
+            Optional. Describe the work this category covers, with examples and
+            exclusions. Intake uses this to match jobs. Limit:{" "}
+            {MAX_CATEGORY_DESCRIPTION_LENGTH.toLocaleString("en-AU")}{" "}
+            characters.
+          </FieldDescription>
         </Field>
       </div>
       <div className="space-y-3">
