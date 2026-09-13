@@ -61,7 +61,12 @@ function JobDetails({
     itemId: string;
     trigger: HTMLButtonElement;
     editNote: boolean;
+    open: boolean;
   } | null>(null);
+
+  const [noteDrafts, setNoteDrafts] = useState<
+    Map<Doc<"checklistItems">["_id"], string>
+  >(() => new Map());
 
   const selectedItem = data.checklist.find(
     (item) => item._id === selected?.itemId,
@@ -95,12 +100,41 @@ function JobDetails({
     trigger: HTMLButtonElement,
     editNote = false,
   ) {
-    setSelected({ itemId, trigger, editNote });
+    setSelected({ itemId, trigger, editNote, open: true });
   }
 
   function closeItem() {
-    selected?.trigger.focus({ preventScroll: true });
-    setSelected(null);
+    setSelected((current) =>
+      current === null ? null : { ...current, open: false },
+    );
+  }
+
+  function changeNoteDraft(
+    itemId: Doc<"checklistItems">["_id"],
+    notes: string | undefined,
+  ) {
+    setNoteDrafts((current) => {
+      const next = new Map(current);
+
+      if (notes === undefined) next.delete(itemId);
+      else next.set(itemId, notes);
+
+      return next;
+    });
+  }
+
+  function clearSavedNoteDraft(
+    itemId: Doc<"checklistItems">["_id"],
+    notes: string,
+  ) {
+    setNoteDrafts((current) => {
+      // A completed save must not clear newer edits made after reopening the sheet.
+      if (current.get(itemId) !== notes) return current;
+      const next = new Map(current);
+      next.delete(itemId);
+
+      return next;
+    });
   }
 
   const [isSaving, setIsSaving] = useState(false);
@@ -221,103 +255,100 @@ function JobDetails({
           <RequestError message={error} />
         </div>
       )}
-      <div
-        className={`grid items-start gap-7 ${selectedItem ? "xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.8fr)]" : ""}`}
-      >
-        <div className="min-w-0">
-          <JobBrief
-            context={context}
-            items={data.checklist}
-            states={agentStates}
-          />
-          <JobNextActions
-            context={context}
-            items={data.checklist}
-            states={agentStates}
-            onOpenItem={openItem}
-          />
-          <section
-            className="border-t pt-6"
-            aria-labelledby="checklist-heading"
-          >
-            <div className="mb-2 flex items-center justify-between gap-4">
-              <h2 id="checklist-heading" className="text-lg font-semibold">
-                Checklist
-              </h2>
-              {data.checklist.length > 0 && (
-                <span className="text-sm text-muted-foreground tabular-nums">
-                  {
-                    data.checklist.filter((item) => item.status === "done")
-                      .length
-                  }{" "}
-                  of {data.checklist.length} done
-                </span>
-              )}
-            </div>
-            {data.checklist.length === 0 ? (
-              <p className="py-5 text-sm text-muted-foreground">
-                No checklist items.
-              </p>
-            ) : (
-              <ul className="divide-y">
-                {data.checklist.map((item) => (
-                  <ChecklistItem
-                    key={item._id}
-                    item={item}
-                    context={context}
-                    loading={agentStates === undefined}
-                    agentState={agentStates?.find(
-                      (state) => state.itemId === item._id,
-                    )}
-                    selected={selected?.itemId === item._id}
-                    onOpen={(trigger, editNote) =>
-                      openItem(item._id, trigger, editNote)
-                    }
-                  />
-                ))}
-              </ul>
-            )}
+      <div className="min-w-0">
+        <JobBrief
+          context={context}
+          items={data.checklist}
+          states={agentStates}
+        />
+        <JobNextActions
+          context={context}
+          items={data.checklist}
+          states={agentStates}
+          onOpenItem={openItem}
+        />
+        <section className="border-t pt-6" aria-labelledby="checklist-heading">
+          <div className="mb-2 flex items-center justify-between gap-4">
+            <h2 id="checklist-heading" className="text-lg font-semibold">
+              Checklist
+            </h2>
             {data.checklist.length > 0 && (
-              <JobAgentControls
-                job={data.job}
-                items={data.checklist}
-                busy={
-                  agentStates === undefined ||
-                  agentStates.some(
-                    (state) =>
-                      state.queued ||
-                      state.execution === "running" ||
-                      state.classification.status === "running",
-                  )
-                }
-              />
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {data.checklist.filter((item) => item.status === "done").length}{" "}
+                of {data.checklist.length} done
+              </span>
             )}
-          </section>
-        </div>
-        {selected && selectedItem && (
-          <ChecklistDetailsPanel
-            key={`${selected.itemId}-${selected.editNote}`}
-            title={selectedItem.title}
-            returnFocus={selected.trigger}
-            editNote={selected.editNote}
-            onClose={closeItem}
-          >
-            {selectedAction && !selectedNextAction && (
-              <p className="mb-5 border-b pb-4 text-sm leading-6 text-muted-foreground">
-                {selectedAction.detail}
-              </p>
-            )}
-            <ChecklistItemDetails
-              item={selectedItem}
-              documents={data.documents}
-              context={context}
-              agentState={selectedState}
-              loading={agentStates === undefined}
-              editNote={selected.editNote}
+          </div>
+          {data.checklist.length === 0 ? (
+            <p className="py-5 text-sm text-muted-foreground">
+              No checklist items.
+            </p>
+          ) : (
+            <ul className="divide-y">
+              {data.checklist.map((item) => (
+                <ChecklistItem
+                  key={item._id}
+                  item={item}
+                  context={context}
+                  loading={agentStates === undefined}
+                  agentState={agentStates?.find(
+                    (state) => state.itemId === item._id,
+                  )}
+                  selected={
+                    selected?.open === true && selected.itemId === item._id
+                  }
+                  onOpen={(trigger, editNote) =>
+                    openItem(item._id, trigger, editNote)
+                  }
+                />
+              ))}
+            </ul>
+          )}
+          {data.checklist.length > 0 && (
+            <JobAgentControls
+              job={data.job}
+              items={data.checklist}
+              busy={
+                agentStates === undefined ||
+                agentStates.some(
+                  (state) =>
+                    state.queued ||
+                    state.execution === "running" ||
+                    state.classification.status === "running",
+                )
+              }
             />
-          </ChecklistDetailsPanel>
-        )}
+          )}
+        </section>
       </div>
+      {selected && selectedItem && (
+        <ChecklistDetailsPanel
+          key={`${selected.itemId}-${selected.editNote}`}
+          title={selectedItem.title}
+          returnFocus={selected.trigger}
+          open={selected.open}
+          onClose={closeItem}
+        >
+          {selectedAction && !selectedNextAction && (
+            <p className="mb-5 border-b pb-4 text-sm leading-6 text-muted-foreground">
+              {selectedAction.detail}
+            </p>
+          )}
+          <ChecklistItemDetails
+            item={selectedItem}
+            documents={data.documents}
+            context={context}
+            agentState={selectedState}
+            loading={agentStates === undefined}
+            editNote={selected.editNote}
+            noteDraft={noteDrafts.get(selectedItem._id)}
+            onNoteChange={(notes) => changeNoteDraft(selectedItem._id, notes)}
+            onNoteSaved={(notes) =>
+              clearSavedNoteDraft(selectedItem._id, notes)
+            }
+          />
+        </ChecklistDetailsPanel>
+      )}
     </>
   );
 }

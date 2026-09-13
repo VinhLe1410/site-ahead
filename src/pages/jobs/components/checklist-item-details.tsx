@@ -20,6 +20,9 @@ export function ChecklistItemDetails({
   context,
   editNote,
   loading,
+  noteDraft,
+  onNoteChange,
+  onNoteSaved,
 }: {
   item: Doc<"checklistItems">;
   documents: DocumentSummary[];
@@ -27,10 +30,13 @@ export function ChecklistItemDetails({
   context: Omit<SnapshotContext, "item">;
   editNote: boolean;
   loading: boolean;
+  noteDraft: string | undefined;
+  onNoteChange: (notes: string | undefined) => void;
+  onNoteSaved: (notes: string) => void;
 }) {
   const setNotes = useMutation(api.checklistItems.setNotes);
-  const [notes, setLocalNotes] = useState(item.notes);
-  const [editing, setEditing] = useState(editNote);
+  const notes = noteDraft ?? item.notes;
+  const [editing, setEditing] = useState(editNote || noteDraft !== undefined);
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const noteButton = useRef<HTMLButtonElement>(null);
@@ -52,6 +58,7 @@ export function ChecklistItemDetails({
 
     try {
       await setNotes({ itemId: item._id, notes });
+      onNoteSaved(notes);
       setEditing(false);
     } catch (caught) {
       setError(
@@ -65,6 +72,7 @@ export function ChecklistItemDetails({
   }
 
   function closeEditor() {
+    onNoteChange(undefined);
     setEditing(false);
     setError(null);
   }
@@ -89,7 +97,6 @@ export function ChecklistItemDetails({
             if (editing) {
               closeEditor();
             } else {
-              setLocalNotes(item.notes);
               setError(null);
               setEditing(true);
             }
@@ -172,7 +179,7 @@ export function ChecklistItemDetails({
               id={`notes-${item._id}`}
               autoFocus
               value={notes}
-              onChange={(event) => setLocalNotes(event.target.value)}
+              onChange={(event) => onNoteChange(event.target.value)}
               disabled={isSavingNotes}
             />
           </Field>
