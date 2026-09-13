@@ -83,7 +83,7 @@ export function summarizeJobBrief(
       state?.classification.status === "succeeded" &&
       state.execution === "waiting" &&
       item.kind === "third_party"
-        ? state.draft
+        ? (state.requestDraft ?? state.draft)
         : undefined;
 
     if (item.status === "done") {
@@ -152,6 +152,24 @@ export function summarizeJobBrief(
     }
 
     if (draft) {
+      if ("skillKey" in draft) {
+        summary.drafts.push({
+          ...entry,
+          detail:
+            draft.skillKey === "coes-portal"
+              ? "COES portal information prepared. No completed work, certification or submission is established."
+              : "Inspector enquiry prepared. No email has been sent and no appointment is established.",
+        });
+        summary.actions.push({
+          ...entry,
+          priority: 3,
+          detail:
+            state?.nextAction ??
+            "Review the draft and its missing information before manual use.",
+        });
+        continue;
+      }
+
       summary.drafts.push({
         ...entry,
         detail:
@@ -180,7 +198,7 @@ export function summarizeJobBrief(
       detail:
         missing.length > 0
           ? `Provide or confirm: ${missing.join(", ")}. Then process this item again.`
-          : state?.finding || state?.draft
+          : state?.finding || state?.draft || state?.requestDraft
             ? "Earlier output is available, but this item remains unresolved. Review the saved job information and process it again."
             : item.kind === "third_party"
               ? "Prepare the request, then review its requirements and arrange the appropriate third party. This item remains pending."

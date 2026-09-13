@@ -55,6 +55,17 @@ export async function invalidateItemWork(
       classification,
       updatedAt: Date.now(),
     });
+  } else if (
+    state.requestDraft !== undefined ||
+    state.finding?.kind === "electrical_classification" ||
+    state.finding?.kind === "simulated_certificate_delivery"
+  ) {
+    await ctx.db.patch("checklistAgentStates", state._id, {
+      snapshot: undefined,
+      nextAction:
+        "Saved information changed. Review the earlier output and process this item again.",
+      updatedAt: Date.now(),
+    });
   }
 }
 

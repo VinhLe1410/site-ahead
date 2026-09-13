@@ -7,6 +7,7 @@ import { useDocumentTransfer } from "@/components/documents/use-document-transfe
 import { RequestError } from "@/components/layout/request-error";
 import { Button } from "@/components/ui/button";
 import { RoadFindingDetails } from "./road-finding-details";
+import { ElectricalRequestDraft } from "./electrical-request-draft";
 
 const sourceLabels = {
   database: "Saved job information",
@@ -171,6 +172,17 @@ export function ItemAgentProgress({
           </Button>
         </div>
       )}
+      {state?.requestDraft && (
+        <ElectricalRequestDraft
+          draft={state.requestDraft}
+          current={
+            state.snapshot !== undefined &&
+            state.execution === "waiting" &&
+            !busy &&
+            item.status === "pending"
+          }
+        />
+      )}
       {state && state.provenance.length > 0 && (
         <details className="text-xs text-muted-foreground">
           <summary className="cursor-pointer">Information sources</summary>
@@ -201,7 +213,7 @@ export function ItemAgentProgress({
             ? "Please wait..."
             : classificationFailed
               ? "Retry classification"
-              : state?.draft
+              : state?.draft || state?.requestDraft
                 ? "Regenerate draft"
                 : "Process item"}
         </Button>

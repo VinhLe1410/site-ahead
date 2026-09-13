@@ -89,7 +89,13 @@ async function invalidateChangedContext(
   for (const item of items) {
     const state = await itemAgentState(ctx.db, item._id);
 
-    if (state?.execution !== "running" && !state?.queued) continue;
+    if (
+      state?.execution !== "running" &&
+      !state?.queued &&
+      !state?.requestDraft &&
+      state?.finding?.kind !== "simulated_certificate_delivery"
+    )
+      continue;
     const context = await loadItemContext(ctx.db, item);
 
     if (

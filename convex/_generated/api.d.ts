@@ -21,6 +21,8 @@ import type * as agents_preparation_carpentryPreparationGuidance from "../agents
 import type * as agents_preparation_recommendPreparation from "../agents/preparation/recommendPreparation.js";
 import type * as agents_requests_buildingPermitPdf from "../agents/requests/buildingPermitPdf.js";
 import type * as agents_requests_buildingPermitSkill from "../agents/requests/buildingPermitSkill.js";
+import type * as agents_requests_electricalRequestSkills from "../agents/requests/electricalRequestSkills.js";
+import type * as agents_requests_electricalRequestWorker from "../agents/requests/electricalRequestWorker.js";
 import type * as agents_requests_occupancyPermitDocx from "../agents/requests/occupancyPermitDocx.js";
 import type * as agents_requests_occupancyPermitSkill from "../agents/requests/occupancyPermitSkill.js";
 import type * as agents_requests_requestProfile from "../agents/requests/requestProfile.js";
@@ -39,6 +41,8 @@ import type * as contracts from "../contracts.js";
 import type * as documentData from "../documentData.js";
 import type * as documentFiles from "../documentFiles.js";
 import type * as documents from "../documents.js";
+import type * as electricalContracts from "../electricalContracts.js";
+import type * as electricalRequests from "../electricalRequests.js";
 import type * as evidenceContracts from "../evidenceContracts.js";
 import type * as http from "../http.js";
 import type * as intake from "../intake.js";
@@ -76,6 +80,8 @@ declare const fullApi: ApiFromModules<{
   "agents/preparation/recommendPreparation": typeof agents_preparation_recommendPreparation;
   "agents/requests/buildingPermitPdf": typeof agents_requests_buildingPermitPdf;
   "agents/requests/buildingPermitSkill": typeof agents_requests_buildingPermitSkill;
+  "agents/requests/electricalRequestSkills": typeof agents_requests_electricalRequestSkills;
+  "agents/requests/electricalRequestWorker": typeof agents_requests_electricalRequestWorker;
   "agents/requests/occupancyPermitDocx": typeof agents_requests_occupancyPermitDocx;
   "agents/requests/occupancyPermitSkill": typeof agents_requests_occupancyPermitSkill;
   "agents/requests/requestProfile": typeof agents_requests_requestProfile;
@@ -94,6 +100,8 @@ declare const fullApi: ApiFromModules<{
   documentData: typeof documentData;
   documentFiles: typeof documentFiles;
   documents: typeof documents;
+  electricalContracts: typeof electricalContracts;
+  electricalRequests: typeof electricalRequests;
   evidenceContracts: typeof evidenceContracts;
   http: typeof http;
   intake: typeof intake;
