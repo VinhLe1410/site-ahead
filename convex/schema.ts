@@ -18,7 +18,12 @@ import {
   jobAgentContextValidator,
 } from "./agentContracts";
 
+import { jobPreparationValidator } from "./preparationContracts";
+
 export const schema = defineSchema({
+  jobPreparations: defineTable(jobPreparationValidator).index("by_jobId", [
+    "jobId",
+  ]),
   ...authTables,
   users: defineTable({
     ...authTables.users.validator.fields,

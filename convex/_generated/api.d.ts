@@ -18,6 +18,8 @@ import type * as agents_checklist_liveEvidence from "../agents/checklist/liveEvi
 import type * as agents_checklist_processChecklist from "../agents/checklist/processChecklist.js";
 import type * as agents_checklist_verification from "../agents/checklist/verification.js";
 import type * as agents_intake_draftAgent from "../agents/intake/draftAgent.js";
+import type * as agents_preparation_carpentryPreparationGuidance from "../agents/preparation/carpentryPreparationGuidance.js";
+import type * as agents_preparation_recommendPreparation from "../agents/preparation/recommendPreparation.js";
 import type * as agents_requests_buildingPermitPdf from "../agents/requests/buildingPermitPdf.js";
 import type * as agents_requests_buildingPermitSkill from "../agents/requests/buildingPermitSkill.js";
 import type * as agents_requests_occupancyPermitDocx from "../agents/requests/occupancyPermitDocx.js";
@@ -46,8 +48,13 @@ import type * as invitations from "../invitations.js";
 import type * as itemAgentData from "../itemAgentData.js";
 import type * as jobAgentContext from "../jobAgentContext.js";
 import type * as jobDrafts from "../jobDrafts.js";
+import type * as jobPreparation from "../jobPreparation.js";
+import type * as jobPreparationContext from "../jobPreparationContext.js";
+import type * as jobPreparationGeneration from "../jobPreparationGeneration.js";
 import type * as jobs from "../jobs.js";
 import type * as organizations from "../organizations.js";
+import type * as preparationContracts from "../preparationContracts.js";
+import type * as preparationValidation from "../preparationValidation.js";
 import type * as requestDocuments from "../requestDocuments.js";
 import type * as users from "../users.js";
 
@@ -68,6 +75,8 @@ declare const fullApi: ApiFromModules<{
   "agents/checklist/processChecklist": typeof agents_checklist_processChecklist;
   "agents/checklist/verification": typeof agents_checklist_verification;
   "agents/intake/draftAgent": typeof agents_intake_draftAgent;
+  "agents/preparation/carpentryPreparationGuidance": typeof agents_preparation_carpentryPreparationGuidance;
+  "agents/preparation/recommendPreparation": typeof agents_preparation_recommendPreparation;
   "agents/requests/buildingPermitPdf": typeof agents_requests_buildingPermitPdf;
   "agents/requests/buildingPermitSkill": typeof agents_requests_buildingPermitSkill;
   "agents/requests/occupancyPermitDocx": typeof agents_requests_occupancyPermitDocx;
@@ -96,8 +105,13 @@ declare const fullApi: ApiFromModules<{
   itemAgentData: typeof itemAgentData;
   jobAgentContext: typeof jobAgentContext;
   jobDrafts: typeof jobDrafts;
+  jobPreparation: typeof jobPreparation;
+  jobPreparationContext: typeof jobPreparationContext;
+  jobPreparationGeneration: typeof jobPreparationGeneration;
   jobs: typeof jobs;
   organizations: typeof organizations;
+  preparationContracts: typeof preparationContracts;
+  preparationValidation: typeof preparationValidation;
   requestDocuments: typeof requestDocuments;
   users: typeof users;
 }>;

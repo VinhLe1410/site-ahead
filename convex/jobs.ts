@@ -1,3 +1,5 @@
+import { claimPreparation } from "./jobPreparationGeneration";
+import { preparationRecord } from "./jobPreparation";
 import { internal } from "./_generated/api";
 import { invalidateItemWork, removeItemWork } from "./itemAgentData";
 import {
@@ -97,6 +99,10 @@ export const create = mutation({
         internal.agents.checklist.processChecklist.run,
         { items, initiatedBy: userId },
       );
+
+    const savedJob = await ctx.db.get("jobs", jobId);
+
+    if (savedJob) await claimPreparation(ctx, savedJob, userId, true);
 
     return jobId;
   },
@@ -311,6 +317,9 @@ export const remove = mutation({
       await ctx.db.delete("checklistItems", item._id);
     }
 
+    const preparation = await preparationRecord(ctx.db, job._id);
+
+    if (preparation) await ctx.db.delete("jobPreparations", preparation._id);
     await ctx.db.delete("jobs", job._id);
 
     const remaining = await ctx.db

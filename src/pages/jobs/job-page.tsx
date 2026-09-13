@@ -29,6 +29,7 @@ import { jobStatusLabels } from "@/pages/jobs/job-labels";
 import { ChecklistItem } from "./components/checklist-item";
 import { JobAgentControls } from "./components/job-agent-controls";
 import { JobBrief } from "./components/job-brief";
+import { PreVisitPreparation } from "./components/pre-visit-preparation";
 
 function JobDetails({
   data,
@@ -188,6 +189,7 @@ function JobDetails({
           </ul>
         )}
       </section>
+      <PreVisitPreparation key={data.job._id} jobId={data.job._id} />
       <JobBrief
         context={{
           job: data.job,
