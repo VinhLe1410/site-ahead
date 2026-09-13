@@ -116,7 +116,7 @@ async function transcribeWithElevenLabs(
   filename: string,
   apiKey: string,
 ) {
-  const blob = new Blob([audioBuffer], { type: mimeType });
+  const blob = new Blob([new Uint8Array(audioBuffer)], { type: mimeType });
   const formData = new FormData();
 
   formData.append("file", blob, filename);

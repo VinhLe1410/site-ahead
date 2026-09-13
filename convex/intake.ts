@@ -184,7 +184,7 @@ async function runElevenLabsTranscription(
   }
 
   const audioBuffer = Buffer.from(audioBase64, "base64");
-  const audioBlob = new Blob([audioBuffer], { type: mimeType });
+  const audioBlob = new Blob([new Uint8Array(audioBuffer)], { type: mimeType });
   const filename = getAudioFilename(mimeType);
 
   const formData = new FormData();
