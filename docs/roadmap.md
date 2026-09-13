@@ -78,16 +78,22 @@ Preserve existing authentication and check job ownership on domain operations. K
 - [ ] Confirm every item-agent action declares the Node.js runtime (`"use node"`), required by the OpenTelemetry exporter package.
 - [ ] Verify with one smoke-test call that a trace reaches Langfuse before wiring this into the real Evidence/Request agents (now A3, see below).
 
-### A2. Classify jobs and resolve the two-trade checklist library
+### A2. Classify checklist items into resolution categories
 
-- [ ] Build a job classification step (small model, e.g. gpt-4o-mini) that takes job description text — for now simulated as if received from Backend, since intake isn't built yet — and classifies it into exactly one of the two in-scope trades: Electrical Work or Carpentry & Renovation. If the description doesn't clearly match either, return unresolved/out-of-scope rather than forcing a guess.
-- [ ] Look up the classified trade's checklist from a Category DB record (Id, Title, Checklist\_json). Mock this as data inside convex/agents/\*\* for now, since Backend hasn't built persistence yet; swap for a real Convex table once Backend's shared schema exists.
-- [ ] Encode stable template keys, categories, base items, and allowed trigger conditions for both trades from the source documents as the content of each trade's Checklist\_json.
-- [ ] Electrical: work classification, CES paperwork and RCD checks; supported prescribed work adds an LEI inspection request. Unclear classification stays unresolved for human checking.
-- [ ] Carpentry & Renovation: construction year (pre/post 1990) asbestos assumption, job-value thresholds ($10k/$16k), Certificate of Consent, building permit + registered surveyor, and Occupancy Permit/Certificate of Final Inspection on completion.
-- [ ] Once the base checklist resolves per trade, a later pass adds one bounded OpenAI extraction call to identify trigger conditions from the confirmed intake text and tailor the checklist further — deferred until the classify + lookup slice above is verified end to end.
+- [ ] Take the job's resolved checklist as input — for now, simulate this as if provided by Backend, since real checklist retrieval/persistence isn't wired up yet.
+- [ ] Classify each checklist item into exactly one of three defined categories: Automated Check, Third-Party Request, or On-Site Check.
 
 ### A3. Implement the item sub-agents
+
+#### A3.1. Wire up live API checks for Automated Check items
+
+- [ ] For each Automated Check item that needs an external data source, identify and select the appropriate API for that specific task (e.g. EPA Victoria AirWatch for an air-quality check).
+- [ ] Call the selected API and receive a response in the expected format.
+
+Success criteria:
+
+- [ ] Able to choose the API that matches the task.
+- [ ] Request to the API succeeds and returns a correctly-formatted response.
 
 - [ ] Define reusable Evidence and Request agents with OpenAI, focused instructions, and item-specific tools.
 - [ ] For each eligible item, create its Agent thread once, save the association, and run the agent with the job context and assigned item. Skip on-site items entirely.
@@ -101,7 +107,7 @@ Preserve existing authentication and check job ownership on domain operations. K
 - [ ] Generate a short report from saved checklist state, including completed findings, pending requests, manual checks, and next actions. Label seeded evidence and do not assume pending work is complete.
 - [ ] Verify two different trade checklists, one message-triggered variation, and one waiting item that resumes after new information.
 
-**Deliver:** catalog, job classification, observability scaffolding, per-item agents/tools, transcription, and report generation. Depends on Backend's shared contract and persistence operations.
+**Deliver:** item-category classification, observability scaffolding, per-item agents/tools, transcription, and report generation. Depends on Backend's shared contract and persistence operations.
 
 ## 2. Backend work
 
