@@ -44,6 +44,8 @@ Configure five environment variables on each Convex deployment:
 
 Use the [Convex Auth manual setup](https://labs.convex.dev/auth/setup/manual) to generate the signing-key pair. Keep secrets in the intended Convex deployment, outside browser code, logs, and tracked files. Only `VITE_CONVEX_URL` is required by the frontend; the Vercel build supplies it.
 
+Agent features also require `OPENAI_API_KEY`. Voice transcription requires `ELEVENLABS_API_KEY`. Deployment validation requires `LANGFUSE_BASE_URL`, `LANGFUSE_PUBLIC_KEY`, and `LANGFUSE_SECRET_KEY`. Set these on each intended Convex deployment before deploying; frontend environment variables do not configure backend providers.
+
 Configure the matching Google Web Application OAuth client with these origins and callback URLs:
 
 | Environment | Frontend origin and `SITE_URL` | Google callback |
@@ -85,7 +87,15 @@ New accounts go straight to organization onboarding after Google login. Create a
 7. Use Edit job to change its intake, address, or category. Reassigning or clearing the category keeps its checklist, status, and notes.
 8. Confirm job deletion to remove it and its checklist for the organization. Delete a category only after every referencing job is reassigned or made Uncategorized. Both owner and staff can perform these changes.
 
-This flow is manual. It does not run agents, interpret intake, verify addresses, call external services, draft requests, or create reports. Those integrations remain separate work.
+Creating a job with checklist items automatically starts checklist classification and eligible item agents. Manual checkbox, note, and job-status changes do not dispatch work.
+
+## Conversational job intake
+
+`/app/jobs/new` shows an editable job draft beside a conversation. Type a client message, record up to one minute of audio, or attach an audio file under 600 KiB. Review the transcript before sending. The intake agent uses the conversation and current draft to update the description, address, and category. It selects only existing organization categories and leaves unknown details blank.
+
+Sent messages and saved fields persist in one active draft per member and organization. Direct edits remain unsaved until Save draft, Send, or Create job saves them. Concurrent edits show a conflict instead of replacing another tab's saved values. Failed assistant responses can be retried without resending the message. Recordings are transcribed without storing audio files; sent transcripts persist in the conversation.
+
+Create job and start checks submits the reviewed draft once and opens the existing job page. The draft conversation is retained with its submitted draft; saved-job chat is not exposed by this screen. Drafts remain private to their author, while created jobs follow existing organization access. All intake provider calls require active membership.
 
 ## Document library
 

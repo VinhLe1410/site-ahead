@@ -15,7 +15,7 @@ import { CategoryPage } from "@/pages/categories/category-page";
 import { NewCategoryPage } from "@/pages/categories/new-category-page";
 import { JobPage } from "@/pages/jobs/job-page";
 import { JobsPage } from "@/pages/jobs/jobs-page";
-import { NewJobPage } from "@/pages/jobs/new-job-page";
+import { NewJobPage } from "@/pages/jobs/new-job/new-job-page";
 import { LandingPage } from "@/pages/landing-page";
 import { LoginPage } from "@/pages/login-page";
 import { NotFoundPage } from "@/pages/not-found-page";

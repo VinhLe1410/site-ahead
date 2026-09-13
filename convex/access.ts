@@ -2,6 +2,8 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { ConvexError } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
+import { internalQuery } from "./_generated/server";
+import { v } from "convex/values";
 
 type DatabaseReader = QueryCtx["db"];
 
@@ -35,6 +37,16 @@ export async function requireMembership(ctx: QueryCtx | MutationCtx) {
 
   return membership;
 }
+
+export const authorizeIntake = internalQuery({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    await requireMembership(ctx);
+
+    return null;
+  },
+});
 
 export async function requireOwner(ctx: QueryCtx | MutationCtx) {
   const membership = await requireMembership(ctx);
