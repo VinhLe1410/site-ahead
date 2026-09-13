@@ -38,6 +38,9 @@ export const electricalRequestDraftValidator = v.object({
       label: v.string(),
       value: v.union(v.string(), v.null()),
       source: v.string(),
+      method: v.optional(
+        v.union(v.literal("database"), v.literal("demo_data")),
+      ),
       portalLabelVerified: v.boolean(),
     }),
   ),

@@ -114,10 +114,10 @@ function JobContextFields({ job }: { job: Doc<"jobs"> }) {
       <form onSubmit={(event) => void save(event, false)} className="space-y-4">
         <p className="text-sm text-muted-foreground">
           The property address comes from this job. Supply confirmed details
-          here. The two Carpentry forms may use labeled fictional general
-          values; Electrical drafts leave unknown information missing.
-          Coordinates are used for air readings; road and locality are used for
-          traffic checks.
+          here. Drafts may use clearly labeled fictional general values when
+          information is missing. Licences, inspector selection and
+          certification details require your confirmation. Coordinates are used
+          for air readings; road and locality are used for traffic checks.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           {contextFields.map((field) => (

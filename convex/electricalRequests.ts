@@ -1,4 +1,5 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
+import { agentProvenanceValidator } from "./agentContracts";
 import { internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { loadExecutionRun } from "./checklistExecution";
@@ -16,6 +17,36 @@ export const save = internalMutation({
 
     if (run === null) return false;
     const result = prepareElectricalRequest(run.context, Date.now());
+
+    const provenance: Infer<typeof agentProvenanceValidator>[] = [
+      {
+        method: "database",
+        source:
+          "Saved job address, scope and available confirmed contact details",
+        observedAt: Date.now(),
+      },
+    ];
+
+    if (result.draft) {
+      provenance.push({
+        method: "database",
+        source: "Official ESV public guidance",
+        reference: result.draft.guidanceUrl,
+        observedAt: Date.now(),
+      });
+
+      const demoFields = result.draft.fields.filter(
+        (field) => field.method === "demo_data",
+      );
+
+      if (demoFields.length > 0)
+        provenance.push({
+          method: "demo_data",
+          source: `Approved Electrical general draft examples: ${demoFields.map((field) => field.label).join(", ")}. Fictional or proposed, never confirmed job facts.`,
+          observedAt: Date.now(),
+        });
+    }
+
     await ctx.db.patch("checklistAgentStates", run.state._id, {
       execution: "waiting",
       currentStep: "waiting",
@@ -25,24 +56,7 @@ export const save = internalMutation({
       requestDraft: result.draft ?? undefined,
       missingInformation: result.missingInformation,
       nextAction: result.nextAction,
-      provenance: [
-        {
-          method: "database",
-          source:
-            "Saved job address, scope and confirmed contact details; no Electrical demo defaults",
-          observedAt: Date.now(),
-        },
-        ...(result.draft
-          ? [
-              {
-                method: "database" as const,
-                source: "Official ESV public guidance",
-                reference: result.draft.guidanceUrl,
-                observedAt: Date.now(),
-              },
-            ]
-          : []),
-      ],
+      provenance,
     });
     await ctx.scheduler.runAfter(0, internal.checklistExecution.drain, {
       jobId: run.context.job._id,

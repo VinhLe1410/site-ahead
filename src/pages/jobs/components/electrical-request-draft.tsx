@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { RequestError } from "@/components/layout/request-error";
+import { Badge } from "@/components/ui/badge";
 
 type Draft = NonNullable<Doc<"checklistAgentStates">["requestDraft"]>;
 
@@ -38,6 +39,12 @@ export function ElectricalRequestDraft({
         </p>
       )}
       <p className="text-xs text-muted-foreground">{draft.guidance}</p>
+      {draft.fields.some((field) => field.method === "demo_data") && (
+        <p className="text-sm">
+          General values marked DEMO are fictional examples or proposals.
+          Replace or confirm them before use; copying preserves their labels.
+        </p>
+      )}
       <div className="flex flex-wrap gap-3 text-sm">
         <a
           className="underline"
@@ -81,11 +88,23 @@ export function ElectricalRequestDraft({
           <div key={field.field} className="space-y-1 border-t pt-2">
             <dt className="font-medium">
               {field.label}
+              {field.method === "demo_data" && (
+                <Badge variant="secondary" className="ml-2">
+                  Demo data
+                </Badge>
+              )}
+              {field.method === "database" && (
+                <Badge variant="outline" className="ml-2">
+                  {field.field === "description_of_work"
+                    ? "Draft from saved scope"
+                    : "Saved information"}
+                </Badge>
+              )}
               {draft.skillKey === "coes-portal" && (
                 <span className="ml-2 text-xs font-normal text-muted-foreground">
                   {field.portalLabelVerified
                     ? "Portal label from ESV guidance"
-                    : "Saved reference information"}
+                    : "Reference information"}
                 </span>
               )}
             </dt>

@@ -103,7 +103,7 @@ async function electricalFixture(
   };
 }
 
-test("portal and inspector skills use real saved values and never Carpentry defaults", async () => {
+test("Electrical drafts label general examples and keep protected fields human-only", async () => {
   const f = await electricalFixture();
   const portal = prepareElectricalRequest(f.context, Date.now());
   expect(
@@ -116,11 +116,36 @@ test("portal and inspector skills use real saved values and never Carpentry defa
   expect(
     portal.draft?.fields.find((field) => field.field === "description_of_work")
       ?.value,
-  ).toBeNull();
+  ).toContain(
+    "DRAFT — Planned electrical work; electrician review required before certification.",
+  );
   expect(
     portal.draft?.fields.find((field) => field.field === "contractor_licence")
       ?.value,
   ).toBeNull();
+  expect(
+    portal.draft?.fields.find((field) => field.field === "customer_email"),
+  ).toMatchObject({
+    method: "demo_data",
+    value: expect.stringContaining(
+      "[DEMO DATA — replace or confirm before use]",
+    ),
+  });
+  expect(
+    portal.draft?.fields.find((field) => field.field === "description_of_work")
+      ?.value,
+  ).toContain(
+    "Planned replacement of the complete main switchboard and consumer mains at 198 Berkeley Street, Carlton.",
+  );
+  expect(
+    portal.draft?.fields.find((field) => field.field === "planned_scope")
+      ?.value,
+  ).toBe(f.context.input.processedText);
+  expect(
+    portal.missingInformation.some(
+      (field) => field.field === "actual_description_of_work",
+    ),
+  ).toBe(true);
 
   const inspector = prepareElectricalRequest(
     {
@@ -130,9 +155,29 @@ test("portal and inspector skills use real saved values and never Carpentry defa
     Date.now(),
   );
 
-  expect(inspector.draft?.body).toContain("Work has not started");
+  expect(inspector.draft?.body).toContain(
+    "Completed work, testing and inspection are not established",
+  );
+  expect(inspector.draft?.body).not.toContain(f.context.input.processedText);
   expect(inspector.draft?.body).toContain("[supply actual licence]");
   expect(inspector.draft?.body).not.toContain("Ironbark");
+  expect(inspector.draft?.body).toContain(
+    "[DEMO DATA — replace or confirm before use]",
+  );
+  expect(
+    inspector.draft?.fields.find((field) => field.field === "inspector_email")
+      ?.value,
+  ).toBeNull();
+  expect(
+    inspector.draft?.fields.find((field) => field.field === "inspector_name")
+      ?.value,
+  ).toBeNull();
+  expect(
+    inspector.draft?.fields.find((field) => field.field === "planned_start"),
+  ).toMatchObject({
+    method: "demo_data",
+    value: expect.stringContaining("subject to customer agreement"),
+  });
   expect(
     prepareElectricalRequest(
       {
@@ -143,6 +188,70 @@ test("portal and inspector skills use real saved values and never Carpentry defa
       Date.now(),
     ).draft,
   ).toBeNull();
+});
+
+test("saved general facts win and a draft without fallbacks records no demo provenance", async () => {
+  const f = await electricalFixture();
+
+  const agentContext = {
+    clientName: "Confirmed customer",
+    clientEmail: "confirmed@customer.example",
+    contractorName: "Confirmed contractor",
+    contractorEmail: "confirmed@contractor.example",
+    contractorPhone: "Confirmed phone",
+    plannedStartDate: "2026-10-01",
+    siteAccess: "Confirmed access instructions",
+    suppliedBy: f.userId,
+    suppliedAt: Date.now(),
+  };
+
+  const context = { ...f.context, job: { ...f.context.job, agentContext } };
+  const portal = prepareElectricalRequest(context, Date.now());
+
+  const inspector = prepareElectricalRequest(
+    { ...context, item: { ...context.item, title: electricalItems[2].title } },
+    Date.now(),
+  );
+
+  expect(
+    portal.draft?.fields.find((field) => field.field === "customer_email"),
+  ).toMatchObject({ value: agentContext.clientEmail, method: "database" });
+  expect(
+    portal.draft?.fields.find((field) => field.field === "contractor_name"),
+  ).toMatchObject({ value: agentContext.contractorName, method: "database" });
+  expect(
+    portal.draft?.fields.some((field) => field.method === "demo_data"),
+  ).toBe(false);
+  expect(
+    inspector.draft?.fields.find((field) => field.field === "planned_start"),
+  ).toMatchObject({ value: agentContext.plannedStartDate, method: "database" });
+  expect(
+    inspector.draft?.fields.find((field) => field.field === "site_access"),
+  ).toMatchObject({ value: agentContext.siteAccess, method: "database" });
+  expect(inspector.draft?.body).toContain(agentContext.contractorEmail);
+  expect(inspector.draft?.body).not.toContain("[DEMO DATA");
+  await f.t.run(async (ctx) => {
+    await ctx.db.patch("jobs", f.jobId, { agentContext });
+    await ctx.db.patch("checklistAgentStates", f.stateId, {
+      snapshot: executionSnapshot(context),
+    });
+  });
+  await f.t.mutation(internal.electricalRequests.save, {
+    itemId: f.itemId,
+    runId: "run-1",
+    traceId: "trace",
+  });
+
+  const state = await f.t.run((ctx) =>
+    ctx.db.get("checklistAgentStates", f.stateId),
+  );
+
+  expect(state?.provenance.some((entry) => entry.method === "demo_data")).toBe(
+    false,
+  );
+  expect(
+    (await f.t.run((ctx) => ctx.db.get("jobs", f.jobId)))?.agentContext,
+  ).toEqual(agentContext);
 });
 
 test("draft persistence waits, rejects stale run and invalidates a later edit", async () => {
@@ -170,6 +279,14 @@ test("draft persistence waits, rejects stale run and invalidates a later edit", 
     execution: "waiting",
     requestDraft: { skillKey: "coes-portal" },
   });
+  expect(
+    (
+      await f.t.run((ctx) => ctx.db.get("checklistAgentStates", f.stateId))
+    )?.provenance.some((entry) => entry.method === "demo_data"),
+  ).toBe(true);
+  expect(
+    (await f.t.run((ctx) => ctx.db.get("jobs", f.jobId)))?.agentContext,
+  ).toBeUndefined();
   await f.member.mutation(api.checklistItems.setNotes, {
     itemId: f.itemId,
     notes: "Changed scope detail",
