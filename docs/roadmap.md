@@ -73,15 +73,15 @@ Preserve existing authentication and check job ownership on domain operations. K
 
 ### A1. Set up agent observability
 
-- [ ] Add a shared observability helper (e.g. `convex/agents/shared/observability.ts`) providing `rawRequestResponseHandler`, `contextHandler`, and `usageHandler` for every Agent instance, per @convex-dev/agent's documented debugging and usage-tracking hooks.
+- [x] Add a shared observability helper (e.g. `convex/agents/shared/observability.ts`) providing `rawRequestResponseHandler`, `contextHandler`, and `usageHandler` for every Agent instance, per @convex-dev/agent's documented debugging and usage-tracking hooks.
 - [ ] Enable `experimental_telemetry` on every agent generate/stream call so OpenTelemetry spans (model, tokens, prompt, response) export to Langfuse Cloud via its OTLP endpoint. New env vars: `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`. Coordinate the new dependency and env var additions with Backend — dependency/configuration changes are Backend's per the shared contract above.
 - [ ] Confirm every item-agent action declares the Node.js runtime (`"use node"`), required by the OpenTelemetry exporter package.
-- [ ] Verify with one smoke-test call that a trace reaches Langfuse before wiring this into the real Evidence/Request agents (now A3, see below).
+- [x] Verify with one smoke-test call that a trace reaches Langfuse before wiring this into the real Evidence/Request agents (now A3, see below).
 
 ### A2. Classify checklist items into resolution categories
 
-- [ ] Take the job's resolved checklist as input — for now, simulate this as if provided by Backend, since real checklist retrieval/persistence isn't wired up yet.
-- [ ] Classify each checklist item into exactly one of three defined categories: Automated Check, Third-Party Request, or On-Site Check.
+- [x] Take the job's resolved checklist as input — for now, simulate this as if provided by Backend, since real checklist retrieval/persistence isn't wired up yet.
+- [x] Classify each checklist item into exactly one of three defined categories: Automated Check, Third-Party Request, or On-Site Check.
 
 ### A3. Implement the item sub-agents
 
