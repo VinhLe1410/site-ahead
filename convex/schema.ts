@@ -10,6 +10,13 @@ import {
   documentFileValidator,
 } from "./contracts";
 
+import {
+  checklistAgentStateValidator,
+  confirmedYearValidator,
+  formKeyValidator,
+  jobAgentContextValidator,
+} from "./agentContracts";
+
 export const schema = defineSchema({
   ...authTables,
   users: defineTable({
@@ -78,6 +85,7 @@ export const schema = defineSchema({
     storageId: v.id("_storage"),
     ...documentFileValidator.fields,
     uploadedBy: v.id("users"),
+    formKey: v.optional(formKeyValidator),
   })
     .index("by_documentId_and_number", ["documentId", "number"])
     .index("by_storageId", ["storageId"]),
@@ -97,10 +105,15 @@ export const schema = defineSchema({
     categoryId: v.optional(v.id("categories")),
     addressText: v.string(),
     status: jobStatusValidator,
+    confirmedConstructionYear: v.optional(confirmedYearValidator),
+    agentContext: v.optional(jobAgentContextValidator),
   })
     .index("by_organizationId", ["organizationId"])
     .index("by_inputId", ["inputId"])
     .index("by_categoryId", ["categoryId"]),
+  checklistAgentStates: defineTable(checklistAgentStateValidator)
+    .index("by_itemId", ["itemId"])
+    .index("by_jobId", ["jobId"]),
   checklistItems: defineTable({
     jobId: v.id("jobs"),
     title: v.string(),

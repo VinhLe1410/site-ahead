@@ -9,6 +9,7 @@
  */
 
 import type * as access from "../access.js";
+import type * as agentContracts from "../agentContracts.js";
 import type * as agents_checklist_automatedChecks from "../agents/checklist/automatedChecks.js";
 import type * as agents_checklist_itemClassification from "../agents/checklist/itemClassification.js";
 import type * as agents_checklist_itemResolutionClassifier from "../agents/checklist/itemResolutionClassifier.js";
@@ -25,6 +26,7 @@ import type * as http from "../http.js";
 import type * as intake from "../intake.js";
 import type * as invitationActions from "../invitationActions.js";
 import type * as invitations from "../invitations.js";
+import type * as jobAgentContext from "../jobAgentContext.js";
 import type * as jobs from "../jobs.js";
 import type * as organizations from "../organizations.js";
 import type * as users from "../users.js";
@@ -37,6 +39,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   access: typeof access;
+  agentContracts: typeof agentContracts;
   "agents/checklist/automatedChecks": typeof agents_checklist_automatedChecks;
   "agents/checklist/itemClassification": typeof agents_checklist_itemClassification;
   "agents/checklist/itemResolutionClassifier": typeof agents_checklist_itemResolutionClassifier;
@@ -53,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   intake: typeof intake;
   invitationActions: typeof invitationActions;
   invitations: typeof invitations;
+  jobAgentContext: typeof jobAgentContext;
   jobs: typeof jobs;
   organizations: typeof organizations;
   users: typeof users;

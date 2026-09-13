@@ -1,9 +1,9 @@
 ## 1. Establish the shared Convex contract
 
-- [ ] 1.1 Coordinate with the Backend owner to add validators and indexes for one per-item Agent-state record and minimal form compatibility metadata on existing document versions, while leaving `checklistItems.kind`, `checklistItems.status`, and `checklistItems.notes` compatible with their existing validators; verify `npx tsc --noEmit` and Convex schema validation pass.
+- [x] 1.1 Coordinate with the Backend owner to add validators and indexes for one per-item Agent-state record and minimal form compatibility metadata on existing document versions, while leaving `checklistItems.kind`, `checklistItems.status`, and `checklistItems.notes` compatible with their existing validators; verify `npx tsc --noEmit` and Convex schema validation pass.
 - [ ] 1.2 Define typed internal operations to create or claim an item state, update current step, save structured output, mark waiting/finished/failed, and resume an existing thread; verify active organization membership access is derived from the item’s job and stale run IDs cannot overwrite newer state.
 - [ ] 1.3 Seed clearly labeled sample PDF/DOCX forms in the existing organization document library with stable form keys and immutable versions, linking category document IDs so new items pin their sources; verify each version points to an existing Convex Storage file and the original file remains unchanged after a draft run.
-- [ ] 1.4 Coordinate with Backend to persist an optional contractor-confirmed construction year and supplying member/time, and expose it through the item-associated job context; validate the year as an integer from 1800 through the current UTC year, enforce organization access, and verify absence does not change the full-checklist-record input contract or require a year for every job.
+- [x] 1.4 Coordinate with Backend to persist an optional contractor-confirmed construction year and supplying member/time, and expose it through the item-associated job context; validate the year as an integer from 1800 through the current UTC year, enforce organization access, and verify absence does not change the full-checklist-record input contract or require a year for every job.
 
 ## 2. Classify and dispatch checklist items
 
