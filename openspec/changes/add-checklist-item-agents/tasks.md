@@ -1,8 +1,8 @@
 ## 1. Establish the shared Convex contract
 
-- [ ] 1.1 Coordinate with the Backend owner to add validators and indexes for one per-item Agent-state record and the form catalog, while leaving `checklistItems.kind`, `checklistItems.status`, and `checklistItems.notes` compatible with their existing validators; verify `npx tsc --noEmit` and Convex schema validation pass.
-- [ ] 1.2 Define typed internal operations to create or claim an item state, update current step, save structured output, mark waiting/finished/failed, and resume an existing thread; verify ownership is derived from the item’s job and stale run IDs cannot overwrite newer state.
-- [ ] 1.3 Seed the initial PDF/DOCX form files and catalog entries with stable form keys, file types, Storage IDs, and versions; verify each catalog entry points to an existing Convex Storage file and the original file remains unchanged after a draft run.
+- [ ] 1.1 Coordinate with the Backend owner to add validators and indexes for one per-item Agent-state record and minimal form compatibility metadata on existing document versions, while leaving `checklistItems.kind`, `checklistItems.status`, and `checklistItems.notes` compatible with their existing validators; verify `npx tsc --noEmit` and Convex schema validation pass.
+- [ ] 1.2 Define typed internal operations to create or claim an item state, update current step, save structured output, mark waiting/finished/failed, and resume an existing thread; verify active organization membership access is derived from the item’s job and stale run IDs cannot overwrite newer state.
+- [ ] 1.3 Seed clearly labeled sample PDF/DOCX forms in the existing organization document library with stable form keys and immutable versions, linking category document IDs so new items pin their sources; verify each version points to an existing Convex Storage file and the original file remains unchanged after a draft run.
 - [ ] 1.4 Coordinate with Backend to persist an optional contractor-confirmed construction year and supplying member/time, and expose it through the item-associated job context; validate the year as an integer from 1800 through the current UTC year, enforce organization access, and verify absence does not change the full-checklist-record input contract or require a year for every job.
 
 ## 2. Classify and dispatch checklist items
@@ -22,9 +22,9 @@
 ## 4. Build form-specific Request skills
 
 - [ ] 4.1 Add one runtime skill module per supported third-party form with a name, use description, PDF/DOCX filling instructions, trusted database sources, required fields, formatting rules, and no-invention/missing-value rules; verify the Request Agent selects the skill from the item’s trade and request type.
-- [ ] 4.2 Add scoped database and form-storage tools that load the item-associated job/input/category, resolve the skill’s active catalog entry, and read the source PDF or DOCX without accepting arbitrary owner IDs or paths; verify the selected file and job values are logged without secrets.
+- [ ] 4.2 Add scoped database and form-storage tools that load the item-associated job/input/category, resolve the compatible source among the item’s pinned document versions, and read the source PDF or DOCX without accepting arbitrary owner IDs or paths; verify structured stage logs identify the selected file and trusted field names without exposing their contents or secrets.
 - [ ] 4.3 Implement format-specific draft filling for supported PDF and DOCX templates, saving a new draft file with a new Storage ID and preserving the original; verify all available values appear in the draft and unsupported/non-fillable files fail explicitly.
-- [ ] 4.4 Save the draft Storage ID, source form ID, structured missing fields, verified provenance, and next action in the item Agent state; leave the checklist item pending, stop in `waiting`, and verify no request is sent automatically.
+- [ ] 4.4 Save the draft Storage ID, source document version ID, structured missing fields, verified provenance, and next action in the item Agent state; leave the checklist item pending, stop in `waiting`, and verify no request is sent automatically.
 
 ## 5. Add observability and failure visibility
 
@@ -32,8 +32,14 @@
 - [ ] 5.2 Extend shared observability with structured stage logs for classification, dispatch, skill selection, database lookup, API call, form read/fill, persistence, and waiting; include item/thread/run/tool identifiers and redact provider secrets, authorization headers, and unnecessary document contents.
 - [ ] 5.3 Ensure every model, tool, form, and persistence failure records `failed` or `waiting`, current step, actionable error, and trace ID; verify no run is reported as finished unless its required structured output and save mutation succeed.
 
-## 6. Integrate and verify the Agent journey
+## 6. Integrate contractor controls and adversarial checks
 
-- [ ] 6.1 Run the Carpentry & Renovation acceptance journey with construction year, Air Quality, and Road Closure as automated items, Asbestos as on-site, and the permit/occupancy items as third-party; verify valid kind updates, independent concurrent states, binary checklist statuses, and no Powerlines work.
-- [ ] 6.2 Demonstrate a DataVic no-match item using an available valid manual year and saving its attribution before completion; demonstrate no manual year leaving the item automated and pending, an API failure remaining failed despite an available manual year and retrying on the same thread, and a third-party item producing a reviewable PDF or DOCX draft with missing fields. Verify other item runs continue independently.
-- [ ] 6.3 Run `npm run verify:classification`, `npm run verify:langfuse`, `npm run build`, and `npm run check`; resolve TypeScript, lint, formatting, OpenSpec, and Convex deployment validation failures before handoff.
+- [ ] 6.1 Automatically schedule server-derived full-record classification after job creation saves its checklist; add minimal authenticated controls to start existing saved-checklist processing, retry classification or resume one item, inspect progress/findings, supply structured missing job data and contractor-confirmed year, and download request drafts. Verify reload persistence and preserve manual notes/checkbox behavior without automatic dispatch.
+- [ ] 6.2 Verify atomic duplicate claims, bounded concurrency, explicit crash recovery, stale late writes, job/item deletion or editing during runs, initiating member removal, and classification/execution retry isolation. Verify rejected saves preserve human changes and other item outputs.
+- [ ] 6.3 Verify form tools derive values from trusted saved records, preserve pinned versions across library replacement, reject unsupported forms, and deny cross-organization draft downloads. Verify sample draft contents and missing fields are reviewable PDF/DOCX output and originals are unchanged.
+
+## 7. Integrate and verify the Agent journey
+
+- [ ] 7.1 Run the Carpentry & Renovation acceptance journey with construction year, Air Quality, and Road Closure as automated items, Asbestos as on-site, and the permit/occupancy items as third-party; verify valid kind updates, independent concurrent states, binary checklist statuses, and no Powerlines work.
+- [ ] 7.2 Demonstrate a DataVic no-match item using an available valid manual year and saving its attribution before completion; demonstrate no manual year leaving the item automated and pending, an API failure remaining failed despite an available manual year and retrying on the same thread, and a third-party item producing a reviewable PDF or DOCX draft with missing fields. Verify other item runs continue independently.
+- [ ] 7.3 Run `npm run verify:classification`, `npm run verify:langfuse`, `npm run build`, and `npm run check`; resolve TypeScript, lint, formatting, OpenSpec, and Convex deployment validation failures before handoff.

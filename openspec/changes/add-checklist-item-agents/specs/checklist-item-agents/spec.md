@@ -6,7 +6,7 @@ Give every pending checklist item an independently observable path to an automat
 
 ### Requirement: Accept and prepare checklist items
 
-The Agent SHALL accept a server-provided collection of full `checklistItems` records containing each item's `_id`, `jobId`, `title`, `kind`, `status`, and `notes`; it SHALL NOT require a separate top-level job ID. The Agent SHALL process only items whose status is `pending`. Items whose status is `done` SHALL remain unchanged and SHALL NOT be reclassified or assigned a new sub-agent on a later run.
+The Agent SHALL accept a server-provided collection of full `checklistItems` records containing each item's `_id`, `_creationTime`, `jobId`, `title`, `kind`, `status`, `notes`, and optional `documentVersionIds`; it SHALL NOT require a separate top-level job ID. After job creation saves its checklist, the system SHALL automatically schedule classification from those full server-derived records. Explicit start controls SHALL support existing saved checklists. The Agent SHALL process only items whose status is `pending`. Items whose status is `done` SHALL remain unchanged and SHALL NOT be reclassified or assigned a new sub-agent on a later run.
 
 #### Scenario: Start work from saved checklist records
 
@@ -45,7 +45,7 @@ Construction-year resolution SHALL try DataVic first. If a successful lookup ret
 
 #### Scenario: Complete an automated check
 
-- **WHEN** an automated sub-agent selects its matching tool and receives a valid API response
+- **WHEN** an automated sub-agent selects its matching tool and receives a valid response relevant to the saved job location
 - **THEN** the validated finding and provenance are saved for that checklist item
 - **AND** the checklist item status changes from `pending` to `done`
 - **AND** the sub-agent records a finished execution state
@@ -86,13 +86,13 @@ Construction-year resolution SHALL try DataVic first. If a successful lookup ret
 
 ### Requirement: Draft third-party requests from stored forms
 
-Each pending item classified as `third_party` SHALL receive an independent sub-agent with a form-specific skill. The skill SHALL select the appropriate form for the trade and request type, load the active PDF or DOCX form from Convex Storage through its catalog entry, and obtain field values from the item's associated job records. It SHALL fill only verified values, save a new draft file without overwriting the original, and record the draft storage ID, provenance, missing fields, and next action. The sub-agent SHALL stop in a waiting state for contractor review and SHALL NOT send the request automatically.
+Each pending item classified as `third_party` SHALL receive an independent sub-agent with a form-specific skill. The skill SHALL select the appropriate form for the trade and request type, load a compatible PDF or DOCX from the existing organization document library using one of the item's pinned immutable versions, and obtain field values from the item's associated job records. It SHALL fill only verified values, save a new draft file without overwriting the original, and record the draft storage ID, provenance, missing fields, and next action. The sub-agent SHALL stop in a waiting state for contractor review and SHALL NOT send the request automatically.
 
 #### Scenario: Save a completed request draft
 
 - **WHEN** a third-party sub-agent finds the matching skill and form and all required values are available
 - **THEN** it saves a filled draft file as a new stored file
-- **AND** records the draft file ID and source form ID
+- **AND** records the draft file ID and source document version ID
 - **AND** records a next action telling the contractor to review and submit it
 - **AND** the checklist item remains `pending`
 
@@ -131,7 +131,7 @@ After successful classification, the system SHALL create one persistent Agent th
 
 ### Requirement: Persist progress and expose failures
 
-Every eligible item SHALL have a separate Agent-state record containing its checklist item ID, persistent thread ID, latest run ID, execution state, current step, error when present, Langfuse trace ID, and structured output fields for finding or draft, provenance, missing information, and next action. Execution state SHALL distinguish at least `idle`, `running`, `waiting`, `finished`, and `failed`. Agent logs SHALL identify the item, stage, tool or skill used, and failure reason without exposing provider secrets. A run SHALL NOT be reported as successful when its required output was not validated and saved.
+Every eligible item SHALL have a separate Agent-state record containing its checklist item ID, optional persistent execution thread ID (absent before eligible classification), separate classification attempt, latest execution run ID, execution state, current step, error when present, Langfuse trace ID, and structured output fields for finding or draft, provenance, missing information, and next action. Execution state SHALL distinguish at least `idle`, `running`, `waiting`, `finished`, and `failed`. Agent logs SHALL identify the item, stage, tool or skill used, and failure reason without exposing provider secrets. A run SHALL NOT be reported as successful when its required output was not validated and saved.
 
 #### Scenario: Observe an in-progress item
 
@@ -161,3 +161,41 @@ Automated items SHALL change checklist status to `done` only after a validated f
 - **WHEN** the contractor marks an on-site check complete
 - **THEN** its checklist status changes from `pending` to `done`
 - **AND** no Agent thread is created or run for that item
+
+### Requirement: Protect saved context and recover interrupted work
+
+Claims SHALL atomically prevent duplicate state records, duplicate execution threads, and overlapping runs. Every effect and result save SHALL reject stale runs, deleted resources, lost organization access, and changed item or relevant job context. Human notes and completion changes SHALL be preserved. A crashed or expired run SHALL become visibly failed with a retry action, and retry SHALL reuse its thread. Classification retry SHALL remain separate from execution retry.
+
+#### Scenario: Human edit races with an automated save
+
+- **WHEN** a member edits the item or its job context while an Agent runs
+- **THEN** the stale output does not overwrite the edited record or complete the item
+- **AND** the user can start a new run from the saved context
+
+#### Scenario: Interrupted run recovery
+
+- **WHEN** an action stops without persisting its required result before the bounded run deadline
+- **THEN** the state becomes failed with an actionable reason
+- **AND** a retry reuses the existing thread without overlapping the old run's effects
+
+### Requirement: Expose scoped contractor controls
+
+Any active organization member SHALL be able to start saved-checklist processing, inspect independent progress and provenance, retry failed classification, resume one eligible item, supply validated missing job data, and download saved drafts for their organization's items. Removed members and other organizations SHALL receive no job results or draft contents. Manual notes and checkboxes SHALL NOT dispatch work.
+
+#### Scenario: Reload and review a draft
+
+- **WHEN** an organization member reloads an item with a saved draft
+- **THEN** its execution state, missing information, provenance, and next action remain visible
+- **AND** the member can download the draft through an authenticated item/job access check
+
+#### Scenario: Preserve a pinned form source
+
+- **WHEN** a library document gets a newer version after a job is created
+- **THEN** the item's Request Agent continues using its pinned compatible source version
+- **AND** it saves a new draft without overwriting either library version
+
+#### Scenario: Reject fabricated form values
+
+- **WHEN** a model proposes a field value absent from trusted saved job records
+- **THEN** the filling tool leaves that field blank and records it as missing
+- **AND** sample forms remain clearly labeled as sample request drafts
