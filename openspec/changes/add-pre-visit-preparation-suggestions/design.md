@@ -1,57 +1,59 @@
 ## Context
 
-See proposal.md for motivation and scope. `convex/jobs.ts` saves processed input and template-derived checklist items. `convex/schema.ts` separates binary checklist status from `checklistAgentStates`. `src/pages/jobs/job-page.tsx` composes the checklist and a live Job Brief. `convex/access.ts` already supplies active membership and organization-job checks. The current audio intake produces saved text; this feature consumes that text without changing recording or extraction.
+See proposal.md for motivation and agreed scope. `convex/jobs.ts` saves processed input and template-derived checklist items. `convex/schema.ts` separates binary checklist status from agent state. The existing job page composes the checklist and live Job Brief. Reuse active membership and organization-job checks in `convex/access.ts`.
 
-Installed Convex is 1.45.0. The project already has OpenAI, AI SDK and Zod dependencies and bounded model-call patterns. Follow installed types and the generated Convex guidelines during implementation. This design crosses storage, a model action and the job page, so a design artifact is needed.
+Installed Convex is 1.45.0. OpenAI, AI SDK and Zod are already installed. Follow installed types and generated Convex guidelines. Saved text from either intake path is sufficient; audio remains unchanged.
 
 ## Goals / Non-Goals
 
-**Goals:** A small, persistent, contractor-reviewed preparation list; one bounded model call per explicit generation; measurable usefulness through contrasting demo inputs.
+**Goals:** A small persistent preparation list, direct manual completion, and an editable copy-only client message. Keep provider execution bounded and preserve human changes during refresh.
 
-**Non-Goals:** New trade flows beyond Carpentry & Renovation, a runtime skill marketplace, external research, legal rule lookup, customer messaging, audio changes, automatic agent dispatch, or modifications to the live Job Brief's checklist completion totals.
+**Non-Goals:** New trades, runtime skill marketplace, external research, legal lookup, sending messages, automatic completion, agent dispatch for preparation, or changes to checklist/Job Brief totals.
 
 ## Decisions
 
-### Separate preparation records from executable checklist items
+### Separate preparation from executable checklist items
 
-Add one `jobPreparations` record per job, indexed by `jobId`, in `convex/schema.ts`. Store at most three entries in a bounded array: stable entry ID, action, rationale, description excerpt, review state (`suggested | accepted | dismissed`) and completion (`pending | done`). Include generation state, run token, expiry, context fingerprint, preparation revision, initiating member, prompt version and a sanitized error. The fixed maximum makes an embedded array appropriate.
+Add one `jobPreparations` record per job, indexed by `jobId`. Store at most three current entries with stable IDs, action, rationale, exact description excerpt, optional client question, status (`pending | done | dismissed`) and original context fingerprint. Completed entries consume slots and remain on refresh; successful refresh replaces pending/dismissed entries within the remaining slots. Retain bounded dismissal exclusions for the same generation context; changed job context resets these exclusions. Fail visibly if that bound is reached rather than silently forgetting decisions.
 
-Keep accepted entries when refreshing and ask for at most the remaining slots. Completed accepted entries also consume slots. Replace unaccepted entries only after a successful generation. Include the current dismissed entries in the next request as exclusions; indefinite dismissal history is out of scope. If all three slots are accepted, explain that the current list is full and avoid another model call.
+Keep generation state, run token, deadline, context fingerprint, revision, initiating user and prompt version on the record. Keep the saved client message, message revision, source snapshot and whether a user edited it. A bounded embedded list fits this scope without adding a fourth executable checklist category or a separate history store.
 
-Alternative: append recommendations as `on_site` checklist items. Rejected because these tasks happen before visiting and the classifier could dispatch unsupported automation later. A separate preparation section preserves the existing three-category meaning without adding a fourth kind.
+Alternative: append `on_site` checklist items. Rejected because preparation happens before visiting and must not be classified or dispatched by existing agents.
 
-### Explicit generation and atomic persistence
+### Automatic start with atomic run and freshness guards
 
-Add `convex/jobPreparation.ts` for authenticated read/start/review/completion operations and internal context/result functions, plus `convex/agents/preparation/recommendPreparation.ts` for the action. Start atomically claims or creates the job record, assigns a run token and schedules one action. Context is loaded server-side from the saved job, input, category, relevant confirmed facts and checklist states. Never trust client-supplied job context or a user ID for authorization.
+After saving a supported new job, atomically claim its preparation record and schedule one ordinary action. Existing jobs expose explicit generate/refresh. Unsupported categories do not call a model. Context is loaded server-side from the saved description, address, category, confirmed fields, checklist and current findings with provenance. Bound source size and fail visibly rather than truncating silently.
 
-Fingerprint canonical, relevant context: description, address, category title, confirmed facts, checklist titles/notes/statuses and current valid findings. Exclude transient execution timestamps. Reuse freshness checks from `shared/item-agent-snapshots.ts` where applicable; do not treat stale outputs or fictional form defaults as confirmed facts. Bound context size explicitly and fail visibly rather than silently dropping source data.
+Canonical context fingerprints exclude execution timestamps and fictional form defaults. Include only valid current findings, using `executionSnapshot` with item status normalized to pending because successful automated saves use that snapshot before completion. Exclude busy, failed or stale agent output. Retain each completed task's original fingerprint so refresh never conceals stale grounding.
 
-The result mutation rechecks initiating membership, job existence, run token, preparation revision and context fingerprint. Reject an outdated result. Set a finite expiry with recovery on read/start so an interrupted action can be retried. Failed refreshes preserve the previous list. Human review increments the preparation revision so an in-flight result cannot undo a decision. Stale accepted tasks remain visible with their original grounding and completion; only new acceptance requires fresh advice.
+Result persistence rechecks job existence, initiating active membership, run token, deadline, preparation revision and context fingerprint. Human checkoff/dismiss changes invalidate an in-flight run. Failed refresh preserves saved work. Schedule a token-guarded expiry mutation; also recover expired claims on start. Queries derive freshness from reactive saved context, never from wall-clock reads or query writes. Initial checklist agents may change findings during the automatic preparation call. Permit one bounded automatic retry only if the authoritative description, address, category, confirmed fields, checklist titles/notes and preparation revision are unchanged. That retry reloads the newest findings; a second mismatch fails visibly with explicit refresh. Description, notes or confirmed-fact edits fail closed immediately. This limits initial generation to two calls and explicit refresh to one; there is no retry loop.
 
-Alternative: generate automatically at job creation. Explicit generation keeps this slice independent from intake and lets the contractor run it after live findings become available.
+Alternative: automatic regeneration on every checklist change. Rejected to avoid repeated calls and unexpected replacement of pending tasks.
 
-### Trade guidance and a quality gate in one call
+### One bounded generation call with trade guidance
 
-Use an ordinary bounded action and the existing AI SDK/OpenAI dependencies, with structured output validated by Zod and Convex validators. The project explicitly allows ordinary actions for bounded LLM work; no Agent thread or workflow component is needed. Start with the existing configured OpenAI model pattern, a 60-second timeout and no automatic retries. Keep secrets server-side and reuse payload-minimized tracing where compatible.
+Use `convex/agents/preparation/recommendPreparation.ts` and versioned `carpentryPreparationGuidance.ts`. Select the supported demo trade through an explicit normalized category-title mapping. Use one structured-output AI SDK/OpenAI call, a 60-second timeout per call, no provider retries and existing payload-minimized tracing. Only the bounded initial-context recovery described above can schedule a second call. No Agent thread or workflow is required for this bounded call.
 
-Create a versioned, authored Carpentry & Renovation guidance module at `convex/agents/preparation/carpentryPreparationGuidance.ts`. It describes scope clarification, access/logistics, available plans and preparing professional assessment, with positive and negative examples. This is the professional-domain guidance for the LLM, not a claim that a role prompt makes it qualified. Select it using an explicit normalized category-title mapping for the supported demo category; do not infer coverage for arbitrary categories.
+The value rubric permits zero suggestions and asks for concrete before-visit actions, job-specific rationale and exact supporting description excerpts. Omit generic advice, known answers and semantic duplicates. Each item also contains a concise client question or null when the action is internal. Validate count, field bounds, nonblank values, exact excerpt grounding and normalized duplicate actions server-side. Semantic quality remains a model responsibility verified with contrasting live examples. Do not fabricate a fallback list on failure.
 
-The prompt asks the model to consider candidate actions and emit only those meeting the spec's value criteria. Each output contains an action, rationale and exact supporting description excerpt. Require zero to the available number of slots, concise field limits, no duplicate or already answered work, and no invented facts or legal thresholds. Treat all job text as delimited data. Validate shape, count, nonblank fields, source excerpt presence and exact duplicate titles server-side. Semantic relevance and deduplication are model responsibilities verified through the manual acceptance examples; schema validation alone cannot prove quality. Reject malformed outputs visibly instead of backfilling a generic list.
+### Persist an editable message without overwriting human work
 
-Alternative: fixed trigger matching. That remains suitable for the base checklist but cannot express the requested contextual judgement. Open-ended tool-using research is unnecessary for this bounded recommendation task.
+Compose the initial draft deterministically from structured client questions in the same generation output. This avoids a second model call and prevents unrelated text in the client message. Include only pending, non-dismissed client-answerable items; no questions yields no draft. Never include internal preparation tasks.
+
+An untouched generated message may update on successful preparation refresh. Once manually edited, preserve it and show it as stale if the list/context snapshot changes. Save edits with an expected message revision to reject concurrent overwrites. Explicit message regeneration replaces the draft from current fresh pending questions after a UI confirmation when edits would be lost. It excludes completed/dismissed items. Completion/reopening/dismissal and source changes mark the existing draft stale; they never silently rewrite a human draft. Copying does not send anything or complete work.
 
 ### Existing job-page integration
 
-Add `src/pages/jobs/components/pre-visit-preparation.tsx` with named export `PreVisitPreparation`, mounted in `job-page.tsx`. Use Convex subscriptions and generated bindings for the saved list. Show the source detail and rationale with each suggestion, accept/dismiss controls, and manual completion for accepted tasks. Clearly label the preparation list and its AI origin. Include loading, empty, unsupported, stale and failure states and explicit generate/refresh controls. No new route, microphone or client-facing page is required.
+Add `PreVisitPreparation` beside the existing checklist and brief. Use generated Convex hooks for shared state. Render direct completion checkboxes, dismiss actions, rationale/source detail, generate/refresh and the editable message with save/regenerate/copy controls. Show loading, empty, unsupported, running, stale and failed states. Keep saved stale work readable and manual completion available; message regeneration requires fresh preparation questions.
 
 ## Risks / Trade-offs
 
-- Plausible but weak advice → Use the value rubric and contrasting descriptions; allow zero results. Contractor review remains required.
-- No professional validation yet → Treat the guidance as a hackathon prototype; validate usefulness with a contractor when available and avoid quantified savings claims.
-- Stale context or overlapping user actions → Atomic claims, revision/fingerprint checks and visible refresh state.
-- Category titles are organization-authored → Use an explicit supported mapping and show unsupported status rather than guessing expertise.
-- Small time budget → Retain a three-slot list, explicit generation and one trade; no history, extra agent tools or voice changes.
+- Weak but plausible suggestions → Author trade guidance and a usefulness rubric, allow zero, and record live examples without claiming professional validation.
+- Job edits or concurrent actions → Canonical fingerprints, revisions, atomic claims and scheduled expiry protect saved decisions.
+- A generated list may become stale as independent agents finish → One bounded initial retry, then visible manual refresh; no repeated regeneration loop.
+- Organization-authored category titles → Explicit supported mapping rather than guessed expertise.
+- A manually edited message can contain obsolete questions → Preserve it visibly as stale and offer explicit regeneration for contractor review.
 
 ## Migration Plan
 
-Coordinate `convex/schema.ts`, `convex/jobs.ts` and `job-page.tsx` edits with existing item-agent and UI work. Deploy the additive table/functions and regenerate bindings before integrating frontend calls. Existing jobs need no backfill; their first generation creates the preparation record. Extend job deletion to remove that record. Update the idea and roadmap implementation-scope notes to identify this separate reviewed-suggestions extension without rewriting the original bounded intake plan. Rollback removes the UI entry point and new function use; existing jobs and checklist data remain compatible, and the additive table can remain until deliberate cleanup.
+The current checklist agents and UI are already integrated. One implementation agent owns shared schema/job/page edits in this change. Add the table without backfill, regenerate bindings and validate on the already configured existing development deployment. Never rebind the deployment or use production for QA. Delete preparation with its job. Update product scope notes without rewriting the bounded intake plan. Removing the feature entry points is sufficient rollback; existing job/checklist data stays compatible.

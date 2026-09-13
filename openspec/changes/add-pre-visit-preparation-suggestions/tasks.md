@@ -1,22 +1,23 @@
 ## 1. Preparation data and access
 
-- [ ] 1.1 Coordinate shared-file edits with `add-checklist-item-agents` and `align-shared-ui-with-prototype`, then add preparation validators and the bounded `jobPreparations` table in `convex/schema.ts`; verify existing jobs require no backfill and generated types accept the new records.
-- [ ] 1.2 Implement authenticated preparation reads, start/refresh claims, accept/dismiss and completion operations in `convex/jobPreparation.ts` using `convex/access.ts`; verify reload persistence, the three-slot limit, preservation of accepted tasks and rejection of another organization's job.
-- [ ] 1.3 Add context fingerprints, revision/run guards, expiry recovery and preparation cleanup in `convex/jobs.ts`; verify edited context, human decisions, removed membership and deletion during a run prevent stale saves, and interrupted runs permit retry.
+- [ ] 1.1 Add bounded preparation contracts and the additive `jobPreparations` table; verify generated types and existing jobs without backfill through `npm run check`.
+- [ ] 1.2 Add canonical context/finding freshness, authenticated reads, direct completion/reopening/dismissal and job deletion cleanup; verify organization isolation, three-slot bounds and saved decisions without modifying checklist/job status.
+- [ ] 1.3 Add saved client-message editing and explicit regeneration from pending client questions with revision checks; verify internal/completed/dismissed tasks are omitted, edits persist and changed sources mark drafts stale.
 
 ## 2. Grounded recommendations
 
-- [ ] 2.1 Add the versioned Carpentry & Renovation guidance in `convex/agents/preparation/carpentryPreparationGuidance.ts`, including the value rubric and positive/negative examples; verify it explicitly permits zero suggestions and excludes duplicates, known answers and unsupported professional claims.
-- [ ] 2.2 Implement `convex/agents/preparation/recommendPreparation.ts` as one bounded structured-output call with existing dependencies and server-owned context; verify output count, field bounds and supporting excerpts are validated, secrets stay server-side, and provider or validation errors preserve saved work.
-- [ ] 2.3 Check live model behavior with a deck extension, internal skirting replacement, a description with the access answer already supplied, a vague description and an injected instruction; verify each returned item has a meaningful pre-visit benefit and source detail, without requiring exact wording or a fixed count. Record observed output and any remaining quality limitation.
+- [ ] 2.1 Add versioned Carpentry & Renovation guidance and bounded structured-output validation; verify zero is allowed, exact excerpts and count/field bounds are enforced, known answers and duplicates are excluded, and unsupported categories do not claim coverage.
+- [ ] 2.2 Add automatic generation on supported job creation and explicit existing-job generation with atomic claims, scheduled expiry, membership/revision/fingerprint guards and one bounded model call per attempt (at most one initial retry for changing findings); verify provider failure preserves work, human decisions and deletion reject late saves, and timeout permits retry.
+- [ ] 2.3 Verify live outputs for deck extension, skirting replacement, known access, vague description and injected instructions; record observed usefulness, client-message relevance, fewer-than-three/empty results and remaining quality limitations.
 
 ## 3. Contractor workflow
 
-- [ ] 3.1 Add `PreVisitPreparation` in `src/pages/jobs/components/pre-visit-preparation.tsx` and compose it in `job-page.tsx`; verify generate/refresh, explanation/source detail, accept/dismiss, complete/reopen and loading/empty/stale/unsupported/failure states in the agreed desktop browser.
-- [ ] 3.2 Verify preparation actions leave existing checklist totals, confirmed evidence, agent dispatch and job status unchanged; confirm typed saved descriptions work with no audio and acceptance survives reload for another member of the same organization.
+- [ ] 3.1 Compose `PreVisitPreparation` in the existing job page with direct checkoff/dismiss, source/rationale, generate/refresh and visible loading/empty/stale/unsupported/failure states; verify these interactions in the agreed desktop browser.
+- [ ] 3.2 Add editable saved client message with explicit regenerate and copy controls; verify edits/reload, stale indication, no sending or completion side effects, and omission of completed/dismissed/internal questions on regeneration.
+- [ ] 3.3 Verify saved typed descriptions need no audio, organization members share preparation state, and preparation actions leave existing checklist totals, evidence, agent dispatch and job status unchanged.
 
 ## 4. Integration and verification
 
-- [ ] 4.1 Update implementation-scope notes in `docs/Site-Ahead-Idea.md` and `docs/roadmap.md` to reference this separate reviewed-suggestions feature; verify the original bounded intake approach and other roadmap exclusions remain explicit.
-- [ ] 4.2 Regenerate bindings and validate the additive backend on the agreed existing Convex deployment, coordinating with teammates sharing it; verify no schema or function validation errors and no changes to deployment identity.
-- [ ] 4.3 Run `npm run check` and complete a short browser demo against the specification: contrasting renovation descriptions, fewer-than-three and empty results, accepting/completing/reloading, stale refresh, failure retry, access denial and deletion. Record results and limitations before marking implementation complete.
+- [ ] 4.1 Update implementation-scope notes in `docs/Site-Ahead-Idea.md` and `docs/roadmap.md`; verify the separate preparation/message extension and original roadmap exclusions remain explicit.
+- [ ] 4.2 Regenerate bindings and validate the additive backend on the existing configured development deployment; verify no schema/function validation failures or deployment identity changes.
+- [ ] 4.3 Run `npm run check` and `npm run build`, then complete a browser demo covering automatic/manual generation, contrasting inputs, empty results, completion/reload, editable messages, stale refresh, failure retry, access denial and deletion; record evidence before marking complete.
