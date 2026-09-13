@@ -30,6 +30,7 @@ export const classifyChecklistItems = internalAction({
   args: {
     items: v.array(schema.doc("checklistItems")),
     initiatedBy: v.id("users"),
+    dispatchExpected: v.optional(v.boolean()),
   },
   returns: v.object({
     classifications: v.array(

@@ -12,6 +12,13 @@ import {
   validateConstructionYear,
 } from "./agentContracts";
 import { schema } from "./schema";
+import {
+  executionSnapshot,
+  invalidateItemWork,
+  itemAgentState,
+} from "./itemAgentData";
+import type { MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
 export const itemContextValidator = v.object({
   item: schema.doc("checklistItems"),
@@ -69,6 +76,31 @@ export const get = internalQuery({
   },
 });
 
+async function invalidateChangedContext(
+  ctx: MutationCtx,
+  jobId: Id<"jobs">,
+  patch: Partial<Doc<"jobs">>,
+) {
+  const items = await ctx.db
+    .query("checklistItems")
+    .withIndex("by_jobId", (q) => q.eq("jobId", jobId))
+    .take(100);
+
+  for (const item of items) {
+    const state = await itemAgentState(ctx.db, item._id);
+
+    if (state?.execution !== "running" && !state?.queued) continue;
+    const context = await loadItemContext(ctx.db, item);
+
+    if (
+      context !== null &&
+      executionSnapshot(context) !==
+        executionSnapshot({ ...context, job: { ...context.job, ...patch } })
+    )
+      await invalidateItemWork(ctx, item._id);
+  }
+}
+
 export const setConstructionYear = mutation({
   args: { jobId: v.id("jobs"), year: v.union(v.number(), v.null()) },
   returns: v.null(),
@@ -86,6 +118,9 @@ export const setConstructionYear = mutation({
             suppliedAt,
           };
 
+    await invalidateChangedContext(ctx, args.jobId, {
+      confirmedConstructionYear,
+    });
     await ctx.db.patch("jobs", args.jobId, { confirmedConstructionYear });
 
     return null;
@@ -157,13 +192,14 @@ export const setFields = mutation({
         );
     }
 
-    await ctx.db.patch("jobs", args.jobId, {
-      agentContext: {
-        ...fields,
-        suppliedBy: membership.userId,
-        suppliedAt: Date.now(),
-      },
-    });
+    const agentContext = {
+      ...fields,
+      suppliedBy: membership.userId,
+      suppliedAt: Date.now(),
+    };
+
+    await invalidateChangedContext(ctx, args.jobId, { agentContext });
+    await ctx.db.patch("jobs", args.jobId, { agentContext });
 
     return null;
   },

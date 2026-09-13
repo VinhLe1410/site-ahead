@@ -68,6 +68,7 @@ export const agentDraftValidator = v.object({
 });
 
 export const agentClassificationValidator = v.object({
+  dispatchPending: v.optional(v.boolean()),
   snapshot: v.optional(v.string()),
   initiatedBy: v.optional(v.id("users")),
   status: v.union(
@@ -87,6 +88,10 @@ export const checklistAgentStateValidator = v.object({
   jobId: v.id("jobs"),
   classification: agentClassificationValidator,
   execution: agentExecutionValidator,
+  queued: v.optional(v.boolean()),
+  queuedAt: v.optional(v.number()),
+  queueAttempt: v.optional(v.number()),
+  attempt: v.optional(v.number()),
   threadId: v.optional(v.string()),
   runId: v.optional(v.string()),
   traceId: v.optional(v.string()),

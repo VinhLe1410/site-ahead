@@ -1,8 +1,64 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "../../_generated/server";
 import { schema } from "../../schema";
+import { removeItemWork } from "../../itemAgentData";
+import { validateConstructionYear } from "../../agentContracts";
+import { components } from "../../_generated/api";
 
 const fixtureName = "Site Ahead isolated classification verification";
+
+export const executionTools = internalQuery({
+  args: { jobId: v.id("jobs") },
+  returns: v.array(
+    v.object({ itemId: v.id("checklistItems"), tools: v.array(v.string()) }),
+  ),
+  handler: async (ctx, args) => {
+    const job = await ctx.db.get("jobs", args.jobId);
+
+    const organization =
+      job === null
+        ? null
+        : await ctx.db.get("organizations", job.organizationId);
+
+    if (organization?.name !== fixtureName)
+      throw new Error("Only isolated verification fixtures can be inspected.");
+
+    const states = await ctx.db
+      .query("checklistAgentStates")
+      .withIndex("by_jobId", (q) => q.eq("jobId", args.jobId))
+      .take(10);
+
+    const result = [];
+
+    for (const state of states) {
+      if (state.threadId === undefined) continue;
+
+      const messages = await ctx.runQuery(
+        components.agent.messages.listMessagesByThreadId,
+        {
+          threadId: state.threadId,
+          order: "desc",
+          paginationOpts: { cursor: null, numItems: 30 },
+        },
+      );
+
+      const tools = [];
+
+      for (const message of messages.page) {
+        const content = message.message?.content;
+
+        if (!Array.isArray(content)) continue;
+
+        for (const part of content)
+          if (part.type === "tool-call") tools.push(part.toolName);
+      }
+
+      result.push({ itemId: state.itemId, tools });
+    }
+
+    return result;
+  },
+});
 
 export const prepare = internalMutation({
   args: {},
@@ -136,15 +192,16 @@ export const cleanup = internalMutation({
       .withIndex("by_jobId", (q) => q.eq("jobId", job._id))
       .take(10);
 
-    if (states.some((state) => state.threadId !== undefined))
+    if (states.some((state) => state.execution === "running" || state.queued))
       throw new Error(
-        "This fixture contains execution threads; automatic cleanup refused.",
+        "This fixture still has active execution; wait for it to finish before cleanup.",
       );
 
-    for (const state of states)
-      await ctx.db.delete("checklistAgentStates", state._id);
+    for (const item of items) {
+      await removeItemWork(ctx, item._id);
+      await ctx.db.delete("checklistItems", item._id);
+    }
 
-    for (const item of items) await ctx.db.delete("checklistItems", item._id);
     await ctx.db.delete("jobs", job._id);
     await ctx.db.delete("inputs", job.inputId);
 
@@ -184,7 +241,7 @@ export const configureEvidence = internalMutation({
         args.year === null
           ? undefined
           : {
-              year: args.year,
+              year: validateConstructionYear(args.year, Date.now()),
               suppliedBy: args.initiatedBy,
               suppliedAt: Date.now(),
             },

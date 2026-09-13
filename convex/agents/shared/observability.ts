@@ -1,7 +1,7 @@
 "use node";
 
 import { propagateAttributes } from "@langfuse/core";
-import { LangfuseSpanProcessor } from "@langfuse/otel";
+import { isDefaultExportSpan, LangfuseSpanProcessor } from "@langfuse/otel";
 import { env } from "../../_generated/server";
 import type {
   ContextHandler,
@@ -38,6 +38,9 @@ function initializeTelemetry() {
         baseUrl: env.LANGFUSE_BASE_URL,
         exportMode: "immediate",
         additionalHeaders: { "x-langfuse-ingestion-version": "4" },
+        shouldExportSpan: ({ otelSpan }) =>
+          otelSpan.instrumentationScope.name === "site-ahead.agents" ||
+          isDefaultExportSpan(otelSpan),
       });
     } else {
       logAgentStage({ stage: "telemetry", outcome: "configuration_missing" });

@@ -1,52 +1,22 @@
 import { ConvexError, v } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalMutation } from "./_generated/server";
-import type { MutationCtx } from "./_generated/server";
-import type { Doc, Id } from "./_generated/dataModel";
+import type { Doc } from "./_generated/dataModel";
 import { getMembership } from "./access";
 import { checklistKindValidator } from "./contracts";
-import { loadItemContext, type ItemContext } from "./jobAgentContext";
+import { loadItemContext } from "./jobAgentContext";
 import { schema } from "./schema";
-
-export async function itemAgentState(
-  db: MutationCtx["db"],
-  itemId: Id<"checklistItems">,
-) {
-  return await db
-    .query("checklistAgentStates")
-    .withIndex("by_itemId", (q) => q.eq("itemId", itemId))
-    .unique();
-}
-
-function itemSnapshot(item: Doc<"checklistItems">) {
-  return JSON.stringify([
-    item._id,
-    item._creationTime,
-    item.jobId,
-    item.title,
-    item.kind,
-    item.status,
-    item.notes,
-    item.documentVersionIds ?? [],
-  ]);
-}
-
-export function classificationSnapshot(context: ItemContext) {
-  return JSON.stringify({
-    item: itemSnapshot(context.item),
-    organizationId: context.job.organizationId,
-    inputId: context.job.inputId,
-    address: context.job.addressText,
-    text: context.input.processedText,
-    categoryId: context.job.categoryId,
-    categoryTitle: context.category?.title,
-  });
-}
+import {
+  itemAgentState,
+  itemSnapshot,
+  classificationSnapshot,
+} from "./itemAgentData";
 
 export const claim = internalMutation({
   args: {
     items: v.array(schema.doc("checklistItems")),
     initiatedBy: v.id("users"),
+    dispatchExpected: v.optional(v.boolean()),
     runId: v.string(),
     traceId: v.string(),
     spanId: v.string(),
@@ -88,13 +58,15 @@ export const claim = internalMutation({
       if (
         state !== null &&
         (state.classification.status === "running" ||
-          state.execution === "running")
+          state.execution === "running" ||
+          state.queued)
       )
         continue;
 
       const values = {
         classification: {
           status: "running" as const,
+          dispatchPending: args.dispatchExpected === true,
           runId: args.runId,
           traceId: args.traceId,
           spanId: args.spanId,
@@ -173,6 +145,7 @@ export const save = internalMutation({
         classification: {
           ...state.classification,
           status: "failed",
+          dispatchPending: false,
           traceId: args.traceId,
           error: failure,
         },
@@ -190,20 +163,30 @@ export const save = internalMutation({
       return false;
     }
 
-    if (item === null || args.category === undefined) return false;
+    if (item === null || args.category === undefined || context === null)
+      return false;
     await ctx.db.patch("checklistItems", item._id, { kind: args.category });
     await ctx.db.patch("checklistAgentStates", state._id, {
       classification: {
         ...state.classification,
         status: "succeeded",
+        dispatchPending:
+          state.classification.dispatchPending === true &&
+          args.category === "automated",
         traceId: args.traceId,
+        snapshot: classificationSnapshot({
+          ...context,
+          item: { ...item, kind: args.category },
+        }),
       },
       execution: state.threadId === undefined ? "idle" : state.execution,
       currentStep:
         state.threadId === undefined
           ? args.category === "on_site"
             ? "human_check"
-            : "ready"
+            : args.category === "third_party"
+              ? "manual_request"
+              : "ready"
           : state.currentStep,
       error: state.threadId === undefined ? undefined : state.error,
       updatedAt: Date.now(),
@@ -211,7 +194,9 @@ export const save = internalMutation({
         state.threadId === undefined
           ? args.category === "on_site"
             ? "Complete this check manually."
-            : "Ready for item processing."
+            : args.category === "third_party"
+              ? "Handle this request manually. Request drafts are planned for a follow-up."
+              : "Ready for item processing."
           : state.nextAction,
     });
 
@@ -226,6 +211,32 @@ export const expire = internalMutation({
     const state = await itemAgentState(ctx.db, args.itemId);
 
     if (
+      state !== null &&
+      state.classification.runId === args.runId &&
+      state.classification.status === "succeeded" &&
+      state.classification.dispatchPending &&
+      !state.queued &&
+      state.execution !== "running" &&
+      !(
+        state.execution === "finished" &&
+        state.traceId === state.classification.traceId
+      )
+    ) {
+      await ctx.db.patch("checklistAgentStates", state._id, {
+        classification: { ...state.classification, dispatchPending: false },
+        execution: "failed",
+        currentStep: "dispatch",
+        error: "classification_dispatch_interrupted",
+        traceId: state.classification.traceId,
+        updatedAt: Date.now(),
+        nextAction:
+          "Classification succeeded but item processing was interrupted. Retry this item.",
+      });
+
+      return null;
+    }
+
+    if (
       state?.classification.status === "running" &&
       state.classification.runId === args.runId
     )
@@ -234,6 +245,7 @@ export const expire = internalMutation({
           ...state.classification,
           status: "failed",
           error: "classification_deadline_exceeded",
+          dispatchPending: false,
         },
         execution: state.threadId === undefined ? "failed" : state.execution,
         currentStep:

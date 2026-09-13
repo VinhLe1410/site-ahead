@@ -354,3 +354,75 @@ test("one item persistence failure cannot prevent later item outcomes", async ()
     { saved: true, persistenceFailed: false },
   ]);
 });
+
+test("expected dispatch recovers a successful classification with no enqueue and ignores a newer attempt", async () => {
+  vi.useFakeTimers();
+
+  try {
+    const { t, userId, items, pendingId } = await setup();
+
+    const args = {
+      items,
+      initiatedBy: userId,
+      runId: "handoff",
+      traceId: "a".repeat(32),
+      spanId: "b".repeat(16),
+      dispatchExpected: true,
+    };
+
+    await t.mutation(internal.checklistClassification.claim, args);
+    await t.mutation(internal.checklistClassification.save, {
+      itemId: pendingId,
+      runId: args.runId,
+      traceId: args.traceId,
+      category: "automated",
+    });
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+
+    const readState = () =>
+      t.run((ctx) =>
+        ctx.db
+          .query("checklistAgentStates")
+          .withIndex("by_itemId", (q) => q.eq("itemId", pendingId))
+          .unique(),
+      );
+
+    expect(await readState()).toMatchObject({
+      classification: { status: "succeeded", dispatchPending: false },
+      execution: "failed",
+      error: "classification_dispatch_interrupted",
+    });
+    expect((await readState())?.threadId).toBeUndefined();
+
+    const current = await t.run((ctx) =>
+      ctx.db.get("checklistItems", pendingId),
+    );
+
+    await t.mutation(internal.checklistClassification.claim, {
+      ...args,
+      items: [current!],
+      runId: "newer",
+      dispatchExpected: false,
+    });
+    await t.mutation(internal.checklistClassification.save, {
+      itemId: pendingId,
+      runId: "newer",
+      traceId: args.traceId,
+      category: "third_party",
+    });
+    const newer = await readState();
+    expect(newer).toMatchObject({
+      currentStep: "manual_request",
+      classification: { dispatchPending: false },
+    });
+    await t.mutation(internal.checklistClassification.expire, {
+      itemId: pendingId,
+      runId: "handoff",
+    });
+    expect(await readState()).toEqual(newer);
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    expect(await readState()).toEqual(newer);
+  } finally {
+    vi.useRealTimers();
+  }
+});

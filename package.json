@@ -16,6 +16,7 @@
     "format:check": "oxfmt --check .",
     "test:classification-fallback": "node --experimental-strip-types scripts/test-item-classification-fallback.mjs",
     "verify:classification": "node scripts/verify-item-classification.mjs",
+    "verify:item-execution": "node scripts/verify-item-execution.mjs",
     "verify:automated-checks": "node scripts/verify-automated-checks.mjs",
     "verify:langfuse": "node scripts/verify-langfuse-trace.mjs",
     "check": "npm run typecheck && npm run test:agents && npm run lint && npm run format:check && npm run openspec:check",
