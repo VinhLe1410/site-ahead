@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { ArrowRight, Check, FileText, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
@@ -23,14 +23,10 @@ export function NewJobPage() {
   return (
     <>
       <PageHeading title="New job" />
-      <p className="-mt-3 mb-5 max-w-2xl text-sm leading-6 text-muted-foreground">
-        Tell us about the work, then review your job details before starting
-        checks.
-      </p>
       {draft === undefined ? (
         <div
           role="status"
-          className="flex min-h-96 items-center justify-center gap-2 border bg-card text-sm text-muted-foreground"
+          className="flex min-h-64 items-center justify-center gap-2 text-sm text-muted-foreground"
         >
           <Loader2 className="size-4 animate-spin" /> Loading your draft…
         </div>
@@ -141,36 +137,23 @@ function DraftWorkspace({ draft }: { draft: Doc<"jobDrafts"> | null }) {
   }
 
   return (
-    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-      <section
-        aria-labelledby="draft-heading"
-        className="min-w-0 border bg-card"
-      >
-        <div className="flex items-center justify-between gap-3 border-b px-5 py-4 sm:px-6">
-          <div className="flex items-center gap-2.5">
-            <FileText className="size-4 text-muted-foreground" />
-            <h2 id="draft-heading" className="text-base font-semibold">
-              Job draft
-            </h2>
-          </div>
-          <span
-            role="status"
-            className="flex items-center gap-1.5 text-xs text-muted-foreground"
-          >
-            {pending === "save" ? (
-              "Saving…"
-            ) : edits !== null ? (
-              "Unsaved changes"
-            ) : draft !== null ? (
-              <>
-                <Check className="size-3.5" /> Draft saved
-              </>
-            ) : (
-              "Not saved yet"
-            )}
+    <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-10">
+      <section aria-labelledby="draft-heading" className="min-w-0">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 id="draft-heading" className="text-lg font-semibold">
+            Job brief
+          </h2>
+          <span role="status" className="text-xs text-muted-foreground">
+            {pending === "save"
+              ? "Saving…"
+              : edits !== null
+                ? "Unsaved changes"
+                : draft !== null
+                  ? "Draft saved"
+                  : "Not saved yet"}
           </span>
         </div>
-        <div className="space-y-5 p-5 sm:px-6">
+        <div className="space-y-5">
           <DraftFields
             values={values}
             disabled={disabled}
@@ -203,7 +186,7 @@ function DraftWorkspace({ draft }: { draft: Doc<"jobDrafts"> | null }) {
           )}
           {error !== null && <RequestError message={error} />}
         </div>
-        <div className="border-t bg-background/40 p-5 sm:px-6">
+        <div className="mt-5 border-t pt-5">
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"
@@ -222,13 +205,16 @@ function DraftWorkspace({ draft }: { draft: Doc<"jobDrafts"> | null }) {
                 </>
               ) : (
                 <>
-                  Create job and start checks <ArrowRight className="size-4" />
+                  {values.categoryId === null
+                    ? "Create job"
+                    : "Create job and start checks"}{" "}
+                  <ArrowRight className="size-4" />
                 </>
               )}
             </Button>
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               disabled={disabled || hasConflict || edits === null}
               onClick={() => void handleSave()}
             >

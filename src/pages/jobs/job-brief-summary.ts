@@ -31,6 +31,57 @@ function findingSummary(
   }
 }
 
+export function currentItemOutput(
+  context: BriefContext,
+  item: Doc<"checklistItems">,
+  state: Doc<"checklistAgentStates"> | undefined,
+) {
+  const busy =
+    state?.queued ||
+    state?.execution === "running" ||
+    state?.classification.status === "running";
+
+  const failed =
+    state?.execution === "failed" || state?.classification.status === "failed";
+
+  // Successful automation changes only the checkbox after saving this pending snapshot.
+  const current =
+    state?.snapshot !== undefined &&
+    state.snapshot ===
+      executionSnapshot({ ...context, item: { ...item, status: "pending" } });
+
+  const finding =
+    current &&
+    !busy &&
+    !failed &&
+    state?.classification.status === "succeeded" &&
+    state.execution === "finished" &&
+    item.kind === "automated"
+      ? state.finding
+      : undefined;
+
+  const draft =
+    current &&
+    !busy &&
+    !failed &&
+    state?.classification.status === "succeeded" &&
+    state.execution === "waiting" &&
+    item.kind === "third_party"
+      ? state.draft
+      : undefined;
+
+  const nextAction =
+    current &&
+    !busy &&
+    !failed &&
+    ((item.status === "pending" && state?.execution !== "finished") ||
+      (item.status === "done" && finding))
+      ? state?.nextAction
+      : undefined;
+
+  return { busy, failed, current, finding, draft, nextAction };
+}
+
 export function summarizeJobBrief(
   context: BriefContext,
   items: Doc<"checklistItems">[],
@@ -48,40 +99,11 @@ export function summarizeJobBrief(
     const state = states.find((value) => value.itemId === item._id);
     const entry = { itemId: item._id, title: item.title };
 
-    const busy =
-      state?.queued ||
-      state?.execution === "running" ||
-      state?.classification.status === "running";
-
-    const failed =
-      state?.execution === "failed" ||
-      state?.classification.status === "failed";
-
-    // Successful automation changes only the checkbox after saving this pending snapshot.
-    const current =
-      state?.snapshot !== undefined &&
-      state.snapshot ===
-        executionSnapshot({ ...context, item: { ...item, status: "pending" } });
-
-    const finding =
-      current &&
-      !busy &&
-      !failed &&
-      state?.classification.status === "succeeded" &&
-      state.execution === "finished" &&
-      item.kind === "automated"
-        ? state.finding
-        : undefined;
-
-    const draft =
-      current &&
-      !busy &&
-      !failed &&
-      state?.classification.status === "succeeded" &&
-      state.execution === "waiting" &&
-      item.kind === "third_party"
-        ? state.draft
-        : undefined;
+    const { busy, failed, current, finding, draft } = currentItemOutput(
+      context,
+      item,
+      state,
+    );
 
     if (item.status === "done") {
       summary.completed.push({

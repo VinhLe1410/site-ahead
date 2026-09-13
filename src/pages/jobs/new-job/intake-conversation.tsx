@@ -1,5 +1,5 @@
 import { usePaginatedQuery } from "convex/react";
-import { ArrowDownLeft, Loader2, MessageSquare, RotateCcw } from "lucide-react";
+import { Loader2, RotateCcw } from "lucide-react";
 import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
@@ -45,23 +45,19 @@ export function IntakeConversation({
       aria-labelledby="conversation-heading"
       className="order-first flex min-w-0 flex-col border bg-card lg:sticky lg:top-6 lg:order-none"
     >
-      <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
-        <div className="flex items-center gap-2.5">
-          <MessageSquare className="size-4 text-muted-foreground" />
-          <h2 id="conversation-heading" className="text-base font-semibold">
-            Conversation
-          </h2>
-        </div>
-        <span className="text-xs text-muted-foreground">Job intake</span>
+      <div className="px-5 pt-4 pb-3">
+        <h2 id="conversation-heading" className="font-semibold">
+          Conversation
+        </h2>
       </div>
       <MessageScrollerProvider defaultScrollPosition="end">
-        <MessageScroller className="h-72 lg:h-[clamp(14rem,calc(100dvh-29rem),24rem)]">
+        <MessageScroller className="h-56 lg:h-[clamp(12rem,calc(100dvh-25rem),24rem)]">
           <MessageScrollerViewport
             aria-label="Job intake messages"
             preserveScrollOnPrepend
           >
             <MessageScrollerContent
-              className="gap-5 p-5"
+              className="gap-5 px-5 py-3"
               aria-busy={isGenerating}
             >
               {draft !== null && messages.status === "LoadingFirstPage" ? (
@@ -72,22 +68,10 @@ export function IntakeConversation({
                   Loading conversation…
                 </p>
               ) : messages.results.length === 0 ? (
-                <div className="my-auto py-6">
-                  <div className="mb-5 flex size-10 items-center justify-center border bg-background">
-                    <MessageSquare className="size-5 text-muted-foreground" />
-                  </div>
-                  <h3 className="mb-2 text-base font-medium">
-                    Start with what you know
-                  </h3>
-                  <p className="max-w-sm text-sm leading-6 text-muted-foreground">
-                    Paste a client message, describe the work or record a short
-                    voice note. Include the address if you have it.
-                  </p>
-                  <p className="mt-5 flex items-center gap-2 text-xs text-muted-foreground">
-                    <ArrowDownLeft className="size-3.5" /> Your job draft
-                    updates as you talk.
-                  </p>
-                </div>
+                <p className="max-w-sm text-sm leading-6 text-muted-foreground">
+                  Describe the work, paste a client message or record a voice
+                  note. I'll help fill in the brief.
+                </p>
               ) : (
                 <>
                   {messages.status === "CanLoadMore" && (
@@ -174,9 +158,6 @@ export function IntakeConversation({
         </div>
       )}
       <IntakeComposer disabled={disabled} onSend={onSend} />
-      <p className="px-5 pb-4 text-[11px] leading-5 text-muted-foreground">
-        Sent messages and your saved draft stay here when you return.
-      </p>
     </section>
   );
 }

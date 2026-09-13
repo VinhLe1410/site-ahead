@@ -104,7 +104,7 @@ export function PreparationClientMessage({
   }
 
   return (
-    <div className="space-y-3 border-t px-4 py-5 sm:px-5">
+    <div className="mt-3 space-y-3 border bg-card p-4 sm:p-5">
       <div>
         <h3 className="font-medium">Client message</h3>
         <p className="mt-1 text-sm text-muted-foreground">

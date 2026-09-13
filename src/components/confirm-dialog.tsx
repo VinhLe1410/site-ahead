@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,12 +14,14 @@ import { RequestError } from "@/components/layout/request-error";
 
 export function ConfirmDialog({
   trigger,
+  triggerRender,
   title,
   description,
   confirmLabel,
   onConfirm,
 }: {
   trigger: string;
+  triggerRender?: ComponentProps<typeof DialogTrigger>["render"];
   title: string;
   description: string;
   confirmLabel: string;
@@ -57,7 +59,11 @@ export function ConfirmDialog({
         }
       }}
     >
-      <DialogTrigger render={<Button variant="outline" aria-label={trigger} />}>
+      <DialogTrigger
+        render={
+          triggerRender ?? <Button variant="outline" aria-label={trigger} />
+        }
+      >
         {trigger}
       </DialogTrigger>
       <DialogContent showCloseButton={!pending}>

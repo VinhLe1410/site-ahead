@@ -255,10 +255,7 @@ export function IntakeComposer({
   const isBusy = disabled || phase !== "idle";
 
   return (
-    <form
-      className="border-t p-4 pb-2 sm:p-5 sm:pb-2"
-      onSubmit={(event) => void handleSubmit(event)}
-    >
+    <form className="p-4 pt-3" onSubmit={(event) => void handleSubmit(event)}>
       {hasTranscript && (
         <p
           role="status"
@@ -268,13 +265,13 @@ export function IntakeComposer({
           send.
         </p>
       )}
-      <InputGroup className="rounded-sm bg-card">
+      <InputGroup className="rounded-none bg-card">
         <label htmlFor="intake-message" className="sr-only">
           Message about the job
         </label>
         <InputGroupTextarea
           id="intake-message"
-          className="min-h-20 resize-y rounded-none border-0 bg-transparent px-3.5 py-3 text-sm shadow-none focus-visible:ring-0"
+          className="min-h-20 max-h-64 resize-y rounded-none border-0 bg-transparent px-3.5 py-3 text-sm shadow-none focus-visible:ring-0"
           placeholder="Describe the job or add a correction…"
           value={text}
           onChange={(event) => setText(event.target.value)}

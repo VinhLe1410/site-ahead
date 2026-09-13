@@ -1,5 +1,4 @@
 import { usePaginatedQuery, useQuery } from "convex/react";
-import { MapPin } from "lucide-react";
 import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
@@ -47,11 +46,13 @@ export function DraftFields({
   return (
     <FieldGroup className="gap-5">
       <Field>
-        <FieldLabel htmlFor="draft-brief">Job brief</FieldLabel>
+        <FieldLabel htmlFor="draft-brief" className="sr-only">
+          Job brief
+        </FieldLabel>
         <Textarea
           id="draft-brief"
-          className="min-h-36 resize-y bg-card text-sm leading-6"
-          placeholder="What work is needed? Include access, dimensions and anything the crew should know."
+          className="min-h-40 resize-y bg-card text-sm leading-6"
+          placeholder="Describe the work, scope and site details."
           value={values.processedText}
           onChange={(event) =>
             onChange({ ...values, processedText: event.target.value })
@@ -63,25 +64,25 @@ export function DraftFields({
       </Field>
       <Field>
         <FieldLabel htmlFor="draft-address">Site address</FieldLabel>
-        <div className="relative">
-          <MapPin className="pointer-events-none absolute top-3 left-3 size-4 text-muted-foreground" />
-          <Input
-            id="draft-address"
-            className="h-10 bg-card pl-9"
-            placeholder="Street address, suburb and postcode"
-            value={values.addressText}
-            onChange={(event) =>
-              onChange({ ...values, addressText: event.target.value })
-            }
-            disabled={disabled}
-            maxLength={500}
-            required
-          />
-        </div>
+        <Input
+          id="draft-address"
+          className="h-10 bg-card"
+          placeholder="Street address, suburb and postcode"
+          value={values.addressText}
+          onChange={(event) =>
+            onChange({ ...values, addressText: event.target.value })
+          }
+          disabled={disabled}
+          maxLength={500}
+          required
+        />
       </Field>
       <Field>
         <div className="flex items-center justify-between gap-2">
-          <FieldLabel htmlFor="draft-category">Category</FieldLabel>
+          <FieldLabel htmlFor="draft-category">
+            Category{" "}
+            <span className="font-normal text-muted-foreground">Optional</span>
+          </FieldLabel>
           {values.categoryId !== null && (
             <Button
               type="button"
@@ -120,8 +121,8 @@ export function DraftFields({
         </Select>
         <FieldDescription>
           {values.categoryId === null
-            ? "Choose a category for checks, or leave uncategorized."
-            : "This category supplies the starting checklist."}
+            ? "Uncategorized jobs start without a checklist."
+            : "The category supplies the starting checklist."}
         </FieldDescription>
         {values.categoryId !== null && selectedCategory === null && (
           <p role="alert" className="text-sm text-destructive">
