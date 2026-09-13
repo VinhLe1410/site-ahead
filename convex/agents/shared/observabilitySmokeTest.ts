@@ -2,12 +2,12 @@
 
 import { createOpenAI } from "@ai-sdk/openai";
 import { Agent } from "@convex-dev/agent";
-import { propagateAttributes } from "@langfuse/core";
 import { components } from "../../_generated/api";
-import { action, env } from "../../_generated/server";
+import { internalAction, env } from "../../_generated/server";
 import { v } from "convex/values";
 import {
-  flushAgentObservability,
+  agentTelemetry,
+  withAgentTrace,
   getAgentObservabilityConfig,
 } from "./observability";
 
@@ -22,7 +22,7 @@ const observabilitySmokeTestAgent = new Agent(components.agent, {
   ...getAgentObservabilityConfig(),
 });
 
-export const runObservabilitySmokeTest = action({
+export const runObservabilitySmokeTest = internalAction({
   args: {
     smokeTestId: v.string(),
   },
@@ -50,27 +50,19 @@ export const runObservabilitySmokeTest = action({
 
     const traceName = `site-ahead-observability-smoke-${smokeTestId}`;
 
-    const result = await propagateAttributes(
-      {
-        traceName,
-        tags: ["site-ahead", "observability-smoke-test"],
-        metadata: { smokeTestId },
-      },
-      () =>
-        observabilitySmokeTestAgent.generateText(
-          ctx,
-          { threadId },
-          {
-            prompt: "Reply with exactly: observability smoke test passed.",
-            experimental_telemetry: {
-              isEnabled: true,
-              functionId: "site-ahead.observability-smoke-test",
-            },
+    const result = await withAgentTrace(traceName, smokeTestId, async () =>
+      observabilitySmokeTestAgent.generateText(
+        ctx,
+        { threadId },
+        {
+          prompt: "Reply with exactly: observability smoke test passed.",
+          experimental_telemetry: {
+            ...agentTelemetry,
+            functionId: "site-ahead.observability-smoke-test",
           },
-        ),
+        },
+      ),
     );
-
-    await flushAgentObservability();
 
     return { smokeTestId, threadId, text: result.text };
   },

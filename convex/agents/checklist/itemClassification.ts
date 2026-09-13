@@ -2,29 +2,20 @@ export type ChecklistItemId = string | number;
 
 export type ChecklistKind = "automated" | "third_party" | "on_site";
 
-export type ChecklistInputItem = {
-  id: ChecklistItemId;
-  item: string;
-};
+export type ChecklistInputItem = { id: ChecklistItemId; item: string };
 
-export type ModelClassification = {
-  id: ChecklistItemId;
-  category?: string;
-};
+export type ModelClassification = { id: ChecklistItemId; category?: string };
 
 export type NormalizedClassification = {
   id: ChecklistItemId;
   category: ChecklistKind;
 };
 
-export type ClassificationFallback = {
-  id: ChecklistItemId;
-  reason: string;
-};
+export type ClassificationFailure = { id: ChecklistItemId; reason: string };
 
 export type NormalizedClassifications = {
   classifications: NormalizedClassification[];
-  fallbacks: ClassificationFallback[];
+  failures: ClassificationFailure[];
   unknownModelItemIds: ChecklistItemId[];
 };
 
@@ -43,10 +34,6 @@ function normalizeCategory(
   }
 }
 
-function itemIdKey(id: ChecklistItemId): string {
-  return String(id);
-}
-
 export function normalizeItemClassifications(
   items: ChecklistInputItem[],
   modelClassifications: ModelClassification[],
@@ -54,63 +41,66 @@ export function normalizeItemClassifications(
 ): NormalizedClassifications {
   const classificationsById = new Map<string, ModelClassification>();
   const duplicateModelIds = new Set<string>();
-  const inputItemIds = new Set(items.map((item) => itemIdKey(item.id)));
+  const inputItemIds = new Set(items.map((item) => String(item.id)));
   const unknownModelItemIds: ChecklistItemId[] = [];
 
   for (const classification of modelClassifications) {
-    const key = itemIdKey(classification.id);
+    const key = String(classification.id);
 
     if (!inputItemIds.has(key)) {
       unknownModelItemIds.push(classification.id);
       continue;
     }
 
-    if (classificationsById.has(key)) {
-      duplicateModelIds.add(key);
-      continue;
-    }
-
-    classificationsById.set(key, classification);
+    if (classificationsById.has(key)) duplicateModelIds.add(key);
+    else classificationsById.set(key, classification);
   }
 
-  const fallbacks: ClassificationFallback[] = [];
+  const failures: ClassificationFailure[] = [];
+  const classifications: NormalizedClassification[] = [];
 
-  const classifications = items.map((item): NormalizedClassification => {
-    const key = itemIdKey(item.id);
+  for (const item of items) {
+    const key = String(item.id);
     const modelClassification = classificationsById.get(key);
-
-    if (modelFailureReason) {
-      fallbacks.push({ id: item.id, reason: modelFailureReason });
-
-      return { id: item.id, category: "on_site" };
-    }
-
-    if (duplicateModelIds.has(key)) {
-      fallbacks.push({
-        id: item.id,
-        reason: "duplicate_model_classification",
-      });
-
-      return { id: item.id, category: "on_site" };
-    }
-
     const category = normalizeCategory(modelClassification?.category);
 
-    if (!category) {
-      fallbacks.push({
-        id: item.id,
-        reason: modelClassification
-          ? modelClassification.category === undefined
+    const reason =
+      modelFailureReason ??
+      (duplicateModelIds.has(key)
+        ? "duplicate_model_classification"
+        : modelClassification === undefined
+          ? "missing_model_classification"
+          : modelClassification.category === undefined
             ? "missing_model_category"
-            : "invalid_model_category"
-          : "missing_model_classification",
-      });
+            : category === undefined
+              ? "invalid_model_category"
+              : undefined);
 
-      return { id: item.id, category: "on_site" };
+    if (reason !== undefined) failures.push({ id: item.id, reason });
+    else if (category !== undefined)
+      classifications.push({ id: item.id, category });
+  }
+
+  return { classifications, failures, unknownModelItemIds };
+}
+
+export async function persistClassificationOutcome(
+  persist: (category?: ChecklistKind, failure?: string) => Promise<boolean>,
+  category?: ChecklistKind,
+  failure?: string,
+): Promise<{ saved: boolean; persistenceFailed: boolean }> {
+  try {
+    return {
+      saved: await persist(category, failure),
+      persistenceFailed: false,
+    };
+  } catch {
+    try {
+      await persist(undefined, "classification_save_failed");
+    } catch {
+      // The independent deadline records failure once storage is available again.
     }
 
-    return { id: item.id, category };
-  });
-
-  return { classifications, fallbacks, unknownModelItemIds };
+    return { saved: false, persistenceFailed: true };
+  }
 }

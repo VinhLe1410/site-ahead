@@ -74,8 +74,6 @@ async function runSmokeTest(smokeTestId) {
       "run",
       "agents/shared/observabilitySmokeTest:runObservabilitySmokeTest",
       JSON.stringify({ smokeTestId }),
-      "--typecheck",
-      "disable",
     ],
     {
       cwd: repoRoot,
@@ -114,7 +112,8 @@ async function findTrace(client, traceName, startedAt) {
     : (response.data?.data ?? []);
 
   const matchingObservation = observations.find(
-    (observation) => observation.traceName === traceName,
+    (observation) =>
+      observation.traceName === traceName && hasTokenUsage(observation),
   );
 
   if (!matchingObservation?.traceId) {

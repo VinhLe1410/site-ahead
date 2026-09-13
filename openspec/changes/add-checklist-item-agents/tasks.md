@@ -7,8 +7,8 @@
 
 ## 2. Classify and dispatch checklist items
 
-- [ ] 2.1 Refactor the classifier boundary to accept server-provided full `checklistItems` records, filter to `pending` items, preserve `done` items, validate one result per item, and persist valid `kind` overrides; verify a mixed pending/done input produces no work for done items.
-- [ ] 2.2 Implement classification failure handling that preserves the previous kind, records a failed state with reason and Langfuse trace ID, and schedules no item sub-agent; verify missing, duplicate, invalid, and model-error outputs through the existing classification verification command.
+- [x] 2.1 Refactor the classifier boundary to accept server-provided full `checklistItems` records, filter to `pending` items, preserve `done` items, validate one result per item, and persist valid `kind` overrides; verify a mixed pending/done input produces no work for done items.
+- [x] 2.2 Implement classification failure handling that preserves the previous kind, records a failed state with reason and Langfuse trace ID, and schedules no item sub-agent; verify missing, duplicate, invalid, and model-error outputs through the existing classification verification command.
 - [ ] 2.3 Implement the deterministic dispatcher that creates one persistent thread for each pending `automated` or `third_party` item, skips `on_site`, schedules eligible runs concurrently, and prevents duplicate threads or overlapping runs; verify a mixed checklist starts only the eligible items.
 - [ ] 2.4 Implement same-thread retry and resume after a failed run or newly supplied contractor information; verify retry changes only the selected item’s state and preserves its prior thread context and other items’ outputs.
 

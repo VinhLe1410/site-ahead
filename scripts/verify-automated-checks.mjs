@@ -54,8 +54,6 @@ async function runAutomatedChecks(checklist, address) {
       "run",
       "agents/checklist/automatedChecks:resolveAutomatedChecklistItems",
       JSON.stringify({ address, checklist }),
-      "--typecheck",
-      "disable",
     ],
     {
       cwd: repoRoot,

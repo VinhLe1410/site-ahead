@@ -82,6 +82,8 @@ export const agentDraftValidator = v.object({
 });
 
 export const agentClassificationValidator = v.object({
+  snapshot: v.optional(v.string()),
+  initiatedBy: v.optional(v.id("users")),
   status: v.union(
     v.literal("idle"),
     v.literal("running"),
@@ -90,6 +92,7 @@ export const agentClassificationValidator = v.object({
   ),
   runId: v.optional(v.string()),
   traceId: v.optional(v.string()),
+  spanId: v.optional(v.string()),
   error: v.optional(v.string()),
 });
 

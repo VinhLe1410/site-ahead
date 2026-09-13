@@ -11,18 +11,6 @@ const timeoutMs = 30_000;
 
 const pollIntervalMs = 2_000;
 
-const sampleChecklist = [
-  { id: 1, item: "Construction year of the property (pre/post 1990)" },
-  { id: 2, item: "Asbestos disturbance assessment" },
-  { id: 3, item: "Air Quality" },
-  { id: 4, item: "Road Closure" },
-  { id: 6, item: "Building permit + registered building surveyor appointed" },
-  {
-    id: 7,
-    item: "Occupancy Permit / Certificate of Final Inspection on completion",
-  },
-];
-
 const allowedCategories = new Set(["automated", "third_party", "on_site"]);
 
 try {
@@ -74,24 +62,12 @@ function parseConvexResult(stdout) {
   }
 }
 
-async function runClassification() {
+async function runConvex(functionName, args) {
   const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
   const { stdout, stderr } = await execFile(
     npmCommand,
-    [
-      "exec",
-      "--",
-      "convex",
-      "run",
-      "agents/checklist/itemResolutionClassifier:classifyChecklistItems",
-      JSON.stringify({
-        job_type: "Carpentry & Renovation",
-        checklist: sampleChecklist,
-      }),
-      "--typecheck",
-      "disable",
-    ],
+    ["exec", "--", "convex", "run", functionName, JSON.stringify(args)],
     {
       cwd: repoRoot,
       env: { ...process.env, NO_COLOR: "1" },
@@ -103,10 +79,14 @@ async function runClassification() {
     process.stderr.write(stderr);
   }
 
-  return parseConvexResult(stdout);
+  return stdout.trim() === "" ? null : parseConvexResult(stdout);
 }
 
-function verifyClassificationResult(result) {
+function verifyClassificationResult(result, fixture) {
+  const sampleChecklist = fixture.items.filter(
+    (item) => item.status === "pending",
+  );
+
   if (!Array.isArray(result.classifications)) {
     throw new Error("Classification response did not contain an array");
   }
@@ -117,9 +97,9 @@ function verifyClassificationResult(result) {
     );
   }
 
-  if (result.fallbacks.length > 0) {
+  if (result.failures.length > 0) {
     throw new Error(
-      `Sample classification used fallback handling: ${JSON.stringify(result.fallbacks)}`,
+      `Sample classification used fallback handling: ${JSON.stringify(result.failures)}`,
     );
   }
 
@@ -143,11 +123,11 @@ function verifyClassificationResult(result) {
   }
 
   for (const item of sampleChecklist) {
-    const actualCategory = actualById.get(String(item.id));
+    const actualCategory = actualById.get(String(item._id));
 
     if (!allowedCategories.has(actualCategory)) {
       throw new Error(
-        `Item ${item.id} returned unsupported category ${actualCategory ?? "missing"}`,
+        `Item ${item._id} returned unsupported category ${actualCategory ?? "missing"}`,
       );
     }
   }
@@ -178,7 +158,8 @@ async function findTrace(client, traceName, startedAt) {
     : (response.data?.data ?? []);
 
   const matchingObservation = observations.find(
-    (observation) => observation.traceName === traceName,
+    (observation) =>
+      observation.traceName === traceName && hasTokenUsage(observation),
   );
 
   if (!matchingObservation?.traceId) {
@@ -209,7 +190,61 @@ async function main() {
     password: secretKey,
   });
 
-  const result = verifyClassificationResult(await runClassification());
+  await execFile(
+    process.platform === "win32" ? "npm.cmd" : "npm",
+    ["run", "test:classification-fallback"],
+    { cwd: repoRoot },
+  );
+  const fixture = await runConvex("agents/checklist/verification:prepare", {});
+  let result;
+
+  try {
+    result = verifyClassificationResult(
+      await runConvex(
+        "agents/checklist/itemResolutionClassifier:classifyChecklistItems",
+        { items: fixture.items, initiatedBy: fixture.initiatedBy },
+      ),
+      fixture,
+    );
+
+    const saved = await runConvex("agents/checklist/verification:inspect", {
+      jobId: fixture.items[0].jobId,
+    });
+
+    const done = fixture.items.find((item) => item.status === "done");
+    const savedDone = saved.items.find((item) => item._id === done._id);
+
+    if (JSON.stringify(savedDone) !== JSON.stringify(done))
+      throw new Error("Classification changed a done item");
+
+    if (saved.states.some((state) => state.threadId !== undefined))
+      throw new Error("Classification created an execution thread");
+
+    if (
+      !saved.states.every(
+        (state) =>
+          state.classification.traceId === result.traceId &&
+          state.classification.status === "succeeded",
+      )
+    )
+      throw new Error("Classification state did not retain the real trace ID");
+
+    for (const classification of result.classifications) {
+      const item = saved.items.find((entry) => entry._id === classification.id);
+
+      if (
+        item?.kind !== classification.category ||
+        item?.status !== "pending" ||
+        item?.notes !== "Verification note"
+      )
+        throw new Error("Saved classification did not preserve item state");
+    }
+  } finally {
+    await runConvex("agents/checklist/verification:cleanup", {
+      organizationId: fixture.organizationId,
+      initiatedBy: fixture.initiatedBy,
+    });
+  }
 
   if (!result.traceName) {
     throw new Error(
@@ -226,11 +261,14 @@ async function main() {
     if (traceResult?.usageReady) {
       const traceId = traceResult.observation.traceId;
 
+      if (traceId !== result.traceId)
+        throw new Error("Saved trace ID differs from exported Langfuse trace");
+
       console.log(
         JSON.stringify(
           {
             classifications: result.classifications,
-            fallbacks: result.fallbacks,
+            failures: result.failures,
             traceId,
             traceName: result.traceName,
             uiUrl: `${baseUrl}/trace/${traceId}`,
