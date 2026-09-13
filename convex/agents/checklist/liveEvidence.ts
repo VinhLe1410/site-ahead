@@ -94,7 +94,8 @@ async function fetchJson<T>(
       signal: AbortSignal.any([signal, AbortSignal.timeout(10_000)]),
     });
 
-    if (!response.ok) throw new EvidenceFailure("source_http_failure", source);
+    if (!response.ok)
+      throw new EvidenceFailure(`source_http_${response.status}`, source);
     const reader = response.body?.getReader();
 
     if (reader === undefined)
@@ -130,7 +131,13 @@ async function fetchJson<T>(
 
     if (error instanceof z.ZodError || error instanceof SyntaxError)
       throw new EvidenceFailure("source_response_invalid", source);
-    throw new EvidenceFailure("source_network_or_timeout_failure", source);
+
+    if (
+      error instanceof Error &&
+      (error.name === "TimeoutError" || error.name === "AbortError")
+    )
+      throw new EvidenceFailure("source_timeout", source);
+    throw new EvidenceFailure("source_network_failure", source);
   }
 }
 
@@ -217,7 +224,8 @@ async function constructionYear(
   if (address === "")
     return missing("property_address_required", "address", "Property address");
   const records: Array<z.infer<typeof buildingRecord>> = [];
-  let total = 0;
+  let total: number | undefined;
+  const recordIds = new Set<number>();
 
   for (let page = 0; page < 3; page += 1) {
     const url = new URL(source);
@@ -234,12 +242,26 @@ async function constructionYear(
       signal,
     );
 
-    total = payload.result.total;
-    records.push(...payload.result.records);
+    if (total !== undefined && total !== payload.result.total)
+      throw new EvidenceFailure("construction_lookup_total_changed", source);
+    total ??= payload.result.total;
 
-    if (records.length >= total) break;
+    for (const record of payload.result.records) {
+      if (recordIds.has(record._id))
+        throw new EvidenceFailure(
+          "construction_lookup_duplicate_record",
+          source,
+        );
+      recordIds.add(record._id);
+      records.push(record);
+    }
 
-    if (payload.result.records.length === 0 || page === 2)
+    if (records.length > total)
+      throw new EvidenceFailure("construction_lookup_count_invalid", source);
+
+    if (records.length === total) break;
+
+    if (payload.result.records.length !== 100 || page === 2)
       throw new EvidenceFailure("construction_lookup_incomplete", source);
   }
 
@@ -606,7 +628,7 @@ async function roadClosures(
         continue;
 
       if (!["DPF", "MTIA", "OneView", "RID", "RWE"].includes(data.source ?? ""))
-        continue;
+        throw new EvidenceFailure("matching_road_source_unknown", source);
       const latitude = Number(data.location?.[1]);
       const longitude = Number(data.location?.[0]);
 

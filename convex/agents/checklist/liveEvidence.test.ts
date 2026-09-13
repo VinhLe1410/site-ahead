@@ -368,3 +368,98 @@ test("malformed imported coordinates cannot resolve an air check", async () => {
     ).rejects.toThrow("confirmed_site_coordinates_invalid");
   }
 });
+
+test("provider diagnostics preserve HTTP status and distinguish timeout without leaking response bodies", async () => {
+  const saved = await context("Construction year", 1985);
+
+  for (const status of [401, 403, 503]) {
+    await expect(
+      resolveLiveEvidence(
+        "construction_year",
+        saved,
+        async () => new Response("secret provider body", { status }),
+        now,
+      ),
+    ).rejects.toMatchObject({
+      code: `source_http_${status}`,
+      source: SOURCES.construction_year,
+    });
+  }
+
+  await expect(
+    resolveLiveEvidence(
+      "construction_year",
+      saved,
+      async () => {
+        throw new DOMException("secret transport details", "TimeoutError");
+      },
+      now,
+    ),
+  ).rejects.toMatchObject({ code: "source_timeout" });
+});
+
+test("construction lookup rejects changed totals, duplicate records and inconsistent page counts before manual fallback", async () => {
+  const saved = await context("Construction year", 1985);
+
+  const page = Array.from({ length: 100 }, (_, index) => ({
+    ...liveRecord,
+    _id: index + 1,
+    street_address: "Unrelated address",
+  }));
+
+  for (const [responses, code] of [
+    [
+      [
+        { total: 500, records: page },
+        { total: 0, records: [] },
+      ],
+      "construction_lookup_total_changed",
+    ],
+    [
+      [
+        { total: 200, records: page },
+        { total: 200, records: page },
+      ],
+      "construction_lookup_duplicate_record",
+    ],
+    [
+      [{ total: 2, records: [page[0], page[0]] }],
+      "construction_lookup_duplicate_record",
+    ],
+    [[{ total: 0, records: [page[0]] }], "construction_lookup_count_invalid"],
+    [[{ total: 101, records: [page[0]] }], "construction_lookup_incomplete"],
+  ] as const) {
+    let request = 0;
+    await expect(
+      resolveLiveEvidence(
+        "construction_year",
+        saved,
+        async () =>
+          Response.json({ success: true, result: responses[request++] }),
+        now,
+      ),
+    ).rejects.toMatchObject({ code });
+  }
+});
+
+test("an exact road/locality match with missing or unknown publisher cannot become a zero-match finding", async () => {
+  const saved = await context("Road Closure");
+
+  for (const source of [undefined, null, "", "unknown-publisher"]) {
+    await expect(
+      resolveLiveEvidence(
+        "road_closures",
+        saved,
+        async () =>
+          Response.json({
+            state: {
+              ts: now - 1000,
+              items: { match: { data: { ...disruption, source } } },
+            },
+            meta: { cursor: "-1" },
+          }),
+        now,
+      ),
+    ).rejects.toMatchObject({ code: "matching_road_source_unknown" });
+  }
+});
