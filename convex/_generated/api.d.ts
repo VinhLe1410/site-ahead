@@ -9,10 +9,8 @@
  */
 
 import type * as access from "../access.js";
-import type * as agents_checklist_categoryDb from "../agents/checklist/categoryDb.js";
-import type * as agents_checklist_classifier from "../agents/checklist/classifier.js";
-import type * as agents_shared__observabilitySmokeTest from "../agents/shared/_observabilitySmokeTest.js";
 import type * as agents_shared_observability from "../agents/shared/observability.js";
+import type * as agents_shared_observabilitySmokeTest from "../agents/shared/observabilitySmokeTest.js";
 import type * as auth from "../auth.js";
 import type * as categories from "../categories.js";
 import type * as checklistItems from "../checklistItems.js";
@@ -36,10 +34,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   access: typeof access;
-  "agents/checklist/categoryDb": typeof agents_checklist_categoryDb;
-  "agents/checklist/classifier": typeof agents_checklist_classifier;
-  "agents/shared/_observabilitySmokeTest": typeof agents_shared__observabilitySmokeTest;
   "agents/shared/observability": typeof agents_shared_observability;
+  "agents/shared/observabilitySmokeTest": typeof agents_shared_observabilitySmokeTest;
   auth: typeof auth;
   categories: typeof categories;
   checklistItems: typeof checklistItems;
