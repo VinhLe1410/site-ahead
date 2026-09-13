@@ -1,0 +1,9 @@
+export function AuthLoading() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
+      <p className="text-sm text-muted-foreground" role="status">
+        Checking your session...
+      </p>
+    </main>
+  );
+}
