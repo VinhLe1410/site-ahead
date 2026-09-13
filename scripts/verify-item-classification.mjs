@@ -16,7 +16,6 @@ const sampleChecklist = [
   { id: 2, item: "Asbestos disturbance assessment" },
   { id: 3, item: "Air Quality" },
   { id: 4, item: "Road Closure" },
-  { id: 5, item: "Powerlines" },
   { id: 6, item: "Building permit + registered building surveyor appointed" },
   {
     id: 7,
