@@ -4,6 +4,18 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { validateDocumentFile } from "../../../shared/documents";
 
+async function saveDownload(response: Response, filename: string) {
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
 export function useDocumentTransfer() {
   const token = useAuthToken();
   const convex = useConvex();
@@ -54,16 +66,18 @@ export function useDocumentTransfer() {
       method: "GET",
     });
 
-    const url = URL.createObjectURL(await response.blob());
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = filename;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    await saveDownload(response, filename);
   }
 
-  return { upload, download };
+  async function downloadDraft(itemId: Id<"checklistItems">, filename: string) {
+    const parameters = new URLSearchParams({ itemId });
+
+    const response = await transfer(`/documents/draft?${parameters}`, {
+      method: "GET",
+    });
+
+    await saveDownload(response, filename);
+  }
+
+  return { upload, download, downloadDraft };
 }
