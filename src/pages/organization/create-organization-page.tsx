@@ -6,7 +6,6 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { AuthCard, AuthError, AuthPage } from "@/components/auth/auth-card";
 import { AuthLoading } from "@/components/auth/auth-loading";
 import { AccountControls } from "@/components/auth/account-controls";
-import { OrganizationMaintenance } from "@/components/auth/organization-maintenance";
 import { normalizeReturnTo, withReturnTo } from "@/components/auth/return-to";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -201,8 +200,6 @@ export function CreateOrganizationPage() {
       : requested;
 
   if (current === undefined) return <AuthLoading />;
-
-  if (current.state === "maintenance") return <OrganizationMaintenance />;
 
   if (current.state === "active")
     return <Navigate to={creating ? destination : "/app/jobs"} replace />;

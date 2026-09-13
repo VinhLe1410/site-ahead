@@ -4,20 +4,13 @@ import {
 } from "convex/server";
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import {
-  getMembership,
-  getRollout,
-  requireOwner,
-  requireReady,
-  requireUserId,
-} from "./access";
+import { getMembership, requireOwner, requireUserId } from "./access";
 import { requireText } from "./contracts";
 import { schema } from "./schema";
 
 export const current = query({
   args: {},
   returns: v.union(
-    v.object({ state: v.literal("maintenance") }),
     v.object({ state: v.literal("onboarding") }),
     v.object({ state: v.literal("removed") }),
     v.object({
@@ -28,9 +21,6 @@ export const current = query({
   ),
   handler: async (ctx) => {
     const userId = await requireUserId(ctx);
-    const rollout = await getRollout(ctx.db);
-
-    if (rollout?.phase !== "ready") return { state: "maintenance" as const };
     const membership = await getMembership(ctx.db, userId);
 
     if (membership === null) return { state: "onboarding" as const };
@@ -53,7 +43,6 @@ export const create = mutation({
   returns: v.id("organizations"),
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
-    await requireReady(ctx.db);
     const membership = await getMembership(ctx.db, userId);
 
     if (membership?.state === "active")

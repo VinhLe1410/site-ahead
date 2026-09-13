@@ -3,7 +3,6 @@ import { useQuery } from "convex/react";
 import { Navigate, Outlet, useLocation } from "react-router";
 import { api } from "../../../convex/_generated/api";
 import { AuthLoading } from "./auth-loading";
-import { OrganizationMaintenance } from "./organization-maintenance";
 import { locationReturnTo, withReturnTo } from "./return-to";
 
 export function MembershipLayout() {
@@ -11,8 +10,6 @@ export function MembershipLayout() {
   const location = useLocation();
 
   if (current === undefined) return <AuthLoading />;
-
-  if (current.state === "maintenance") return <OrganizationMaintenance />;
 
   if (current.state !== "active")
     return (

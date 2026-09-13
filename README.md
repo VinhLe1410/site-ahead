@@ -72,7 +72,7 @@ Accounts without an organization create one after Google login or accept a pendi
 
 Removing staff ends new reads and writes immediately. Connected screens show access removal when their membership subscription updates. Shared work stays in the organization. The accepted invitation cannot restore removed access; rejoining requires a new invitation.
 
-Organization sharing starts paused on deployments that have not migrated. The app shows “Organization setup in progress” until an operator completes the [organization rollout](docs/Organization-Rollout.md). Existing accounts receive separate organizations, including accounts without saved data. No migration runs during login or a frontend build. Coordinate the shared preview before deployment; no new auth keys or email setup are needed.
+New accounts go straight to organization onboarding after Google login. Create an organization or accept an invitation before accessing jobs and categories. Development starts with empty databases and required organization ownership; no migration or activation step is needed. See [organization setup and verification](docs/Organization-Rollout.md) for deployment scope and checks.
 
 ## Manual category and job flow
 

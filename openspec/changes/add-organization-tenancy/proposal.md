@@ -10,7 +10,7 @@ Jobs and categories are currently private to their creator. Contractors need an 
 - Add an invitation acceptance screen tied to the invited Google email. Keep pending invitations visible during onboarding.
 - Remove staff access as soon as removal is saved. Connected screens clear organization content when the membership update arrives. Existing Google sessions do not grant continued organization access.
 - Show the organization name and current role in the sidebar. Keep Jobs and Categories navigation; show Organization only to the owner.
-- **BREAKING**: Replace creator-only data access with organization membership checks. Preserve existing records through migration.
+- **BREAKING**: Replace creator-only data access with organization membership checks. Start development from empty databases with required organization ownership.
 - Complete missing job editing and job/category deletion. Block category deletion while jobs reference it; let members reassign jobs without resetting their checklists.
 - Exclude email delivery, notifications, role changes, ownership transfer, organization switching, organization deletion, and custom permissions.
 
@@ -28,4 +28,4 @@ Jobs and categories are currently private to their creator. Contractors need an 
 
 ## Impact
 
-Changes affect the Convex schema, access helpers, domain functions, Google profile verification, React routing, app layout, and job/category pages. Reuse existing Convex Auth and UI dependencies. Google remains the only login method. Implementation needs a staged data migration and manual verification with owner, staff, and unrelated accounts. Design includes ASCII wireframes and proposed demo defaults for invitation expiry and migration naming.
+Changes affect the Convex schema, access helpers, domain functions, Google profile verification, React routing, app layout, and job/category pages. Reuse existing Convex Auth and UI dependencies. Google remains the only login method. Implementation uses a clean development reset and manual verification with owner, staff, and unrelated accounts. Design includes ASCII wireframes and a seven-day invitation expiry.

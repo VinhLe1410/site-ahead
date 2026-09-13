@@ -13,22 +13,6 @@ export async function requireUserId(ctx: QueryCtx | MutationCtx) {
   return userId;
 }
 
-export async function getRollout(db: DatabaseReader) {
-  return await db
-    .query("tenancyRollout")
-    .withIndex("by_key", (q) => q.eq("key", "organization-tenancy"))
-    .unique();
-}
-
-export async function requireReady(db: DatabaseReader) {
-  const rollout = await getRollout(db);
-
-  if (rollout?.phase !== "ready")
-    throw new ConvexError(
-      "Organization setup is in progress. Please try again later.",
-    );
-}
-
 export async function getMembership(db: DatabaseReader, userId: Id<"users">) {
   return await db
     .query("memberships")
@@ -38,7 +22,6 @@ export async function getMembership(db: DatabaseReader, userId: Id<"users">) {
 
 export async function activeMembership(ctx: QueryCtx | MutationCtx) {
   const userId = await requireUserId(ctx);
-  await requireReady(ctx.db);
   const membership = await getMembership(ctx.db, userId);
 
   return membership?.state === "active" ? membership : null;

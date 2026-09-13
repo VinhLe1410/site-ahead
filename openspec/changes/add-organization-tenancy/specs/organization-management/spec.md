@@ -122,21 +122,21 @@ Removing staff SHALL end their organization access when removal is saved. Every 
 - **WHEN** removed staff try their old accepted link
 - **THEN** access remains blocked until they accept a new valid invitation
 
-### Requirement: Preserve existing private work
+### Requirement: Onboard from an empty database
 
-Existing jobs, inputs, categories, and checklist progress SHALL survive the move to organization ownership. Each user present at migration SHALL become owner of a separate organization containing any existing private records. Data from unrelated users SHALL NOT be combined. Any account still without an organization SHALL be prompted to create one at its next login, unless it accepts an invitation.
+A deployment with no application or auth records SHALL support new Google accounts without a migration or activation step. Login SHALL NOT create an organization automatically. Accounts without membership SHALL reach organization creation or invitation acceptance before accessing organization work.
 
-#### Scenario: Existing creators return
+#### Scenario: First account after a reset
 
-- **WHEN** two existing creators with private work sign in after migration
-- **THEN** each can access their previous work in their own organization and neither gains access to the other's work
+- **WHEN** the first user signs in with Google on an empty deployment
+- **THEN** they can create an organization and become its owner without operator setup
 
-#### Scenario: Existing account without saved work
+#### Scenario: Independent new accounts
 
-- **WHEN** an existing user with no jobs or categories is migrated
-- **THEN** they become owner of an empty organization
+- **WHEN** two new users create organizations
+- **THEN** each owns a separate organization and cannot access the other's work
 
-#### Scenario: Account without an organization after rollout
+#### Scenario: Invited new account
 
-- **WHEN** an account without an organization signs in after rollout
-- **THEN** it reaches organization creation or invitation acceptance before accessing organization work
+- **WHEN** a new user signs in and accepts a matching invitation
+- **THEN** they join the inviting organization as staff without creating another organization

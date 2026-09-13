@@ -5,7 +5,6 @@ import { api } from "../../../convex/_generated/api";
 import { AuthCard, AuthError, AuthPage } from "@/components/auth/auth-card";
 import { AuthLoading } from "@/components/auth/auth-loading";
 import { AccountControls } from "@/components/auth/account-controls";
-import { OrganizationMaintenance } from "@/components/auth/organization-maintenance";
 import { normalizeReturnTo } from "@/components/auth/return-to";
 import { Button } from "@/components/ui/button";
 
@@ -104,8 +103,6 @@ export function AcceptInvitationPage() {
   const { token } = useParams();
 
   if (current === undefined) return <AuthLoading />;
-
-  if (current.state === "maintenance") return <OrganizationMaintenance />;
 
   return <InvitationDetails token={token ?? ""} />;
 }

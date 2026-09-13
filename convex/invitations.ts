@@ -10,7 +10,6 @@ import { internal } from "./_generated/api";
 import {
   getMembership,
   requireOwner,
-  requireReady,
   requireUserId,
   verifiedEmail,
 } from "./access";
@@ -205,7 +204,6 @@ export const pendingForMe = query({
     }),
   ),
   handler: async (ctx, args) => {
-    await requireReady(ctx.db);
     const email = await verifiedEmail(ctx);
 
     if (email === null) return { page: [], isDone: true, continueCursor: "" };
@@ -255,7 +253,6 @@ export const lookup = query({
   ),
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
-    await requireReady(ctx.db);
 
     const invitation = await ctx.db
       .query("invitations")
@@ -303,7 +300,6 @@ export const accept = mutation({
   returns: v.id("organizations"),
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx);
-    await requireReady(ctx.db);
     const email = await verifiedEmail(ctx);
 
     if (email === null)
@@ -360,7 +356,6 @@ export const decline = mutation({
   args: { invitationId: v.id("invitations") },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await requireReady(ctx.db);
     const email = await verifiedEmail(ctx);
     const invitation = await ctx.db.get("invitations", args.invitationId);
 

@@ -1,6 +1,6 @@
 ## Context
 
-See [proposal.md](proposal.md) for the outcome. Current `convex/schema.ts` stores `ownerId` on inputs, categories, and jobs. `convex/access.ts` checks that creator for reads and updates; checklist access follows its job. Categories support creation and editing. Jobs support creation, status changes, and checklist progress, but lack general editing and deletion. The existing template limit is 100 items.
+See [proposal.md](proposal.md) for the outcome. Before this change, inputs, categories, and jobs belonged to their creator. This change implements organization ownership and shared CRUD. The existing template limit is 100 items.
 
 `src/components/layout/app-layout.tsx` owns the sidebar, account controls, and breadcrumbs. `ProtectedLayout` checks Google authentication. `shared/auth.ts` preserves protected destinations, including query and fragment. The installed packages inspected are Convex 1.45.0 and Convex Auth 0.0.95. No new dependencies are needed. Product and architecture documents describe future agent work; this change does not implement it.
 
@@ -18,7 +18,7 @@ Add `organizations` with a name and `memberships` with user ID, organization ID,
 
 Organization creation inserts the organization and owner membership in one mutation after checking the caller has no active membership. Invitation acceptance creates only staff membership. No operation promotes staff or removes an owner, so exactly one owner is preserved without duplicating the owner role on the organization. A user with an active membership cannot create or join another organization. Concurrent creation and acceptance read the same membership index range and cannot both succeed.
 
-Add optional organization IDs and organization indexes to inputs, jobs, and categories for the additive deployment. Keep legacy creator IDs optional until the separately coordinated schema cleanup. Retain checklist ownership through the job instead of repeating it on every item. Add a jobs index on category ID for deletion checks; retain the input ID index for input cleanup. Creator IDs are used only during migration, then removed as access keys. No new audit history is needed.
+Require organization IDs and organization indexes on inputs, jobs, and categories. Retain checklist ownership through the job instead of repeating it on every item. Add a jobs index on category ID for deletion checks; retain the input ID index for input cleanup. Remove creator fields and indexes. No new audit history is needed.
 
 ### Live membership checks
 
@@ -40,7 +40,7 @@ Proposed demo default: invitations expire after seven days. Creation or renewal 
 
 Invitation acceptance checks token, pending status, expiry, matching verified email, and absence of active membership in one mutation. Successful acceptance marks the invite accepted and inserts or replaces the staff membership. A repeated acceptance by the same active member opens the org; an accepted link cannot restore removed access. Revocation racing acceptance follows transaction order. If acceptance wins first, the owner removes the member rather than revoking an already accepted invite.
 
-Use server-stored Google profile data for recipient matching. Convex Auth 0.0.95 defaults OAuth email verification when an explicit flag is absent, so do not assume its default mapping proves Google's `email_verified` claim. Configure the Google profile mapping to pass the actual claim as `emailVerified`, preserving the stable Google account ID and existing name, image, and email fields. Persist the actual claim separately as optional `users.googleEmailVerified`, along with a normalized email index. Invitation matching requires this flag to be true, so legacy verification timestamps cannot grant access and a later false claim removes that trust. Existing sessions without trusted verification must reauthenticate before accepting invitations. Keep existing redirect callbacks and auth configuration intact. The installed Convex auth and docs skills inform this integration; no new keys or provider setup is needed.
+Use server-stored Google profile data for recipient matching. Convex Auth 0.0.95 defaults OAuth email verification when an explicit flag is absent, so do not assume its default mapping proves Google's `email_verified` claim. Configure the Google profile mapping to pass the actual claim as `emailVerified`, preserving the stable Google account ID and existing name, image, and email fields. Persist the actual claim separately as optional `users.googleEmailVerified`, along with a normalized email index. Invitation matching requires this flag to be true. A false claim or missing verification cannot grant invitation access. Keep existing redirect callbacks and auth configuration intact. The installed Convex auth and docs skills inform this integration; no new keys or provider setup is needed.
 
 On normal login without membership, query pending invitations for the authenticated verified email and offer acceptance or decline before organization creation. With several invitations, show the org names and let the user choose; joining one does not grant other memberships. Declining an invitation changes only that recipient's invitation. Wrong-account pages offer Google account switching while preserving the invite route. Unknown or mismatched links expose no private org management data.
 
@@ -142,23 +142,17 @@ Show useful empty, loading, and failure states. Disable duplicate submissions wh
 
 ### Complete shared CRUD
 
-Add an edit form to the existing job details screen for processed text, address, and category, reusing existing inputs and validators. Keep status and checklist controls. Category reassignment, including clearing it, does not rebuild or reset the checklist; explain that in the form. Update the job and its saved input atomically. Existing creation saves one input for one job; if migration finds shared input references, editing must create a separate input for the edited job rather than change another job's intake.
+Add an edit form to the existing job details screen for processed text, address, and category, reusing existing inputs and validators. Keep status and checklist controls. Category reassignment, including clearing it, does not rebuild or reset the checklist; explain that in the form. Update the job and its saved input atomically. Existing creation saves one input for one job; if an input has shared references, editing must create a separate input for the edited job rather than change another job's intake.
 
 Add confirmed job deletion. Delete the job's bounded checklist and remove its input only if no other job references it. Keep category templates unchanged. Add confirmed category deletion, with an indexed one-record existence check for referencing jobs in the same transaction as deletion. A concurrent job creation or reassignment cannot leave a dangling category reference. The agreed rule blocks deletion until all references are reassigned or cleared.
 
-## Migration Plan
+## Development reset
 
-Implementation uses a `tenancyRollout` record to gate sharing. Missing state means maintenance. Internal `start` captures a fixed user cutoff and cursor; `batch` performs backfill and validation; `enable` requires the validated phase. All organization writes and domain operations check the gate, including requests from old clients. The current-membership query exposes a maintenance state so the UI does not offer organization creation while writes are paused. No build or login automatically runs the migration.
+After PR #12 merged, the developer chose a clean slate instead of preserving development data. Reset the three personal development deployments and the shared `hackathon-preview` deployment. Leave production and the seven old PR preview deployments unchanged. Keep deployment URLs and auth settings.
 
-Backfill batches request 50 rows with a byte limit. Validation reads one primary record at a time to bound related reads. Each batch commits its cursor and changes together. A post-enable pause resumes validation without rerunning user migration. Users created after the fixed cutoff follow onboarding. See [the rollout runbook](../../../docs/Organization-Rollout.md) for explicitly targeted commands and acceptance checks. PR #12 CI and its additive preview deployment passed. Backfill, activation, demo verification, and final required-field cleanup remain pending. The occupied dev backend remains untouched.
+Delete all application and auth records, then deploy the required organization schema. Remove the migration functions, rollout table, server gates, and maintenance screen. An empty database must allow a new account to reach onboarding immediately. Login does not create an organization; explicit creation makes the account its owner, and invitation acceptance creates staff membership only.
 
-1. Export the target deployment before data migration. Introduce organizations, memberships, invitations, and optional organization IDs while retaining legacy creator IDs as optional fields for existing records. Keep organization sharing disabled until migration is complete.
-2. Run a bounded, restartable internal migration. For every existing user, create one organization and owner membership, then backfill any of their inputs, jobs, and categories with that organization ID. Users without saved work receive an empty organization. Use a stable lookup by user to prevent duplicate orgs on retries. Preserve record IDs and checklist progress. Proposed default name: `My organization`, editable by the owner.
-3. Any account still without an organization after migration is prompted at its next login. New users follow the same onboarding. Invited users can accept instead. Do not silently create organizations during normal login.
-4. The additive deployment rejects domain operations server-side until migration is enabled, including requests from old clients. Validate that every input, job, category, and checklist reference resolves within one organization. Membership-based functions already require organization IDs at runtime and never fall back to creator access. Keep final schema tightening and bounded removal of legacy creator fields and indexes as the pending cleanup in the rollout runbook.
-5. Enable the new screens and resume domain writes. Verify with owner, staff, and unrelated Google accounts before sharing the demo.
-
-Before sharing is enabled, rollback can restore the exported deployment and old app. After staff have changed shared data, do not revert to creator-only authorization: disable domain writes and fix forward, or restore the backup with explicit acceptance of losing post-backup changes. Coordinate deployment against the shared preview backend because all previews use its latest schema and functions.
+See [organization setup and verification](../../../docs/Organization-Rollout.md) for the deployment inventory and verification record. Production and old previews still have their previous code and data; any future reset or deployment to those targets requires separate authorization.
 
 ## Risks / Trade-offs
 
@@ -166,4 +160,4 @@ Before sharing is enabled, rollback can restore the exported deployment and old 
 - One organization per user means an existing owner cannot join another org. Ownership transfer and org switching remain outside this demo.
 - Category reassignment preserves potentially different checklist contents. Explain that preservation beside the selector instead of silently regenerating progress.
 - Auth email verification must reflect Google's claim. Inspect the installed provider mapping and manually verify the real login flow before enabling invitations.
-- A shared preview backend can expose old frontends to a new schema. Coordinate migration and deployment; do not rely on client-only maintenance controls.
+- A shared preview backend can expose old frontends to a new schema. Coordinate backend deployments because all previews share its code and data.
