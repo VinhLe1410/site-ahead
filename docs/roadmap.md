@@ -20,6 +20,8 @@ The separate `add-pre-visit-preparation-suggestions` extension adds automatic pr
 
 ## Broader PoC scope
 
+Electrical request demo feedback permits labeled fictional general customer/contact information and proposed scheduling/access details. Saved addresses and contractor information always win; signatures, licences, inspector selection, test results and certification facts remain human-controlled. Demo output never becomes confirmed job information or an authorized delivery recipient.
+
 The separately approved `add-electrical-checklist-agents` extension adds eight Electrical Work items, a prescribed main-switchboard/consumer-mains replacement demo at 198 Berkeley Street, Carlton, two structured LEI email/COES portal skills and a completed-certificate upload/recipient-confirmation flow. The user chose simulated delivery: completion records a clearly labeled simulation and no email is sent. This extends the earlier Carpentry-only boundary for this change; human testing, RCD checks and inspection confirmation remain manual.
 
 - Contractor signs in, enters an address and job type, and pastes or records the client's message.

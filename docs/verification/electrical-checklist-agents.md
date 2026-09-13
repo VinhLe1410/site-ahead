@@ -42,7 +42,7 @@ On 14 September 2026:
 
 - The eight saved items match the approved checklist. Five eligible items have five distinct persistent threads; the three human checks have none and remain pending.
 - The saved scope produced a sourced **prescribed** finding. The live Transport Victoria lookup returned **zero** published exact matches for Berkeley Street, Carlton. That does not establish a clear route.
-- Both request items saved structured drafts and stopped pending/waiting. Each actual GPT-5.5 run called `read_saved_job`, `select_electrical_skill`, `prepare_electrical_draft` and `save_electrical_draft`. The COES address equals the saved Carlton address; the actual **Description of work** remains blank for the electrician. No Carpentry fictional profile was used.
+- Both request items saved structured drafts and stopped pending/waiting. Each actual GPT-5.5 run called `read_saved_job`, `select_electrical_skill`, `prepare_electrical_draft` and `save_electrical_draft`. The COES address equals the saved Carlton address. The initial version left **Description of work** blank; later approved feedback adds explicitly planned draft wording as described below. No Carpentry fictional profile was used.
 - Retrying the inspector request reused its thread, saved a new run and left every sibling run unchanged.
 - The Job Brief summary function, evaluated against the live saved records, reports two completed checks, two prepared drafts and six pending items. It distinguishes planned preparation from completed certification.
 - The main demo has no completed certificate uploaded. Delivery remains pending/waiting with an explicit simulation explanation.
@@ -51,11 +51,24 @@ An isolated disposable job used a PDF visibly marked **TEST FILE — NOT A COES*
 
 [The Carlton trace](https://us.cloud.langfuse.com/trace/761ba4b84421f6d16ade8cb1b1409b3f) contains 12 actual GPT-5.5 model steps across the two initial drafts and inspector retry. [The simulation trace](https://us.cloud.langfuse.com/trace/879c8be5982e390ce27471fb0146fef6) contains separate waiting and successful simulation runs without model or email-provider calls.
 
-## Checks and remaining browser verification
+## General demo information feedback
 
-- `npm run check`: **77 tests in 11 files**, frontend/backend type checks, lint, formatting and strict OpenSpec validation passed.
+The user subsequently authorized invented general Electrical draft information and supplied their contractor name and email. Those supplied values are saved only in the Carlton job's context, not hardcoded into a global profile. The address remains **198 Berkeley Street, Carlton**.
+
+Missing general draft values now use a consistent Electrical demo profile: fictional customer Alex Morgan and an example-domain email, a demo contractor phone, and proposed attendance/access information. Every invented value has `demo_data` provenance and an explicit label retained when copied. Saved values take priority. These defaults never become confirmed job context or delivery recipients.
+
+Both requests include the supplied contractor details. COES **Description of work** now contains concise planned wording grounded in the recognized scope, clearly requiring electrician review before certification. The full original briefing instructions remain in the reference field rather than being copied into the email body. Actual inspector selection, licence details, signatures/declarations, test results, inspection/completion dates and certificate references remain for human completion.
+
+The two drafts were regenerated from the browser on their existing threads (inspector run 3, COES run 2). Both contain the saved contractor name/email, exact address, labeled general defaults and `demo_data` provenance. No fictional customer email was written to job context. The two completed automated findings and all pending human/certificate items remain unchanged.
+
+Browser checks confirmed that **Copy email draft** includes the supplied contractor name/email, exact address, concise planned scope and demo labels. **Copy Customer email** retains its demo marker and fictional address. Both populated drafts persist after reload. The destination links point to the official ESVConnect login and ESV inspector-register page; authenticated portal labels remain subject to the public-guide limitation above.
+
+## Checks and browser verification
+
+- `npm run check`: **78 tests in 11 files**, frontend/backend type checks, lint, formatting and strict OpenSpec validation passed after the demo-information update.
 - `npm run build` passed. Vite retains its existing advisory about a bundle over 500 kB; no check was disabled.
 - `npx convex dev --once` deployed successfully to the personal development backend.
 - Source implementation was split into `77942fd` (classification/contracts), `60068fa` (structured request drafts) and `f27155b` (certificate upload/simulation).
+- `13bf147` adds the approved general demo values, provenance and planned wording.
 
-Browser interaction verification remains open: the computer-use tool reported that the Mac was locked, and an unlock request is pending. Copy-button behavior, browser upload/confirmation and visual persistence after reload have **not** been verified. Backend persistence, actual upload/download, draft retries and summary behavior passed the checks above. Once the Mac is unlocked, finish task 4.2 in the OpenSpec change; use a separate marked QA fixture for the simulation and leave the main demo’s real certificate requirements pending.
+The Mac became accessible during the demo-information update. Browser upload and confirmation were exercised in a separate disposable job using the **TEST FILE — NOT A COES** PDF and `qa@example.invalid`. The Job Brief displayed **Simulated delivery — no email sent**, marked only that test item done, and retained the result after reload. The temporary tab, job and category were removed. The main Carlton demo retains its pending real certificate requirements.

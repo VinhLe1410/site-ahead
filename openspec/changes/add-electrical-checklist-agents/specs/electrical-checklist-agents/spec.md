@@ -51,6 +51,22 @@ The system SHALL provide a form-specific inspector-booking skill and a COES port
 - **WHEN** saved scope is unresolved or non-prescribed
 - **THEN** the inspector-booking item explains the unresolved or inapplicable condition instead of preparing a prescribed booking as fact
 
+### Requirement: Useful labeled Electrical demo drafts
+
+The two Electrical request skills SHALL fill missing general customer/contact information and proposed scheduling/access details using a consistent fictional demo profile. Saved values SHALL take precedence, and the site address SHALL always come from the saved job. Demo fields SHALL carry explicit provenance and visible labels retained when copied. Draft work descriptions SHALL remain grounded in saved scope and explicitly describe planned work for electrician review. Signatures, declarations, licences, inspector selection, actual testing/completion and certificate references SHALL remain human-controlled. Fictional values SHALL NOT be stored as confirmed job context or used to confirm certificate delivery.
+
+#### Scenario: General information is absent
+
+- **WHEN** an Electrical request runs with a saved address and contractor details but without general customer/contact or proposed access information
+- **THEN** the draft includes the saved address and contractor details, labeled demo general values, and planned work-description wording
+- **AND** missing human certification and inspector information remains explicit without leaving general draft fields empty
+
+#### Scenario: Confirmed data replaces a demo value
+
+- **WHEN** a member saves a real general value and retries the request
+- **THEN** the new draft uses that value with saved-data provenance and removes its demo label
+- **AND** unrelated checklist items, automated evidence and delivery confirmation remain governed by their existing rules
+
 ### Requirement: Safe integration with current Agent state
 
 Electrical outputs SHALL preserve binary checklist statuses, manual notes, current organization access, independent threads, retry isolation and stale-write guards. Drafts SHALL remain pending/waiting. Errors SHALL retain an actionable reason and trace identity. Job Brief SHALL distinguish saved classification, portal/email drafts, simulated delivery and outstanding human work, and SHALL NOT reuse Carpentry-specific recommendations for Electrical items.

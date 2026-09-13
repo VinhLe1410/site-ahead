@@ -16,7 +16,12 @@
 ## 4. Approved demo and handoff
 
 - [x] 4.1 Save the approved eight-item Electrical category in the development organization and create the 198 Berkeley Street, Carlton prescribed demo; verify exact saved template, live road output, classification, structured drafts and pending human checks.
-- [ ] 4.2 Verify browser copying, destination links, upload/confirmation simulation and reload persistence, distinguishing simulation from real certification/delivery; record evidence and any source limitations.
+- [x] 4.2 Verify browser copying, destination links, upload/confirmation simulation and reload persistence, distinguishing simulation from real certification/delivery; record evidence and any source limitations.
 - [x] 4.3 Run npm run check, npm run build and Convex deployment validation, resolve failures without disabling checks, and commit focused verified chunks.
 
-Task 4.2 is pending a Mac unlock for browser control. Backend upload/download, same-thread simulation, duplicate confirmation, draft retry and saved Job Brief checks passed; see `docs/verification/electrical-checklist-agents.md` for evidence and the preserved demo.
+Task 4.2 was completed once browser control became available. Browser copy, destinations and reload checks passed on the preserved demo; upload/confirmation/reload passed on a disposable marked test fixture. See `docs/verification/electrical-checklist-agents.md` for evidence.
+
+## 5. General demo information feedback
+
+- [x] 5.1 Fill general Electrical draft values with labeled demo defaults, preserve saved values and human-only fields, and provide planned work-description wording; verify provenance and copied labels.
+- [x] 5.2 Save the supplied contractor name/email on the Carlton job, regenerate both requests using the existing threads, and verify populated drafts, unchanged address and pending human work; run quality checks and commit the update.

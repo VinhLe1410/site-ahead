@@ -145,6 +145,8 @@ The existing organization, job, category, and versioned document foundations are
 
 The separately approved `add-electrical-checklist-agents` extension adds the eight reviewed Electrical Work items and a prescribed replacement demo at 198 Berkeley Street, Carlton. Request skills prepare inspector email text and verified COES portal fields without local form files. Actual testing, RCD coverage and inspection remain human work. An uploaded completed certificate and confirmed recipient trigger only a clearly labeled delivery simulation for this PoC; no email is sent.
 
+Electrical demo feedback additionally authorizes labeled fictional general data for its two request drafts. Saved job addresses and contractor details take precedence. Missing general customer/contact information and proposed scheduling/access details may use demo defaults; signatures, licences, inspector selection, actual test results and certification facts remain human-controlled. Generated defaults never become confirmed job data or delivery recipients.
+
 ## Step 5: Where AI actually helps
 
 - Speech-to-text: ElevenLabs Scribe turning a spoken client message into text, as an alternative to pasting a chat transcript.
