@@ -19,7 +19,7 @@ import type * as agents_checklist_liveEvidence from "../agents/checklist/liveEvi
 import type * as agents_checklist_processChecklist from "../agents/checklist/processChecklist.js";
 import type * as agents_checklist_verification from "../agents/checklist/verification.js";
 import type * as agents_intake_draftAgent from "../agents/intake/draftAgent.js";
-import type * as agents_preparation_carpentryPreparationGuidance from "../agents/preparation/carpentryPreparationGuidance.js";
+import type * as agents_preparation_preparationGuidance from "../agents/preparation/preparationGuidance.js";
 import type * as agents_preparation_recommendPreparation from "../agents/preparation/recommendPreparation.js";
 import type * as agents_requests_buildingPermitPdf from "../agents/requests/buildingPermitPdf.js";
 import type * as agents_requests_buildingPermitSkill from "../agents/requests/buildingPermitSkill.js";
@@ -83,7 +83,7 @@ declare const fullApi: ApiFromModules<{
   "agents/checklist/processChecklist": typeof agents_checklist_processChecklist;
   "agents/checklist/verification": typeof agents_checklist_verification;
   "agents/intake/draftAgent": typeof agents_intake_draftAgent;
-  "agents/preparation/carpentryPreparationGuidance": typeof agents_preparation_carpentryPreparationGuidance;
+  "agents/preparation/preparationGuidance": typeof agents_preparation_preparationGuidance;
   "agents/preparation/recommendPreparation": typeof agents_preparation_recommendPreparation;
   "agents/requests/buildingPermitPdf": typeof agents_requests_buildingPermitPdf;
   "agents/requests/buildingPermitSkill": typeof agents_requests_buildingPermitSkill;

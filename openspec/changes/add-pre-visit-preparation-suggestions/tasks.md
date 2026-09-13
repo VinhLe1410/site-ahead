@@ -22,4 +22,9 @@
 - [x] 4.2 Regenerate bindings and validate the additive backend on the existing configured development deployment; verify no schema/function validation failures or deployment identity changes.
 - [x] 4.3 Run `npm run check` and `npm run build`, then complete a browser demo covering automatic generation, contrasting inputs, empty results, completion/reload and editable messages; use integration checks for explicit refresh, stale saves, failure/expiry retry, access denial and deletion; record evidence before marking complete.
 
-Verification evidence: [Pre-Visit Preparation Verification](../../../docs/Pre-Visit-Preparation-Verification.md) records live model observations, the desktop workflow, backend integration checks and their limits.
+## 5. All-job preparation extension
+
+- [x] 5.1 Remove category eligibility restrictions, generalize grounded guidance with conditional Carpentry examples and bump the prompt version. Verify automatic and explicit generation for Electrical, custom and uncategorized jobs while retaining existing access, freshness, grounding and human-decision protections.
+- [x] 5.2 Keep main's UI, update scope notes, run npm run check and npm run build, deploy to the existing development backend and verify generation on the Electrical demo.
+
+Verification evidence: [Pre-Visit Preparation Verification](../../../docs/Pre-Visit-Preparation-Verification.md) records live model observations, the desktop workflow, backend integration checks and their limits. Earlier completed tasks document initial Carpentry scope; section 5 extends it under subsequent user authorization.

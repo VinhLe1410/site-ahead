@@ -6,7 +6,7 @@ Help contractors identify and track a few job-specific preparation actions that 
 
 ### Requirement: Generate preparation from saved job context
 
-The system SHALL automatically start preparation after an active organization member saves a new Carpentry & Renovation job. An active member SHALL also be able to explicitly generate or refresh preparation for an existing saved job. Generation SHALL use the saved description, address, category, confirmed context, existing checklist and current findings with their provenance. Typed and voice-derived descriptions SHALL follow the same path without requiring audio. Unsupported or missing categories SHALL show a clear coverage limitation and SHALL NOT produce purported specialist advice.
+The system SHALL automatically start preparation after an active organization member saves any new job, including Electrical, custom categories and uncategorized jobs. An active member SHALL also be able to explicitly generate or refresh preparation for an existing saved job. Generation SHALL use the saved description, address, category, confirmed context, existing checklist and current findings with their provenance. Typed and voice-derived descriptions SHALL follow the same path without requiring audio. Suggestions SHALL be grounded in the saved scope without inventing specialist rules from category names.
 
 #### Scenario: Automatically prepare a new renovation job
 
@@ -18,10 +18,10 @@ The system SHALL automatically start preparation after an active organization me
 - **WHEN** a member requests suggestions for a saved deck-extension job
 - **THEN** the system uses that job's saved context and returns its preparation result without modifying the category template or existing checklist
 
-#### Scenario: Unsupported category
+#### Scenario: Any job category
 
-- **WHEN** a member requests suggestions for an uncategorized or unsupported trade job
-- **THEN** the system explains that preparation guidance is currently available for Carpentry & Renovation and makes no specialist recommendation
+- **WHEN** a member saves or requests suggestions for an Electrical, custom-category or uncategorized job
+- **THEN** the system generates zero to three grounded preparation suggestions using its saved context, without claiming unverified specialist requirements
 
 ### Requirement: Recommend only meaningful additional preparation
 

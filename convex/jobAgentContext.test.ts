@@ -354,6 +354,199 @@ const generatedPreparation = [
 ];
 
 describe("preparation shares job access and protects human decisions", () => {
+  test.each([
+    {
+      category: "Electrical Work",
+      description:
+        "Replace the switchboard; the customer works from home and needs to agree a visit window.",
+      excerpt: "needs to agree a visit window",
+      action: "Agree a visit window with the customer",
+      question: "Which visit window would suit you while working from home?",
+    },
+    {
+      category: "Bespoke display installation",
+      description:
+        "Install the new display; loading access is through a narrow side gate.",
+      excerpt: "loading access is through a narrow side gate",
+      action: "Request the side gate's clear width",
+      question: "What is the clear width of the side gate for loading access?",
+    },
+    {
+      category: null,
+      description:
+        "Repair the display; the venue manager must unlock the service room.",
+      excerpt: "the venue manager must unlock the service room",
+      action: "Arrange service-room access with the venue manager",
+      question:
+        "How should we arrange for the manager to unlock the service room?",
+    },
+  ])(
+    "automatically prepares new $category jobs and explicitly prepares existing jobs",
+    async ({ category, description, excerpt, action, question }) => {
+      const fixture = await setup();
+      const { t, staff } = fixture;
+
+      const categoryId = await t.run(async (ctx) => {
+        const job = await ctx.db.get("jobs", fixture.jobId);
+
+        if (!job) throw new Error("Fixture job missing");
+
+        const id =
+          category === null
+            ? null
+            : await ctx.db.insert("categories", {
+                organizationId: job.organizationId,
+                title: category,
+                checklist: [
+                  { title: "Inspect the completed work", kind: "on_site" },
+                ],
+              });
+
+        await ctx.db.patch("jobs", job._id, { categoryId: id ?? undefined });
+        await ctx.db.patch("inputs", fixture.inputId, {
+          processedText: description,
+        });
+        await ctx.db.delete("jobPreparations", fixture.preparationId);
+
+        return id;
+      });
+
+      // Existing records remain untouched until a member explicitly requests preparation.
+      expect(
+        await staff.query(api.jobPreparation.get, { jobId: fixture.jobId }),
+      ).toMatchObject({
+        supported: true,
+        record: null,
+      });
+      await staff.mutation(api.jobPreparationGeneration.start, {
+        jobId: fixture.jobId,
+      });
+
+      const jobId = await staff.mutation(api.jobs.create, {
+        processedText: description,
+        addressText: "198 Berkeley Street, Carlton",
+        categoryId,
+      });
+
+      for (const savedJobId of [fixture.jobId, jobId]) {
+        const preparation = await staff.query(api.jobPreparation.get, {
+          jobId: savedJobId,
+        });
+
+        const runId = preparation?.record?.run?.id;
+
+        if (!runId)
+          throw new Error("Expected preparation run for any category");
+        expect(preparation?.record?.promptVersion).toBe(
+          PREPARATION_PROMPT_VERSION,
+        );
+        expect(preparation?.record?.run?.initialRetryAvailable).toBe(
+          savedJobId === jobId,
+        );
+
+        const context = await t.query(
+          internal.jobPreparationGeneration.getRunContext,
+          {
+            jobId: savedJobId,
+            runId,
+          },
+        );
+
+        expect(context).toMatchObject({
+          ready: true,
+          categoryTitle: category,
+          description,
+          availableSlots: 3,
+        });
+        const savedJob = await t.run((ctx) => ctx.db.get("jobs", savedJobId));
+
+        const checklist = await t.run((ctx) =>
+          ctx.db
+            .query("checklistItems")
+            .withIndex("by_jobId", (q) => q.eq("jobId", savedJobId))
+            .take(100),
+        );
+
+        expect(JSON.parse(context?.sourceText ?? "{}")).toMatchObject({
+          description,
+          address: savedJob?.addressText,
+          category,
+          checklist: checklist.map((item) => ({
+            title: item.title,
+            status: item.status,
+            finding: null,
+          })),
+        });
+
+        expect(
+          await t.mutation(internal.jobPreparationGeneration.finish, {
+            jobId: savedJobId,
+            runId,
+            suggestions: [
+              {
+                action,
+                rationale: "Arrange access before this described visit.",
+                excerpt,
+                clientQuestion: question,
+              },
+            ],
+          }),
+        ).toBe("saved");
+
+        const result = await staff.query(api.jobPreparation.get, {
+          jobId: savedJobId,
+        });
+
+        expect(result?.record?.entries).toHaveLength(1);
+        expect(result?.record?.message?.text).toContain(question);
+        expect(await t.run((ctx) => ctx.db.get("jobs", savedJobId))).toEqual(
+          savedJob,
+        );
+        expect(
+          await t.run((ctx) =>
+            ctx.db
+              .query("checklistItems")
+              .withIndex("by_jobId", (q) => q.eq("jobId", savedJobId))
+              .take(100),
+          ),
+        ).toEqual(checklist);
+
+        await staff.mutation(api.jobPreparationGeneration.start, {
+          jobId: savedJobId,
+        });
+
+        const refresh = await staff.query(api.jobPreparation.get, {
+          jobId: savedJobId,
+        });
+
+        const refreshRunId = refresh?.record?.run?.id;
+
+        if (!refreshRunId) throw new Error("Expected explicit refresh");
+        expect(
+          await t.mutation(internal.jobPreparationGeneration.finish, {
+            jobId: savedJobId,
+            runId: refreshRunId,
+            suggestions: [
+              {
+                action: "Unsupported trade-specific advice",
+                rationale: "Unverified rationale",
+                excerpt: "Invented site fact",
+                clientQuestion: null,
+              },
+            ],
+          }),
+        ).toBe("failed");
+
+        const failed = await staff.query(api.jobPreparation.get, {
+          jobId: savedJobId,
+        });
+
+        expect(failed?.record?.entries).toEqual(result?.record?.entries);
+        expect(failed?.record?.error).toContain("could not be validated");
+      }
+    },
+  );
+
   test("completion and editable messages persist without changing the checklist, and revisions reject concurrent edits", async () => {
     const fixture = await setup();
     const { t, staff, jobId, itemId } = fixture;

@@ -59,3 +59,11 @@ The editor keeps unsaved local text separate from incoming saved revisions, pres
 ## Code and deployment checks
 
 `npm run check` passed with 60 tests, frontend and Convex TypeScript checks, Oxlint, Oxfmt and strict OpenSpec validation. `npm run build` passed. `convex dev --once` validated and pushed the additive schema/functions to the existing development deployment without schema or function errors. No quality rules, checks or hooks were disabled.
+
+## All-job extension — 14 September 2026
+
+Preparation now accepts Electrical, custom categories and uncategorized jobs. Existing jobs expose generation/refresh; new jobs start automatically. General guidance uses the saved scope, category, confirmed context and current findings, with conditional Carpentry examples. Prompt version `job-preparation-v2` makes earlier guidance visibly stale. Main's compact UI remains in place; the previously stashed alternate layout was not restored.
+
+The existing integration suite now covers automatic and explicit generation for all three additional category cases, source-context grounding, invalid output rejection, preservation of prior work, and unchanged checklist/job records. `npm run check` passed with 82 tests in 11 files; build passed with the existing bundle-size advisory. Development deployment `sleek-lyrebird-565` accepted the functions successfully. Production was not modified.
+
+Browser generation on the Carlton Electrical demo returned three pending suggestions: safely obtainable existing electrical-area photos, preferred visit/outage windows, and existing relevant property electrical documents. The client-message review control opened successfully. The checklist retained two completed checks, two prepared request drafts and pending human/certificate requirements. These are observed model suggestions for contractor review, not proof that the job is ready or that documents exist.
