@@ -1,3 +1,4 @@
+import { claimPreparation } from "./jobPreparationGeneration";
 import { preparationRecord } from "./jobPreparation";
 import { internal } from "./_generated/api";
 import { invalidateItemWork, removeItemWork } from "./itemAgentData";
@@ -98,6 +99,10 @@ export const create = mutation({
         internal.agents.checklist.processChecklist.run,
         { items, initiatedBy: userId },
       );
+
+    const savedJob = await ctx.db.get("jobs", jobId);
+
+    if (savedJob) await claimPreparation(ctx, savedJob, userId, true);
 
     return jobId;
   },
