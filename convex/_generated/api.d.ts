@@ -9,6 +9,8 @@
  */
 
 import type * as access from "../access.js";
+import type * as agents_checklist_itemClassification from "../agents/checklist/itemClassification.js";
+import type * as agents_checklist_itemResolutionClassifier from "../agents/checklist/itemResolutionClassifier.js";
 import type * as agents_shared_observability from "../agents/shared/observability.js";
 import type * as agents_shared_observabilitySmokeTest from "../agents/shared/observabilitySmokeTest.js";
 import type * as auth from "../auth.js";
@@ -34,6 +36,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   access: typeof access;
+  "agents/checklist/itemClassification": typeof agents_checklist_itemClassification;
+  "agents/checklist/itemResolutionClassifier": typeof agents_checklist_itemResolutionClassifier;
   "agents/shared/observability": typeof agents_shared_observability;
   "agents/shared/observabilitySmokeTest": typeof agents_shared_observabilitySmokeTest;
   auth: typeof auth;
