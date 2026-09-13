@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useQuery } from "convex/react";
-import { BriefcaseBusinessIcon, FolderCogIcon, UsersIcon } from "lucide-react";
+import {
+  BriefcaseBusinessIcon,
+  FolderCogIcon,
+  LibraryIcon,
+  UsersIcon,
+} from "lucide-react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { api } from "../../../convex/_generated/api";
 import { useMembership } from "@/components/auth/use-membership";
@@ -35,6 +40,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 const navigation = [
   { to: "/app/jobs", label: "Jobs", icon: BriefcaseBusinessIcon },
   { to: "/app/categories", label: "Categories", icon: FolderCogIcon },
+  { to: "/app/library", label: "Library", icon: LibraryIcon },
 ];
 
 function AppBreadcrumbs() {
@@ -46,9 +52,11 @@ function AppBreadcrumbs() {
   const sectionLabel =
     section === "organization"
       ? "Organization"
-      : section === "categories"
-        ? "Categories"
-        : "Jobs";
+      : section === "library"
+        ? "Library"
+        : section === "categories"
+          ? "Categories"
+          : "Jobs";
 
   const sectionPath = `/app/${section ?? "jobs"}`;
 

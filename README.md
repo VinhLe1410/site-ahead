@@ -87,6 +87,18 @@ New accounts go straight to organization onboarding after Google login. Create a
 
 This flow is manual. It does not run agents, interpret intake, verify addresses, call external services, draft requests, or create reports. Those integrations remain separate work.
 
+## Document library
+
+Every organization member can manage reusable guidance and blank forms from `/app/library`. Upload PDF or Word files (.pdf, .doc, .docx), up to 10 MB each, with a title and optional description. Search matches titles and descriptions. Download files to read or fill them in.
+
+Attach up to 10 distinct documents to each item in a category's checklist template. A new job receives the current version of each selected document. Replacing a file creates a new version for future jobs; existing jobs retain their assigned versions. Changing a job's category or deleting a job does not remove shared files.
+
+Archiving removes a document from active lists and new selections. Existing jobs can still download their assigned versions. A category referencing an archived document must be repaired before creating another job or saving the template. Archived documents are read-only.
+
+Uploads and downloads check current organization membership. Removing staff blocks their subsequent downloads, including repeated requests for known versions. Previously downloaded copies remain on their devices.
+
+The library does not preview or edit files, search file contents, store completed job forms or evidence, or run AI retrieval.
+
 If you're reading this README on GitHub and want to use this template, run:
 
 ```

@@ -6,6 +6,8 @@ import {
   checklistKindValidator,
   jobStatusValidator,
   templateItemValidator,
+  documentDetailsValidator,
+  documentFileValidator,
 } from "./contracts";
 
 export const schema = defineSchema({
@@ -58,6 +60,27 @@ export const schema = defineSchema({
   numbers: defineTable({
     value: v.number(),
   }),
+  documents: defineTable({
+    organizationId: v.id("organizations"),
+    ...documentDetailsValidator.fields,
+    searchText: v.string(),
+    archived: v.boolean(),
+    currentVersion: v.number(),
+  })
+    .index("by_organizationId_and_archived", ["organizationId", "archived"])
+    .searchIndex("search_text", {
+      searchField: "searchText",
+      filterFields: ["organizationId", "archived"],
+    }),
+  documentVersions: defineTable({
+    documentId: v.id("documents"),
+    number: v.number(),
+    storageId: v.id("_storage"),
+    ...documentFileValidator.fields,
+    uploadedBy: v.id("users"),
+  })
+    .index("by_documentId_and_number", ["documentId", "number"])
+    .index("by_storageId", ["storageId"]),
   inputs: defineTable({
     organizationId: v.id("organizations"),
     processedText: v.string(),
@@ -84,6 +107,7 @@ export const schema = defineSchema({
     kind: checklistKindValidator,
     status: checklistItemStatusValidator,
     notes: v.string(),
+    documentVersionIds: v.optional(v.array(v.id("documentVersions"))),
   }).index("by_jobId", ["jobId"]),
 });
 

@@ -84,6 +84,37 @@ export async function requireOrganizationChecklistItem(
   return item;
 }
 
+export async function requireOrganizationDocument(
+  db: DatabaseReader,
+  documentId: Id<"documents">,
+  organizationId: Id<"organizations">,
+) {
+  const document = await db.get("documents", documentId);
+
+  if (document === null || document.organizationId !== organizationId)
+    throw new ConvexError("Document not found");
+
+  return document;
+}
+
+export async function requireOrganizationDocumentVersion(
+  db: DatabaseReader,
+  versionId: Id<"documentVersions">,
+  organizationId: Id<"organizations">,
+) {
+  const version = await db.get("documentVersions", versionId);
+
+  if (version === null) throw new ConvexError("Document version not found");
+
+  const document = await requireOrganizationDocument(
+    db,
+    version.documentId,
+    organizationId,
+  );
+
+  return { document, version };
+}
+
 export async function verifiedEmail(ctx: QueryCtx | MutationCtx) {
   const userId = await requireUserId(ctx);
   const user = await ctx.db.get("users", userId);

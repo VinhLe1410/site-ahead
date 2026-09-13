@@ -12,6 +12,11 @@ import {
 } from "./access";
 import { jobStatusValidator, requireText } from "./contracts";
 import { schema } from "./schema";
+import {
+  checklistDocuments,
+  documentSummaryValidator,
+  templateDocumentVersions,
+} from "./documentData";
 
 const jobListItemValidator = v.object({
   job: schema.doc("jobs"),
@@ -40,6 +45,12 @@ export const create = mutation({
     const processedText = requireText(args.processedText, "Processed text");
     const addressText = requireText(args.addressText, "Address");
 
+    const checklist = await templateDocumentVersions(
+      ctx.db,
+      organizationId,
+      category?.checklist ?? [],
+    );
+
     const inputId = await ctx.db.insert("inputs", {
       organizationId,
       processedText,
@@ -62,8 +73,6 @@ export const create = mutation({
             status: "pending",
           });
 
-    const checklist = category === null ? [] : category.checklist;
-
     for (const item of checklist) {
       await ctx.db.insert("checklistItems", {
         jobId,
@@ -71,6 +80,7 @@ export const create = mutation({
         kind: item.kind,
         status: "pending",
         notes: "",
+        documentVersionIds: item.documentVersionIds,
       });
     }
 
@@ -124,6 +134,7 @@ export const get = query({
       input: schema.doc("inputs"),
       categoryTitle: v.union(v.string(), v.null()),
       checklist: v.array(schema.doc("checklistItems")),
+      documents: v.array(documentSummaryValidator),
     }),
     v.null(),
   ),
@@ -172,7 +183,13 @@ export const get = query({
       throw new Error("Job checklist exceeds its supported size");
     }
 
-    return { job, input, categoryTitle, checklist };
+    return {
+      job,
+      input,
+      categoryTitle,
+      checklist,
+      documents: await checklistDocuments(ctx.db, organizationId, checklist),
+    };
   },
 });
 

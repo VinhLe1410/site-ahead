@@ -1,4 +1,5 @@
-import { v } from "convex/values";
+import { ConvexError, v, type Infer } from "convex/values";
+import { MAX_ITEM_DOCUMENTS } from "../shared/documents";
 
 export const checklistKindValidator = v.union(
   v.literal("automated"),
@@ -20,6 +21,18 @@ export const checklistItemStatusValidator = v.union(
 export const templateItemValidator = v.object({
   title: v.string(),
   kind: checklistKindValidator,
+  documentIds: v.optional(v.array(v.id("documents"))),
+});
+
+export const documentFileValidator = v.object({
+  filename: v.string(),
+  contentType: v.string(),
+  size: v.number(),
+});
+
+export const documentDetailsValidator = v.object({
+  title: v.string(),
+  description: v.string(),
 });
 
 export const MAX_TEMPLATE_ITEMS = 100;
@@ -28,26 +41,38 @@ export function requireText(value: string, field: string): string {
   const text = value.trim();
 
   if (text.length === 0) {
-    throw new Error(`${field} is required`);
+    throw new ConvexError(`${field} is required`);
   }
 
   return text;
 }
 
 export function validateTemplate(
-  checklist: Array<{
-    title: string;
-    kind: "automated" | "third_party" | "on_site";
-  }>,
+  checklist: Array<Infer<typeof templateItemValidator>>,
 ) {
   if (checklist.length > MAX_TEMPLATE_ITEMS) {
-    throw new Error(
+    throw new ConvexError(
       `Checklist templates can contain at most ${MAX_TEMPLATE_ITEMS} items`,
     );
   }
 
-  return checklist.map((item, index) => ({
-    ...item,
-    title: requireText(item.title, `Checklist item ${index + 1} title`),
-  }));
+  return checklist.map((item, index) => {
+    const documentIds = item.documentIds ?? [];
+
+    if (documentIds.length > MAX_ITEM_DOCUMENTS)
+      throw new ConvexError(
+        `Item ${index + 1} can have at most ${MAX_ITEM_DOCUMENTS} documents.`,
+      );
+
+    if (new Set(documentIds).size !== documentIds.length)
+      throw new ConvexError(
+        `Item ${index + 1} has duplicate document references.`,
+      );
+
+    return {
+      ...item,
+      title: requireText(item.title, `Checklist item ${index + 1} title`),
+      documentIds,
+    };
+  });
 }

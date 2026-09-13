@@ -36,8 +36,16 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { checklistKindLabels, jobStatusLabels } from "@/pages/jobs/job-labels";
+import { DocumentDownload } from "@/components/documents/document-download";
+import type { DocumentSummary } from "../../../convex/documentData";
 
-function ChecklistItem({ item }: { item: Doc<"checklistItems"> }) {
+function ChecklistItem({
+  item,
+  documents,
+}: {
+  item: Doc<"checklistItems">;
+  documents: DocumentSummary[];
+}) {
   const setStatus = useMutation(api.checklistItems.setStatus);
   const setNotes = useMutation(api.checklistItems.setNotes);
   const [notes, setLocalNotes] = useState(item.notes);
@@ -99,6 +107,37 @@ function ChecklistItem({ item }: { item: Doc<"checklistItems"> }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
+        {(item.documentVersionIds?.length ?? 0) > 0 && (
+          <ul className="space-y-2" aria-label="Checklist documents">
+            {item.documentVersionIds?.map((versionId) => {
+              const reference = documents.find(
+                (entry) => entry.version._id === versionId,
+              );
+
+              if (reference === undefined)
+                throw new Error("Assigned document version is missing");
+
+              return (
+                <li
+                  key={versionId}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3"
+                >
+                  <div className="min-w-0">
+                    <p className="break-words text-sm font-medium">
+                      {reference.document.title}
+                    </p>
+                    <p className="break-words text-xs text-muted-foreground">
+                      {reference.version.filename} · Version{" "}
+                      {reference.version.number}
+                      {reference.document.archived && " · Archived"}
+                    </p>
+                  </div>
+                  <DocumentDownload version={reference.version} />
+                </li>
+              );
+            })}
+          </ul>
+        )}
         <Field>
           <FieldLabel htmlFor={`notes-${item._id}`}>Notes</FieldLabel>
           <Textarea
@@ -223,7 +262,11 @@ function JobDetails({
               </p>
             ) : (
               data.checklist.map((item) => (
-                <ChecklistItem key={item._id} item={item} />
+                <ChecklistItem
+                  key={item._id}
+                  item={item}
+                  documents={data.documents}
+                />
               ))
             )}
           </section>

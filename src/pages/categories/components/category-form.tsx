@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../../shared/errors";
 import { useState, type FormEvent } from "react";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,10 +18,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RequestError } from "@/components/layout/request-error";
+import type { Infer } from "convex/values";
+import type { templateItemValidator } from "../../../../convex/contracts";
+import type { DocumentSummary } from "../../../../convex/documentData";
+import { DocumentPicker } from "./document-picker";
 
-export type ChecklistKind = "automated" | "third_party" | "on_site";
+export type ChecklistKind = TemplateItem["kind"];
 
-export type TemplateItem = { title: string; kind: ChecklistKind };
+export type TemplateItem = Infer<typeof templateItemValidator>;
 
 type TemplateRow = TemplateItem & { key: string };
 
@@ -39,11 +44,13 @@ const kindLabels: Record<ChecklistKind, string> = {
 export function CategoryForm({
   initialTitle = "",
   initialChecklist = [],
+  documents = [],
   submitLabel,
   onSubmit,
 }: {
   initialTitle?: string;
   initialChecklist?: TemplateItem[];
+  documents?: DocumentSummary[];
   submitLabel: string;
   onSubmit: (values: {
     title: string;
@@ -83,17 +90,15 @@ export function CategoryForm({
     try {
       await onSubmit({
         title,
-        checklist: checklist.map(({ title: itemTitle, kind }) => ({
-          title: itemTitle,
-          kind,
-        })),
+        checklist: checklist.map(({ key: _key, ...item }) => item),
       });
       setIsSaving(false);
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : "Could not save the category. Please try again.",
+        getErrorMessage(
+          caught,
+          "Could not save the category. Please try again.",
+        ),
       );
       setIsSaving(false);
     }
@@ -146,54 +151,67 @@ export function CategoryForm({
         <FieldGroup>
           {checklist.map((item, index) => (
             <Card key={item.key} size="sm">
-              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                <Field className="flex-1">
-                  <FieldLabel htmlFor={`item-${index}`}>
-                    Item {index + 1} title
-                  </FieldLabel>
-                  <Input
-                    id={`item-${index}`}
-                    value={item.title}
-                    onChange={(event) =>
-                      updateItem(index, { ...item, title: event.target.value })
+              <CardContent className="space-y-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                  <Field className="flex-1">
+                    <FieldLabel htmlFor={`item-${index}`}>
+                      Item {index + 1} title
+                    </FieldLabel>
+                    <Input
+                      id={`item-${index}`}
+                      value={item.title}
+                      onChange={(event) =>
+                        updateItem(index, {
+                          ...item,
+                          title: event.target.value,
+                        })
+                      }
+                      disabled={isSaving}
+                      required
+                    />
+                  </Field>
+                  <Field className="sm:w-44">
+                    <FieldLabel htmlFor={`kind-${item.key}`}>Kind</FieldLabel>
+                    <Select
+                      value={item.kind}
+                      onValueChange={(kind) => updateKind(index, item, kind)}
+                      disabled={isSaving}
+                    >
+                      <SelectTrigger id={`kind-${item.key}`} className="w-full">
+                        <SelectValue>{kindLabels[item.kind]}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {kindOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    aria-label={`Remove item ${index + 1}`}
+                    onClick={() =>
+                      setChecklist((items) =>
+                        items.filter((_, itemIndex) => itemIndex !== index),
+                      )
                     }
                     disabled={isSaving}
-                    required
-                  />
-                </Field>
-                <Field className="sm:w-44">
-                  <FieldLabel htmlFor={`kind-${item.key}`}>Kind</FieldLabel>
-                  <Select
-                    value={item.kind}
-                    onValueChange={(kind) => updateKind(index, item, kind)}
-                    disabled={isSaving}
                   >
-                    <SelectTrigger id={`kind-${item.key}`} className="w-full">
-                      <SelectValue>{kindLabels[item.kind]}</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {kindOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  aria-label={`Remove item ${index + 1}`}
-                  onClick={() =>
-                    setChecklist((items) =>
-                      items.filter((_, itemIndex) => itemIndex !== index),
-                    )
-                  }
+                    <Trash2Icon />
+                  </Button>
+                </div>
+                <DocumentPicker
+                  selectedIds={item.documentIds ?? []}
+                  savedDocuments={documents}
                   disabled={isSaving}
-                >
-                  <Trash2Icon />
-                </Button>
+                  onChange={(documentIds) =>
+                    updateItem(index, { ...item, documentIds })
+                  }
+                />
               </CardContent>
             </Card>
           ))}

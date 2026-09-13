@@ -1,18 +1,23 @@
 import { useMutation, useQuery } from "convex/react";
 import { useParams, useNavigate } from "react-router";
 import { api } from "../../../convex/_generated/api";
-import type { Doc } from "../../../convex/_generated/dataModel";
+import type { FunctionReturnType } from "convex/server";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PageHeading } from "@/components/layout/page-heading";
 import { CategoryForm } from "@/pages/categories/components/category-form";
 
-function CategoryEditor({ category }: { category: Doc<"categories"> }) {
+function CategoryEditor({
+  category,
+}: {
+  category: NonNullable<FunctionReturnType<typeof api.categories.get>>;
+}) {
   const updateCategory = useMutation(api.categories.update);
 
   return (
     <CategoryForm
       initialTitle={category.title}
       initialChecklist={category.checklist}
+      documents={category.documents}
       submitLabel="Save changes"
       onSubmit={async (values) => {
         await updateCategory({ categoryId: category._id, ...values });

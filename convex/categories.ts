@@ -15,6 +15,11 @@ import {
   validateTemplate,
 } from "./contracts";
 import { schema } from "./schema";
+import {
+  documentSummaryValidator,
+  templateDocuments,
+  templateDocumentVersions,
+} from "./documentData";
 
 const categoryFields = {
   title: v.string(),
@@ -43,7 +48,12 @@ export const list = query({
 
 export const get = query({
   args: { categoryId: v.string() },
-  returns: v.union(schema.doc("categories"), v.null()),
+  returns: v.union(
+    schema
+      .doc("categories")
+      .extend({ documents: v.array(documentSummaryValidator) }),
+    v.null(),
+  ),
   handler: async (ctx, args) => {
     const membership = await activeMembership(ctx);
 
@@ -57,7 +67,17 @@ export const get = query({
 
     const category = await ctx.db.get("categories", categoryId);
 
-    return category?.organizationId === organizationId ? category : null;
+    if (category === null || category.organizationId !== organizationId)
+      return null;
+
+    return {
+      ...category,
+      documents: await templateDocuments(
+        ctx.db,
+        organizationId,
+        category.checklist,
+      ),
+    };
   },
 });
 
@@ -66,11 +86,14 @@ export const create = mutation({
   returns: v.id("categories"),
   handler: async (ctx, args) => {
     const { organizationId } = await requireMembership(ctx);
+    const checklist = validateTemplate(args.checklist);
+
+    await templateDocumentVersions(ctx.db, organizationId, checklist);
 
     return await ctx.db.insert("categories", {
       organizationId,
       title: requireText(args.title, "Category title"),
-      checklist: validateTemplate(args.checklist),
+      checklist,
     });
   },
 });
@@ -81,9 +104,12 @@ export const update = mutation({
   handler: async (ctx, args) => {
     const { organizationId } = await requireMembership(ctx);
     await requireOrganizationCategory(ctx.db, args.categoryId, organizationId);
+    const checklist = validateTemplate(args.checklist);
+
+    await templateDocumentVersions(ctx.db, organizationId, checklist);
     await ctx.db.patch("categories", args.categoryId, {
       title: requireText(args.title, "Category title"),
-      checklist: validateTemplate(args.checklist),
+      checklist,
     });
 
     return null;

@@ -19,6 +19,8 @@ import { NewJobPage } from "@/pages/jobs/new-job-page";
 import { LandingPage } from "@/pages/landing-page";
 import { LoginPage } from "@/pages/login-page";
 import { NotFoundPage } from "@/pages/not-found-page";
+import { LibraryPage } from "@/pages/library/library-page";
+import { LibraryDocumentPage } from "@/pages/library/library-document-page";
 
 export function AppRoutes() {
   return (
@@ -42,6 +44,11 @@ export function AppRoutes() {
             <Route path="categories" element={<CategoriesPage />} />
             <Route path="categories/new" element={<NewCategoryPage />} />
             <Route path="categories/:categoryId" element={<CategoryPage />} />
+            <Route path="library" element={<LibraryPage />} />
+            <Route
+              path="library/:documentId"
+              element={<LibraryDocumentPage />}
+            />
             <Route element={<OwnerLayout />}>
               <Route path="organization" element={<OrganizationPage />} />
             </Route>

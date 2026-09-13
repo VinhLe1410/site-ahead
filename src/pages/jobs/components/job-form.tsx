@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../../shared/errors";
 import { useState, type FormEvent } from "react";
 import { usePaginatedQuery } from "convex/react";
 import type { FunctionArgs } from "convex/server";
@@ -21,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Link } from "react-router";
 
 export function JobForm({
   initialValues = { processedText: "", addressText: "", categoryId: null },
@@ -63,9 +65,7 @@ export function JobForm({
       setIsSaving(false);
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : "Could not save the job. Please try again.",
+        getErrorMessage(caught, "Could not save the job. Please try again."),
       );
       setIsSaving(false);
     }
@@ -188,6 +188,18 @@ export function JobForm({
           </CardContent>
         </Card>
         {error !== null && <RequestError message={error} />}
+        {error !== null && !editing && categoryId !== null && (
+          <p className="text-sm">
+            <Link
+              to={`/app/categories/${categoryId}`}
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
+              Open category template to fix document references
+            </Link>
+          </p>
+        )}
         <Button
           type="submit"
           disabled={
