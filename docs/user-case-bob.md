@@ -20,9 +20,9 @@ Site Ahead immediately creates a job-specific pre-visit checklist. It automatica
 
 The system then separates the work into clear next steps:
 
-* Automated checks are completed immediately, with results Bob can review.
-* Third-party requests, such as BYDA clearance and road-occupancy permits, are drafted and ready for Bob to review and send.
-* On-site checks, such as access conditions and dust-control requirements, are clearly assigned to the person visiting the site.
+- Automated checks are completed immediately, with results Bob can review.
+- Third-party requests, such as BYDA clearance and road-occupancy permits, are drafted and ready for Bob to review and send.
+- On-site checks, such as access conditions and dust-control requirements, are clearly assigned to the person visiting the site.
 
 Instead of relying on memory, emails, and rushed research, Bob sees one live view of the job: what is already known, what is awaiting a reply, what needs approval, and what must be checked in person.
 
