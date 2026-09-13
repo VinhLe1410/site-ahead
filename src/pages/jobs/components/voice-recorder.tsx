@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export interface ExtractionResult {
-  jobType: "excavation_and_trenching" | "electrical_work" | "other";
+  jobType: "carpentry" | "electrical" | "other";
   location: string;
   description: string;
 }

@@ -8,7 +8,7 @@ Per team requirements, the intake extraction schema is strictly focused on the t
 
 | Field | Type | Description | Target Model Mapping |
 | --- | --- | --- | --- |
-| `jobType` | `"excavation_and_trenching" \| "electrical_work" \| "other"` | Primary trade classification | `categories` / `jobs.categoryId` |
+| `jobType` | `"carpentry" \| "electrical" \| "other"` | Primary trade classification | `categories` / `jobs.categoryId` |
 | `location` | `string` | Single cleaned site address | `inputs.addressText` / `jobs.addressText` |
 | `description` | `string` | Clear description of work to be performed | `inputs.processedText` |
 

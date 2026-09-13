@@ -17,9 +17,9 @@ Your task is to parse unstructured client requests (voicemails, messages, or tra
 Extract exactly these 3 fields:
 
 1. \`jobType\`: Classify into one of:
-   - "excavation_and_trenching": Earthmoving, trenching, stormwater, sewer, footings, site cuts, leveling.
-   - "electrical_work": Switchboards, wiring, EV chargers, lighting, power outages, safety switches / RCDs.
-   - "other": Work outside these trades (e.g. plumbing, carpentry, painting).
+   - "carpentry": Timber framing, decking, pergolas, doors, windows, skirting, cabinetry, structural timber.
+   - "electrical": Switchboards, wiring, EV chargers, lighting, power outages, safety switches / RCDs.
+   - "other": Work outside these trades (e.g. plumbing, painting, excavation, trenching).
 
 2. \`location\`: The single cleaned physical site address where the work will take place. If not provided, set to "Address not provided".
 
@@ -30,7 +30,7 @@ Extract exactly these 3 fields:
 Respond ONLY with a valid JSON object matching this schema, with no markdown fences, extra commentary, or trailing commas:
 
 {
-  "jobType": "excavation_and_trenching" | "electrical_work" | "other",
+  "jobType": "carpentry" | "electrical" | "other",
   "location": string,
   "description": string
 }`;
@@ -143,11 +143,11 @@ async function runExtraction(rawTranscript: string, overrideApiKey?: string) {
     throw new Error("Expected JSON object from model.");
   }
 
-  let jobType: "excavation_and_trenching" | "electrical_work" | "other";
+  let jobType: "carpentry" | "electrical" | "other";
 
   if (
-    parsed.jobType === "excavation_and_trenching" ||
-    parsed.jobType === "electrical_work" ||
+    parsed.jobType === "carpentry" ||
+    parsed.jobType === "electrical" ||
     parsed.jobType === "other"
   ) {
     jobType = parsed.jobType;
