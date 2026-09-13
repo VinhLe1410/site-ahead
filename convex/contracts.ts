@@ -34,6 +34,16 @@ export const intakeResultValidator = v.object({
   description: v.string(),
 });
 
+export const transcriptionResultValidator = v.object({
+  text: v.string(),
+  languageCode: v.optional(v.string()),
+});
+
+export const audioIntakeResultValidator = v.object({
+  transcript: v.string(),
+  extraction: intakeResultValidator,
+});
+
 export const MAX_TEMPLATE_ITEMS = 100;
 
 export function requireText(value: string, field: string): string {
