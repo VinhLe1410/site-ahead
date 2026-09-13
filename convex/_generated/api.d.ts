@@ -17,6 +17,11 @@ import type * as agents_checklist_itemWorker from "../agents/checklist/itemWorke
 import type * as agents_checklist_liveEvidence from "../agents/checklist/liveEvidence.js";
 import type * as agents_checklist_processChecklist from "../agents/checklist/processChecklist.js";
 import type * as agents_checklist_verification from "../agents/checklist/verification.js";
+import type * as agents_requests_buildingPermitPdf from "../agents/requests/buildingPermitPdf.js";
+import type * as agents_requests_buildingPermitSkill from "../agents/requests/buildingPermitSkill.js";
+import type * as agents_requests_occupancyPermitDocx from "../agents/requests/occupancyPermitDocx.js";
+import type * as agents_requests_occupancyPermitSkill from "../agents/requests/occupancyPermitSkill.js";
+import type * as agents_requests_requestProfile from "../agents/requests/requestProfile.js";
 import type * as agents_shared_agentLogging from "../agents/shared/agentLogging.js";
 import type * as agents_shared_observability from "../agents/shared/observability.js";
 import type * as agents_shared_observabilitySmokeTest from "../agents/shared/observabilitySmokeTest.js";
@@ -56,6 +61,11 @@ declare const fullApi: ApiFromModules<{
   "agents/checklist/liveEvidence": typeof agents_checklist_liveEvidence;
   "agents/checklist/processChecklist": typeof agents_checklist_processChecklist;
   "agents/checklist/verification": typeof agents_checklist_verification;
+  "agents/requests/buildingPermitPdf": typeof agents_requests_buildingPermitPdf;
+  "agents/requests/buildingPermitSkill": typeof agents_requests_buildingPermitSkill;
+  "agents/requests/occupancyPermitDocx": typeof agents_requests_occupancyPermitDocx;
+  "agents/requests/occupancyPermitSkill": typeof agents_requests_occupancyPermitSkill;
+  "agents/requests/requestProfile": typeof agents_requests_requestProfile;
   "agents/shared/agentLogging": typeof agents_shared_agentLogging;
   "agents/shared/observability": typeof agents_shared_observability;
   "agents/shared/observabilitySmokeTest": typeof agents_shared_observabilitySmokeTest;
