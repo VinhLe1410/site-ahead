@@ -35,6 +35,10 @@ type Env = {
   readonly AUTH_PREVIEW_REDIRECTS: "true" | undefined;
   readonly JWKS: string;
   readonly JWT_PRIVATE_KEY: string;
+  readonly LANGFUSE_BASE_URL: string;
+  readonly LANGFUSE_PUBLIC_KEY: string;
+  readonly LANGFUSE_SECRET_KEY: string;
+  readonly OPENAI_API_KEY: string | undefined;
   readonly SITE_URL: string;
 };
 

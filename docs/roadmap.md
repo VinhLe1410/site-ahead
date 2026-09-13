@@ -7,12 +7,12 @@ Sources: [Idea, especially Step 4](Site-Ahead-Idea.md), [Architecture](Site-Ahea
 ## Scope
 
 - Contractor signs in, enters an address and job type, and pastes or records the client's message.
-- The platform creates a tailored checklist for **Excavation & Trenching** or **Electrical Work**.
+- The platform creates a tailored checklist for **Carpentry & Renovation** or **Electrical Work**.
 - Each eligible checklist item gets its own sub-agent, which progresses that item independently.
 - Contractors review drafts, manually record submission/receipt, and complete on-site checks.
 - A report summarizes findings, pending work, and next actions.
 
-Use fictional Ironbark Site Services jobs. Public-data evidence such as traffic and air quality is seeded and labeled **Demo data**. OpenAI and ElevenLabs Scribe are live integrations. Defer other trades, live public-data APIs, email sending/watching, automatic portal submission, CRM, deadline automation, and voice Q&A.
+Use fictional Ironbark Site Services jobs. Checklist evidence is seeded and labeled **Demo data**. OpenAI and ElevenLabs Scribe are live integrations. Defer other trades, live public-data APIs, email sending/watching, automatic portal submission, CRM, deadline automation, and voice Q&A.
 
 ## Agreed decision: one sub-agent per eligible checklist item
 
@@ -71,28 +71,37 @@ Preserve existing authentication and check job ownership on domain operations. K
 
 ## 1. Agent work
 
-### A1. Define the two-trade checklist library
+### A1. Set up agent observability
 
-- [ ] Encode stable template keys, categories, base items, and allowed subtype/trigger conditions from the source documents. Supply the catalog to Backend for seeding.
-- [ ] Excavation: seeded traffic/air quality, road-reserve assessment, BYDA request, and manual site checks. Explicit road-reserve or boundary context adds the matching request/manual item.
+- [ ] Add a shared observability helper (e.g. `convex/agents/shared/observability.ts`) providing `rawRequestResponseHandler`, `contextHandler`, and `usageHandler` for every Agent instance, per @convex-dev/agent's documented debugging and usage-tracking hooks.
+- [ ] Enable `experimental_telemetry` on every agent generate/stream call so OpenTelemetry spans (model, tokens, prompt, response) export to Langfuse Cloud via its OTLP endpoint. New env vars: `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`. Coordinate the new dependency and env var additions with Backend — dependency/configuration changes are Backend's per the shared contract above.
+- [ ] Confirm every item-agent action declares the Node.js runtime (`"use node"`), required by the OpenTelemetry exporter package.
+- [ ] Verify with one smoke-test call that a trace reaches Langfuse before wiring this into the real Evidence/Request agents (now A3, see below).
+
+### A2. Classify jobs and resolve the two-trade checklist library
+
+- [ ] Build a job classification step (small model, e.g. gpt-4o-mini) that takes job description text — for now simulated as if received from Backend, since intake isn't built yet — and classifies it into exactly one of the two in-scope trades: Electrical Work or Carpentry & Renovation. If the description doesn't clearly match either, return unresolved/out-of-scope rather than forcing a guess.
+- [ ] Look up the classified trade's checklist from a Category DB record (Id, Title, Checklist\_json). Mock this as data inside convex/agents/\*\* for now, since Backend hasn't built persistence yet; swap for a real Convex table once Backend's shared schema exists.
+- [ ] Encode stable template keys, categories, base items, and allowed trigger conditions for both trades from the source documents as the content of each trade's Checklist\_json.
 - [ ] Electrical: work classification, CES paperwork and RCD checks; supported prescribed work adds an LEI inspection request. Unclear classification stays unresolved for human checking.
-- [ ] Use one bounded OpenAI extraction call to identify an allowed subtype and triggers from confirmed text. Select catalog items deterministically; do not let the model invent checklist definitions.
+- [ ] Carpentry & Renovation: construction year (pre/post 1990) asbestos assumption, job-value thresholds ($10k/$16k), Certificate of Consent, building permit + registered surveyor, and Occupancy Permit/Certificate of Final Inspection on completion.
+- [ ] Once the base checklist resolves per trade, a later pass adds one bounded OpenAI extraction call to identify trigger conditions from the confirmed intake text and tailor the checklist further — deferred until the classify + lookup slice above is verified end to end.
 
-### A2. Implement the item sub-agents
+### A3. Implement the item sub-agents
 
 - [ ] Define reusable Evidence and Request agents with OpenAI, focused instructions, and item-specific tools.
 - [ ] For each eligible item, create its Agent thread once, save the association, and run the agent with the job context and assigned item. Skip on-site items entirely.
 - [ ] Evidence tools return seeded responses or deterministic rule results. Save the finding and its provenance; unknown answers remain unresolved or become on-site checks.
-- [ ] Request agents draft BYDA field summaries, LEI booking emails, and conditional road-reserve enquiries. Follow the request examples; leave missing names, dates, licence details, and contacts for the contractor.
+- [ ] Request agents draft trade-specific field summaries, LEI booking emails, and conditional carpentry permit enquiries. Follow the request examples; leave missing names, dates, licence details, and contacts for the contractor.
 - [ ] Save the next action and stop when waiting for information/review/reply. Resume the same item's thread when Backend schedules a new run after information or retry. Do not overwrite approved/submitted drafts or automatically send requests.
 
-### A3. Add voice intake and reporting
+### A4. Add voice intake and reporting
 
 - [ ] Transcribe stored audio through ElevenLabs Scribe; return editable text to the intake screen. Confirmed text enters the same extraction path as pasted text.
 - [ ] Generate a short report from saved checklist state, including completed findings, pending requests, manual checks, and next actions. Label seeded evidence and do not assume pending work is complete.
 - [ ] Verify two different trade checklists, one message-triggered variation, and one waiting item that resumes after new information.
 
-**Deliver:** catalog, extraction, per-item agents/tools, transcription, and report generation. Depends on Backend's shared contract and persistence operations.
+**Deliver:** catalog, job classification, observability scaffolding, per-item agents/tools, transcription, and report generation. Depends on Backend's shared contract and persistence operations.
 
 ## 2. Backend work
 
@@ -154,7 +163,7 @@ Preserve existing authentication and check job ownership on domain operations. K
 
 The PoC is done when:
 
-- [ ] Excavation and electrical inputs produce different checklists, with a demonstrated message-triggered variation.
+- [ ] Carpentry & Renovation and Electrical Work inputs produce different checklists, with a demonstrated message-triggered variation.
 - [ ] Every eligible item gets its own sub-agent/thread; on-site items get none.
 - [ ] Items progress independently, a waiting item resumes in the same context, and progress survives a page reload.
 - [ ] Draft review and manual submission/receipt work; on-site completion remains human-controlled.

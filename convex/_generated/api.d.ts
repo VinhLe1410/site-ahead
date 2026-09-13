@@ -9,6 +9,10 @@
  */
 
 import type * as access from "../access.js";
+import type * as agents_checklist_categoryDb from "../agents/checklist/categoryDb.js";
+import type * as agents_checklist_classifier from "../agents/checklist/classifier.js";
+import type * as agents_shared__observabilitySmokeTest from "../agents/shared/_observabilitySmokeTest.js";
+import type * as agents_shared_observability from "../agents/shared/observability.js";
 import type * as auth from "../auth.js";
 import type * as categories from "../categories.js";
 import type * as checklistItems from "../checklistItems.js";
@@ -32,6 +36,10 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   access: typeof access;
+  "agents/checklist/categoryDb": typeof agents_checklist_categoryDb;
+  "agents/checklist/classifier": typeof agents_checklist_classifier;
+  "agents/shared/_observabilitySmokeTest": typeof agents_shared__observabilitySmokeTest;
+  "agents/shared/observability": typeof agents_shared_observability;
   auth: typeof auth;
   categories: typeof categories;
   checklistItems: typeof checklistItems;
@@ -74,4 +82,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  agent: import("@convex-dev/agent/_generated/component.js").ComponentApi<"agent">;
+};

@@ -1,5 +1,9 @@
 ## Planning and implementation
 
+Before planning or implementing any change, read `docs/Site-Ahead-Idea.md`, and `docs/roadmap.md` together with the relevant OpenSpec specs. Treat these documents as the source of truth for product scope, team workflow, and implementation priorities; do not expand or reinterpret their scope without explicit user approval.
+
+If requirements in those documents conflict, stop and ask the user which direction to follow before planning or changing code. Do not resolve conflicts by guessing.
+
 Use the installed OpenSpec skills to explore ideas, propose scoped changes, and implement their tasks. Read `openspec/config.yaml` for project context and `docs/Workflow.md` for the team workflow. Small fixes with clear scope can proceed directly when requested.
 
 Read relevant existing OpenSpec specs and available project documents before grilling an idea. Use `grill-me` to clarify the outcome, then `ticket-handoff` to turn the agreed discussion into one or more actionable issues. An OpenSpec change is not required for this handoff. Engineering picks up the issues, creates a scoped OpenSpec change with design and tasks, and implements it. Nontechnical teammates define and review behavior. Keep these team-owned skills in `.agents/skills/` with relative directory symlinks in `.claude/skills/`.
