@@ -10,7 +10,7 @@ Checklist items currently contain only a title, kind, binary status, notes, and 
 - Keep `on_site` items human-controlled and do not create sub-agents for them.
 - Create one persistent Convex Agent thread and independent sub-agent run for every eligible pending item, scheduled concurrently without overlapping runs.
 - Reuse the organization document library and item-pinned immutable versions, with minimal form compatibility metadata and no duplicate form catalog.
-- Add form-specific runtime skills that select a stored PDF or DOCX form, read job data, fill verified values, save a new draft file, and record missing fields and the next action.
+- Add exactly two runtime skills for the uploaded Building Permit — Carpentry PDF and Occupancy Permit — Carpentry DOCX. GPT-5.5 selects the appropriate skill and scoped tools. Fill the real saved job address and available confirmed details, use a consistent fictional profile for missing general demo fields, label the draft and demo provenance, and leave signatures, signing dates, declarations, and approval/certificate references for human confirmation.
 - Expose authenticated run/retry, missing-data input, result viewing, and scoped draft download controls; protect human changes and recover crashed runs explicitly.
 - Persist per-item Agent state and structured output, including thread/run IDs, execution state, current step, errors, trace ID, findings or drafts, provenance, missing information, and next action.
 - Mark API and model failures explicitly, preserve the item kind and pending status, support retry on the same thread, and never send third-party requests automatically.

@@ -86,7 +86,7 @@ Construction-year resolution SHALL try DataVic first. If a successful lookup ret
 
 ### Requirement: Draft third-party requests from stored forms
 
-Each pending item classified as `third_party` SHALL receive an independent sub-agent with a form-specific skill. The skill SHALL select the appropriate form for the trade and request type, load a compatible PDF or DOCX from the existing organization document library using one of the item's pinned immutable versions, and obtain field values from the item's associated job records. It SHALL fill only verified values, save a new draft file without overwriting the original, and record the draft storage ID, provenance, missing fields, and next action. The sub-agent SHALL stop in a waiting state for contractor review and SHALL NOT send the request automatically.
+Each pending item classified as `third_party` SHALL receive an independent sub-agent. This PoC SHALL provide exactly two form-specific skills, for Building Permit — Carpentry (PDF) and Occupancy Permit — Carpentry (DOCX). The skill SHALL select a compatible source from the item's pinned immutable organization document versions and obtain the actual address and available confirmed values from the saved job. For missing general fields, it MAY use the approved consistent fictional demo profile, explicitly identified as demo data. It SHALL leave signatures, signing dates, declarations, approvals, certificate references and unverified attachment claims for human confirmation. It SHALL save a new clearly labeled demo draft without overwriting the original and record storage ID, field provenance, missing information and next action. The sub-agent SHALL stop in `waiting`, leave the checklist `pending`, and SHALL NOT send the request automatically. Other form types SHALL fail or wait explicitly without a fabricated replacement.
 
 #### Scenario: Save a completed request draft
 
@@ -98,11 +98,27 @@ Each pending item classified as `third_party` SHALL receive an independent sub-a
 
 #### Scenario: Save a partial draft with missing information
 
-- **WHEN** required job information is absent
-- **THEN** the sub-agent leaves those fields blank
+- **WHEN** a field lacks a saved value and an approved general demo default, or requires human confirmation
+- **THEN** the sub-agent leaves that field blank or unchecked
 - **AND** saves the draft with a structured list of missing fields
 - **AND** records the information needed as the next action
-- **AND** it does not invent a value or send the request
+- **AND** it does not invent an unapproved value or send the request
+
+#### Scenario: Fill consistent demo details while preserving the job address
+
+- **WHEN** the saved job has an address but no applicant or contractor contact details
+- **THEN** both supported drafts use that saved address and the same approved fictional profile for available general defaults
+- **AND** those defaults are identified as demo data in the draft and saved provenance
+- **AND** a confirmed saved value takes precedence over its demo default
+- **AND** no demo value is written back as a confirmed job fact or used as live automated evidence
+
+#### Scenario: Preserve human confirmation fields
+
+- **WHEN** a supported draft is generated or regenerated
+- **THEN** applicant signatures and signing dates remain blank
+- **AND** editable declarations, approvals, certificate references and attachment claims remain blank or unchecked and are listed for human attention
+- **AND** any preprinted assertion in the original form is preserved and explicitly identified as unverified for human review
+- **AND** the original form identity and scope remain visible
 
 #### Scenario: No matching form skill or file
 
@@ -194,8 +210,8 @@ Any active organization member SHALL be able to start saved-checklist processing
 - **THEN** the item's Request Agent continues using its pinned compatible source version
 - **AND** it saves a new draft without overwriting either library version
 
-#### Scenario: Reject fabricated form values
+#### Scenario: Reject unapproved model field values
 
-- **WHEN** a model proposes a field value absent from trusted saved job records
+- **WHEN** a model proposes a value absent from saved job records and the approved general demo profile
 - **THEN** the filling tool leaves that field blank and records it as missing
-- **AND** sample forms remain clearly labeled as sample request drafts
+- **AND** the draft remains clearly labeled as a demo draft

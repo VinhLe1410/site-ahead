@@ -12,6 +12,8 @@ Use live DataVic, EPA AirWatch, and Transport Victoria checks, with validated si
 
 Reuse active organization membership access and the existing document library: immutable `documentVersions`, source Storage IDs, category document references, and item-pinned version IDs. Runtime form skills use minimal compatibility metadata and create new PDF/DOCX draft files. Do not introduce a second form catalog. Only supported forms may be filled; sample drafts are clearly labeled.
 
+The current Request Agent PoC is limited to the uploaded Building Permit — Carpentry PDF and Occupancy Permit — Carpentry DOCX, with one runtime skill each and GPT-5.5 at medium reasoning. The user approved replacing the temporary-structure Occupancy upload with Boroondara Council's general building application as version 2, preserving version 1. Use the actual saved job address and confirmed details; the user authorizes a consistent fictional Ironbark profile for missing general fields. Label these values as demo data and never save them as confirmed job facts. Leave signatures, signing dates, declarations, approval/certificate references and unverified attachment claims for human confirmation. The updated [form examples](Third_Party_Form_Examples_Update.docx) guide field meaning; the actual source versions determine layout and fillable fields. This specific exception supersedes the general missing-value guidance below for these two demo drafts only.
+
 ## Broader PoC scope
 
 - Contractor signs in, enters an address and job type, and pastes or records the client's message.
