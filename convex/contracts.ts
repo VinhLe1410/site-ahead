@@ -57,28 +57,6 @@ export const audioIntakeResultValidator = v.object({
   extraction: intakeResultValidator,
 });
 
-export const intakeJobTypeValidator = v.union(
-  v.literal("excavation_and_trenching"),
-  v.literal("electrical_work"),
-  v.literal("other"),
-);
-
-export const intakeResultValidator = v.object({
-  jobType: intakeJobTypeValidator,
-  location: v.string(),
-  description: v.string(),
-});
-
-export const transcriptionResultValidator = v.object({
-  text: v.string(),
-  languageCode: v.optional(v.string()),
-});
-
-export const audioIntakeResultValidator = v.object({
-  transcript: v.string(),
-  extraction: intakeResultValidator,
-});
-
 export const MAX_TEMPLATE_ITEMS = 100;
 
 export function requireText(value: string, field: string): string {
