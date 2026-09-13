@@ -17,6 +17,7 @@ import type * as documentData from "../documentData.js";
 import type * as documentFiles from "../documentFiles.js";
 import type * as documents from "../documents.js";
 import type * as http from "../http.js";
+import type * as intake from "../intake.js";
 import type * as invitationActions from "../invitationActions.js";
 import type * as invitations from "../invitations.js";
 import type * as jobs from "../jobs.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   documentFiles: typeof documentFiles;
   documents: typeof documents;
   http: typeof http;
+  intake: typeof intake;
   invitationActions: typeof invitationActions;
   invitations: typeof invitations;
   jobs: typeof jobs;
