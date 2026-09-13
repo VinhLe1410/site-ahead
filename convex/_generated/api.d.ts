@@ -44,8 +44,11 @@ import type * as invitationActions from "../invitationActions.js";
 import type * as invitations from "../invitations.js";
 import type * as itemAgentData from "../itemAgentData.js";
 import type * as jobAgentContext from "../jobAgentContext.js";
+import type * as jobPreparation from "../jobPreparation.js";
+import type * as jobPreparationContext from "../jobPreparationContext.js";
 import type * as jobs from "../jobs.js";
 import type * as organizations from "../organizations.js";
+import type * as preparationContracts from "../preparationContracts.js";
 import type * as requestDocuments from "../requestDocuments.js";
 import type * as users from "../users.js";
 
@@ -92,8 +95,11 @@ declare const fullApi: ApiFromModules<{
   invitations: typeof invitations;
   itemAgentData: typeof itemAgentData;
   jobAgentContext: typeof jobAgentContext;
+  jobPreparation: typeof jobPreparation;
+  jobPreparationContext: typeof jobPreparationContext;
   jobs: typeof jobs;
   organizations: typeof organizations;
+  preparationContracts: typeof preparationContracts;
   requestDocuments: typeof requestDocuments;
   users: typeof users;
 }>;

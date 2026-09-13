@@ -1,6 +1,6 @@
 ## 1. Preparation data and access
 
-- [ ] 1.1 Add bounded preparation contracts and the additive `jobPreparations` table; verify generated types and existing jobs without backfill through `npm run check`.
+- [x] 1.1 Add bounded preparation contracts and the additive `jobPreparations` table; verify generated types and existing jobs without backfill through `npm run check`.
 - [ ] 1.2 Add canonical context/finding freshness, authenticated reads, direct completion/reopening/dismissal and job deletion cleanup; verify organization isolation, three-slot bounds and saved decisions without modifying checklist/job status.
 - [ ] 1.3 Add saved client-message editing and explicit regeneration from pending client questions with revision checks; verify internal/completed/dismissed tasks are omitted, edits persist and changed sources mark drafts stale.
 
