@@ -7,7 +7,9 @@ export function JobBrief({
   items,
   states,
 }: {
-  context: Omit<SnapshotContext, "item">;
+  context: Omit<SnapshotContext, "item" | "certificate"> & {
+    certificates?: Doc<"electricalCertificates">[];
+  };
   items: Doc<"checklistItems">[];
   states: Doc<"checklistAgentStates">[] | undefined;
 }) {

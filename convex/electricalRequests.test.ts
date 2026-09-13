@@ -8,6 +8,7 @@ import { loadItemContext } from "./jobAgentContext";
 import { executionSnapshot } from "./itemAgentData";
 import { electricalItems } from "../shared/electrical";
 import { prepareElectricalRequest } from "./agents/requests/electricalRequestSkills";
+import { PDFDocument } from "pdf-lib";
 
 const modules = import.meta.glob("./**/*.ts");
 
@@ -18,7 +19,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-export async function electricalFixture(
+async function electricalFixture(
   title: string = electricalItems[3].title,
   kind: "automated" | "third_party" = "third_party",
 ) {
@@ -191,4 +192,227 @@ test("removed membership cannot save a request result", async () => {
       traceId: "trace",
     }),
   ).toBe(false);
+});
+
+async function uploadedCertificate() {
+  const f = await electricalFixture(electricalItems[7].title, "automated");
+  await f.t.run((ctx) =>
+    ctx.db.patch("checklistAgentStates", f.stateId, { execution: "waiting" }),
+  );
+  const pdf = await PDFDocument.create();
+  pdf.addPage().drawText("TEST FIXTURE ONLY - NOT A COES");
+  const bytes = Uint8Array.from(await pdf.save()).buffer;
+
+  const certificateId = await f.member.action(
+    api.electricalCertificateFiles.upload,
+    { itemId: f.itemId, filename: "test-not-a-coes.pdf", bytes },
+  );
+
+  const certificate = await f.member.query(api.electricalDelivery.get, {
+    itemId: f.itemId,
+  });
+
+  if (!certificate) throw new Error("fixture_missing");
+
+  return { ...f, certificateId, certificate, bytes };
+}
+
+type CertificateFixture = Awaited<ReturnType<typeof uploadedCertificate>>;
+
+function confirmation(f: CertificateFixture) {
+  return {
+    itemId: f.itemId,
+    certificateId: f.certificateId,
+    storageId: f.certificate.storageId,
+    recipient: "test-only@example.com",
+    completedCertificateConfirmed: true,
+    simulationConfirmed: true,
+  };
+}
+
+async function drainSimulation(f: CertificateFixture) {
+  await f.t.mutation(internal.checklistExecution.drain, { jobId: f.jobId });
+
+  const state = await f.t.run((ctx) =>
+    ctx.db.get("checklistAgentStates", f.stateId),
+  );
+
+  const item = await f.t.run((ctx) => ctx.db.get("checklistItems", f.itemId));
+
+  if (!state?.runId || !item) throw new Error("fixture_missing");
+
+  return { item, runId: state.runId, traceId: "simulation-test" };
+}
+
+test("certificate validation, private retrieval and missing prerequisites", async () => {
+  const f = await uploadedCertificate();
+  await expect(
+    f.member.action(api.electricalCertificateFiles.upload, {
+      itemId: f.itemId,
+      filename: "invalid.pdf",
+      bytes: new TextEncoder().encode("not a PDF").buffer,
+    }),
+  ).rejects.toThrow("readable");
+  await expect(
+    f.member.action(api.electricalCertificateFiles.upload, {
+      itemId: f.itemId,
+      filename: "oversized.pdf",
+      bytes: new ArrayBuffer(2_000_001),
+    }),
+  ).rejects.toThrow("2 MB");
+  await expect(
+    f.t.action(api.electricalCertificateFiles.download, { itemId: f.itemId }),
+  ).rejects.toThrow();
+
+  const otherUser = await f.t.run(async (ctx) => {
+    const userId = await ctx.db.insert("users", {});
+
+    const organizationId = await ctx.db.insert("organizations", {
+      name: "Other",
+    });
+
+    await ctx.db.insert("memberships", {
+      userId,
+      organizationId,
+      role: "owner",
+      state: "active",
+    });
+
+    return userId;
+  });
+
+  await expect(
+    f.t
+      .withIdentity({ subject: `${otherUser}|other` })
+      .action(api.electricalCertificateFiles.download, { itemId: f.itemId }),
+  ).rejects.toThrow();
+
+  const downloaded = await f.member.action(
+    api.electricalCertificateFiles.download,
+    { itemId: f.itemId },
+  );
+
+  expect(downloaded.bytes.byteLength).toBe(f.bytes.byteLength);
+  await f.member.mutation(api.checklistExecution.retry, { itemId: f.itemId });
+  await f.t.mutation(
+    internal.electricalDelivery.simulate,
+    await drainSimulation(f),
+  );
+  expect(
+    await f.t.run((ctx) => ctx.db.get("checklistItems", f.itemId)),
+  ).toMatchObject({ status: "pending" });
+  expect(
+    await f.t.run((ctx) => ctx.db.get("checklistAgentStates", f.stateId)),
+  ).toMatchObject({ execution: "waiting" });
+});
+
+test("explicit confirmation produces one simulated result, without provider calls", async () => {
+  const f = await uploadedCertificate();
+  await expect(
+    f.member.mutation(api.electricalDelivery.confirm, {
+      ...confirmation(f),
+      completedCertificateConfirmed: false,
+    }),
+  ).rejects.toThrow("Explicitly");
+  await f.member.mutation(api.electricalDelivery.confirm, confirmation(f));
+
+  const first = await f.member.query(api.electricalDelivery.get, {
+    itemId: f.itemId,
+  });
+
+  await f.member.mutation(api.electricalDelivery.confirm, confirmation(f));
+  const run = await drainSimulation(f);
+  const fetchSpy = vi.spyOn(globalThis, "fetch");
+
+  try {
+    await f.t.mutation(internal.electricalDelivery.simulate, run);
+    await f.t.mutation(internal.electricalDelivery.simulate, run);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  } finally {
+    fetchSpy.mockRestore();
+  }
+
+  expect(
+    await f.t.run((ctx) => ctx.db.get("checklistItems", f.itemId)),
+  ).toMatchObject({ status: "done" });
+  expect(
+    await f.t.run((ctx) => ctx.db.get("checklistAgentStates", f.stateId)),
+  ).toMatchObject({
+    execution: "finished",
+    finding: {
+      mode: "simulation",
+      emailSent: false,
+      confirmationKey: first?.confirmationKey,
+    },
+  });
+  await f.member.mutation(api.electricalDelivery.confirm, confirmation(f));
+  expect(
+    (await f.member.query(api.electricalDelivery.get, { itemId: f.itemId }))
+      ?.confirmationKey,
+  ).toBe(first?.confirmationKey);
+});
+
+test("changed context revokes approval and rejects late simulation; same recipient can be reconfirmed", async () => {
+  const f = await uploadedCertificate();
+  await f.member.mutation(api.electricalDelivery.confirm, confirmation(f));
+  const oldRun = await drainSimulation(f);
+  await f.member.mutation(api.jobAgentContext.setFields, {
+    jobId: f.jobId,
+    fields: { clientEmail: "changed@example.com" },
+  });
+  await f.t.mutation(internal.electricalDelivery.simulate, oldRun);
+  expect(
+    (await f.t.run((ctx) => ctx.db.get("checklistItems", f.itemId)))?.status,
+  ).toBe("pending");
+  expect(
+    (await f.member.query(api.electricalDelivery.get, { itemId: f.itemId }))
+      ?.confirmedAt,
+  ).toBeUndefined();
+  await f.t.mutation(internal.checklistExecution.fail, {
+    itemId: f.itemId,
+    runId: oldRun.runId,
+    reason: "saved_context_changed",
+  });
+  await f.member.mutation(api.electricalDelivery.confirm, confirmation(f));
+  await f.t.mutation(
+    internal.electricalDelivery.simulate,
+    await drainSimulation(f),
+  );
+  expect(
+    (await f.t.run((ctx) => ctx.db.get("checklistItems", f.itemId)))?.status,
+  ).toBe("done");
+});
+
+test("manual completion is preserved and is not proof of simulation", async () => {
+  const f = await uploadedCertificate();
+  await f.member.mutation(api.electricalDelivery.confirm, confirmation(f));
+  const run = await drainSimulation(f);
+  await f.member.mutation(api.checklistItems.setStatus, {
+    itemId: f.itemId,
+    status: "done",
+  });
+  await f.t.mutation(internal.electricalDelivery.simulate, run);
+  expect(
+    (await f.member.query(api.electricalDelivery.get, { itemId: f.itemId }))
+      ?.simulatedAt,
+  ).toBeUndefined();
+  expect(
+    (await f.t.run((ctx) => ctx.db.get("checklistItems", f.itemId)))?.status,
+  ).toBe("done");
+});
+
+test("job deletion cleans certificate storage even without an agent state", async () => {
+  const f = await uploadedCertificate();
+  await f.t.run((ctx) => ctx.db.delete("checklistAgentStates", f.stateId));
+  await f.member.mutation(api.jobs.remove, { jobId: f.jobId });
+  expect(
+    await f.t.run((ctx) =>
+      ctx.db.get("electricalCertificates", f.certificateId),
+    ),
+  ).toBeNull();
+  expect(
+    await f.t.run((ctx) =>
+      ctx.db.system.get("_storage", f.certificate.storageId),
+    ),
+  ).toBeNull();
 });

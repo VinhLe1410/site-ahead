@@ -11,6 +11,7 @@
 import type * as access from "../access.js";
 import type * as agentContracts from "../agentContracts.js";
 import type * as agents_checklist_automatedChecks from "../agents/checklist/automatedChecks.js";
+import type * as agents_checklist_certificateDeliveryWorker from "../agents/checklist/certificateDeliveryWorker.js";
 import type * as agents_checklist_itemClassification from "../agents/checklist/itemClassification.js";
 import type * as agents_checklist_itemResolutionClassifier from "../agents/checklist/itemResolutionClassifier.js";
 import type * as agents_checklist_itemWorker from "../agents/checklist/itemWorker.js";
@@ -41,7 +42,9 @@ import type * as contracts from "../contracts.js";
 import type * as documentData from "../documentData.js";
 import type * as documentFiles from "../documentFiles.js";
 import type * as documents from "../documents.js";
+import type * as electricalCertificateFiles from "../electricalCertificateFiles.js";
 import type * as electricalContracts from "../electricalContracts.js";
+import type * as electricalDelivery from "../electricalDelivery.js";
 import type * as electricalRequests from "../electricalRequests.js";
 import type * as evidenceContracts from "../evidenceContracts.js";
 import type * as http from "../http.js";
@@ -70,6 +73,7 @@ declare const fullApi: ApiFromModules<{
   access: typeof access;
   agentContracts: typeof agentContracts;
   "agents/checklist/automatedChecks": typeof agents_checklist_automatedChecks;
+  "agents/checklist/certificateDeliveryWorker": typeof agents_checklist_certificateDeliveryWorker;
   "agents/checklist/itemClassification": typeof agents_checklist_itemClassification;
   "agents/checklist/itemResolutionClassifier": typeof agents_checklist_itemResolutionClassifier;
   "agents/checklist/itemWorker": typeof agents_checklist_itemWorker;
@@ -100,7 +104,9 @@ declare const fullApi: ApiFromModules<{
   documentData: typeof documentData;
   documentFiles: typeof documentFiles;
   documents: typeof documents;
+  electricalCertificateFiles: typeof electricalCertificateFiles;
   electricalContracts: typeof electricalContracts;
+  electricalDelivery: typeof electricalDelivery;
   electricalRequests: typeof electricalRequests;
   evidenceContracts: typeof evidenceContracts;
   http: typeof http;

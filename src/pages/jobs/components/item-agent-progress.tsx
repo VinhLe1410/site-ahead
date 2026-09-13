@@ -122,6 +122,7 @@ export function ItemAgentProgress({
       {state?.finding && (
         <div className="space-y-1">
           {(busy ||
+            state.snapshot === undefined ||
             state.execution !== "finished" ||
             item.status !== "done") && (
             <p className="text-xs font-medium text-muted-foreground">

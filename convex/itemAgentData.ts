@@ -23,6 +23,18 @@ export async function invalidateItemWork(
   ctx: MutationCtx,
   itemId: Id<"checklistItems">,
 ) {
+  const certificate = await ctx.db
+    .query("electricalCertificates")
+    .withIndex("by_itemId", (q) => q.eq("itemId", itemId))
+    .unique();
+
+  if (certificate?.confirmedAt !== undefined)
+    await ctx.db.patch("electricalCertificates", certificate._id, {
+      recipient: undefined,
+      confirmedBy: undefined,
+      confirmedAt: undefined,
+      confirmationKey: undefined,
+    });
   const state = await itemAgentState(ctx.db, itemId);
 
   if (state === null) return;
@@ -73,6 +85,16 @@ export async function removeItemWork(
   ctx: MutationCtx,
   itemId: Id<"checklistItems">,
 ) {
+  const certificate = await ctx.db
+    .query("electricalCertificates")
+    .withIndex("by_itemId", (q) => q.eq("itemId", itemId))
+    .unique();
+
+  if (certificate) {
+    await ctx.storage.delete(certificate.storageId);
+    await ctx.db.delete("electricalCertificates", certificate._id);
+  }
+
   const state = await itemAgentState(ctx.db, itemId);
 
   if (state === null) return;

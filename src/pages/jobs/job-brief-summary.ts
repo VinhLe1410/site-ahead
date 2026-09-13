@@ -4,7 +4,9 @@ import {
   type SnapshotContext,
 } from "../../../shared/item-agent-snapshots";
 
-type BriefContext = Omit<SnapshotContext, "item">;
+type BriefContext = Omit<SnapshotContext, "item" | "certificate"> & {
+  certificates?: Doc<"electricalCertificates">[];
+};
 
 type BriefEntry = { itemId: string; title: string; detail: string };
 
@@ -64,7 +66,13 @@ export function summarizeJobBrief(
     const current =
       state?.snapshot !== undefined &&
       state.snapshot ===
-        executionSnapshot({ ...context, item: { ...item, status: "pending" } });
+        executionSnapshot({
+          ...context,
+          item: { ...item, status: "pending" },
+          certificate: context.certificates?.find(
+            (certificate) => certificate.itemId === item._id,
+          ),
+        });
 
     const finding =
       current &&

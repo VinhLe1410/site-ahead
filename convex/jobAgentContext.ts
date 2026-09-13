@@ -19,12 +19,16 @@ import {
 } from "./itemAgentData";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { isCertificateDelivery } from "../shared/electrical";
 
 export const itemContextValidator = v.object({
   item: schema.doc("checklistItems"),
   job: schema.doc("jobs"),
   input: schema.doc("inputs"),
   category: v.union(schema.doc("categories"), v.null()),
+  certificate: v.optional(
+    v.union(schema.doc("electricalCertificates"), v.null()),
+  ),
 });
 
 export type ItemContext = Infer<typeof itemContextValidator>;
@@ -52,7 +56,18 @@ export async function loadItemContext(
   )
     return null;
 
-  return { item, job, input, category };
+  const certificate = isCertificateDelivery(item.title)
+    ? await db
+        .query("electricalCertificates")
+        .withIndex("by_itemId", (q) => q.eq("itemId", item._id))
+        .unique()
+    : undefined;
+
+  const context: ItemContext = { item, job, input, category };
+
+  if (certificate !== undefined) context.certificate = certificate;
+
+  return context;
 }
 
 export const get = internalQuery({

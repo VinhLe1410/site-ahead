@@ -1,7 +1,11 @@
 import type { Doc } from "../convex/_generated/dataModel";
 import type { ItemContext } from "../convex/jobAgentContext";
+import { isCertificateDelivery } from "./electrical";
 
-export type SnapshotContext = Pick<ItemContext, "item" | "job" | "input"> & {
+export type SnapshotContext = Pick<
+  ItemContext,
+  "item" | "job" | "input" | "certificate"
+> & {
   category: Pick<NonNullable<ItemContext["category"]>, "title"> | null;
 };
 
@@ -34,8 +38,15 @@ export function executionSnapshot(context: SnapshotContext) {
   const fields = context.job.agentContext;
   const title = context.item.title.toLowerCase();
 
-  const relevant =
-    context.item.kind === "third_party"
+  const relevant = isCertificateDelivery(context.item.title)
+    ? [
+        fields,
+        context.certificate?.storageId,
+        context.certificate?.recipient,
+        context.certificate?.confirmationKey,
+        context.certificate?.confirmedAt,
+      ]
+    : context.item.kind === "third_party"
       ? fields
       : title.includes("construction year")
         ? context.job.confirmedConstructionYear

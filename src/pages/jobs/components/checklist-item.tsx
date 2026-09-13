@@ -12,6 +12,8 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { ChecklistKindBadge } from "./checklist-kind-badge";
 import { ItemAgentProgress } from "./item-agent-progress";
+import { isCertificateDelivery } from "../../../../shared/electrical";
+import { CertificateDeliveryControls } from "./certificate-delivery-controls";
 
 export function ChecklistItem({
   item,
@@ -173,6 +175,16 @@ export function ChecklistItem({
         </ul>
       )}
       <ItemAgentProgress item={item} state={agentState} />
+      {isCertificateDelivery(item.title) && (
+        <CertificateDeliveryControls
+          item={item}
+          busy={Boolean(
+            agentState?.queued ||
+            agentState?.execution === "running" ||
+            agentState?.classification.status === "running",
+          )}
+        />
+      )}
       {editing && (
         <form
           id={`note-editor-${item._id}`}

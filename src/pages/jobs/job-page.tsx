@@ -194,6 +194,7 @@ function JobDetails({
         context={{
           job: data.job,
           input: data.input,
+          certificates: data.certificates,
           category: data.categoryTitle ? { title: data.categoryTitle } : null,
         }}
         items={data.checklist}
