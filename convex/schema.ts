@@ -103,6 +103,7 @@ export const schema = defineSchema({
   categories: defineTable({
     organizationId: v.id("organizations"),
     title: v.string(),
+    description: v.optional(v.string()),
     checklist: v.array(templateItemValidator),
   }).index("by_organizationId", ["organizationId"]),
   jobDrafts: defineTable({

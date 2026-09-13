@@ -284,7 +284,9 @@ export const context = internalQuery({
   returns: v.union(
     v.object({
       draft: schema.doc("jobDrafts"),
-      categories: v.array(schema.doc("categories").pick("_id", "title")),
+      categories: v.array(
+        schema.doc("categories").pick("_id", "title", "description"),
+      ),
     }),
     v.null(),
   ),
@@ -319,7 +321,11 @@ export const context = internalQuery({
 
     return {
       draft,
-      categories: categories.map(({ _id, title }) => ({ _id, title })),
+      categories: categories.map(({ _id, title, description }) => ({
+        _id,
+        title,
+        description,
+      })),
     };
   },
 });
