@@ -35,6 +35,18 @@ export const documentDetailsValidator = v.object({
   description: v.string(),
 });
 
+export const intakeJobTypeValidator = v.union(
+  v.literal("excavation_and_trenching"),
+  v.literal("electrical_work"),
+  v.literal("other"),
+);
+
+export const intakeResultValidator = v.object({
+  jobType: intakeJobTypeValidator,
+  location: v.string(),
+  description: v.string(),
+});
+
 export const MAX_TEMPLATE_ITEMS = 100;
 
 export function requireText(value: string, field: string): string {
