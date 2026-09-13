@@ -6,7 +6,9 @@ This extension prepares a prescribed Electrical job, an inspector booking email 
 
 Choose **Electrical Work** and enter **198 Berkeley Street, Carlton** as the address. Paste this job description:
 
-> Please replace the complete residential main switchboard and the consumer mains at 198 Berkeley Street, Carlton. This is planned installation work; it has not started. Arrange a Licensed Electrical Inspector for the prescribed work. Prepare the inspector booking request and the information we can review before entering it in ESVConnect. The electrician still needs to complete installation testing and confirm RCD coverage; the independent inspection and COES certification are outstanding. The client and contractor contact details, licence numbers, inspection date, actual test results and certificate reference have not yet been supplied. Do not describe any of these steps as completed.
+> The client contacted Son Tung Bui about replacing the complete residential main switchboard and consumer mains at 198 Berkeley Street, Carlton. They would like a quote and a site visit to discuss the work, how long the power would be off, and a suitable time to carry it out.
+
+This fictional conversation summary describes the client's request. Inspection, form preparation and certification instructions belong to the agent workflow, not the client's brief. It records no agreed appointment, completed work or outage duration.
 
 Use **Berkeley Street** and **Carlton** for the road lookup. Do not substitute another location to improve the result. A successful live lookup can validly return zero published matches.
 
