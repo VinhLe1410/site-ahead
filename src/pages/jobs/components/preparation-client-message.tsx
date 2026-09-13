@@ -180,7 +180,7 @@ export function PreparationClientMessage({
             >
               Copy message
             </Button>
-            {!canRegenerate || working ? (
+            {!canRegenerate ? (
               <Button variant="outline" disabled>
                 Regenerate message
               </Button>
@@ -195,6 +195,7 @@ export function PreparationClientMessage({
             ) : (
               <Button
                 variant="outline"
+                disabled={working}
                 onClick={() => void regenerateWithoutConfirmation()}
               >
                 Regenerate message
