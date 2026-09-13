@@ -455,6 +455,19 @@ describe("preparation shares job access and protects human decisions", () => {
     expect(stale?.stale).toBe(true);
     expect(stale?.messageStale).toBe(true);
     expect(stale?.record?.entries[0]?.id).toBe("preparation-question");
+    await fixture.staff.mutation(api.jobPreparation.saveMessage, {
+      jobId: fixture.jobId,
+      text: "Reviewed against the changed job",
+      expectedRevision: 1,
+    });
+
+    const reviewed = await fixture.staff.query(api.jobPreparation.get, {
+      jobId: fixture.jobId,
+    });
+
+    expect(reviewed?.messageStale).toBe(false);
+    expect(reviewed?.stale).toBe(true);
+
     const nextRun = await claimFixture(fixture);
     await fixture.staff.mutation(api.jobPreparation.setStatus, {
       jobId: fixture.jobId,
@@ -518,6 +531,27 @@ describe("preparation shares job access and protects human decisions", () => {
     expect(result?.record?.entries[0]?.status).toBe("done");
     expect(result?.staleEntryIds).toContain("preparation-question");
     expect(result?.stale).toBe(false);
+
+    const overfullRun = await claimFixture(fixture);
+
+    const overfullSuggestions = [0, 1, 2].map((index) => ({
+      ...generatedPreparation[0],
+      action: `Additional preparation ${index}`,
+    }));
+
+    expect(
+      await fixture.t.mutation(internal.jobPreparationGeneration.finish, {
+        ...overfullRun,
+        suggestions: overfullSuggestions,
+      }),
+    ).toBe("failed");
+    expect(
+      (
+        await fixture.staff.query(api.jobPreparation.get, {
+          jobId: fixture.jobId,
+        })
+      )?.record?.entries,
+    ).toHaveLength(2);
   });
 
   test("failure preserves saved work, expiry permits retry, and lost membership or deletion reject late saves", async () => {

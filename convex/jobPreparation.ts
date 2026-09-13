@@ -83,9 +83,8 @@ export const get = query({
       staleEntryIds,
       messageStale:
         record?.message !== undefined &&
-        (stale ||
-          record.message.sourceSnapshot !==
-            clientMessageSnapshot(record.entries, context.fingerprint)),
+        record.message.sourceSnapshot !==
+          clientMessageSnapshot(record.entries, context.fingerprint),
       contextError: context.error,
     };
   },
