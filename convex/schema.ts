@@ -18,8 +18,13 @@ import {
 } from "./agentContracts";
 
 import { jobPreparationValidator } from "./preparationContracts";
+import { electricalCertificateValidator } from "./electricalContracts";
 
 export const schema = defineSchema({
+  electricalCertificates: defineTable(electricalCertificateValidator).index(
+    "by_itemId",
+    ["itemId"],
+  ),
   jobPreparations: defineTable(jobPreparationValidator).index("by_jobId", [
     "jobId",
   ]),

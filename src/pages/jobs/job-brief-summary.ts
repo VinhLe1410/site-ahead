@@ -22,6 +22,9 @@ function findingSummary(
   finding: NonNullable<Doc<"checklistAgentStates">["finding"]>,
 ) {
   switch (finding.kind) {
+    case "electrical_classification":
+    case "simulated_certificate_delivery":
+      return finding.summary;
     case "construction_year":
       return `${finding.constructionYear} (${finding.pre1990 ? "before 1990" : "1990 or later"}); ${finding.resolution === "manual_fallback" ? "contractor-confirmed year after DataVic had no usable year" : "DataVic exact-address record"}.`;
     case "air_quality":

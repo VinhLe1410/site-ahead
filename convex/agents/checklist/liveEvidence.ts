@@ -7,8 +7,14 @@ import {
   validateConstructionYear,
 } from "../../agentContracts";
 import type { ItemContext } from "../../jobAgentContext";
+import {
+  classifyElectricalScope,
+  ELECTRICAL_RULE_SOURCE,
+  electricalItems,
+} from "../../../shared/electrical";
 
 export const SOURCES = {
+  electrical_classification: ELECTRICAL_RULE_SOURCE,
   construction_year:
     "https://discover.data.vic.gov.au/api/3/action/datastore_search",
   air_quality: "https://www.epa.vic.gov.au/api/environment/air/sites",
@@ -68,6 +74,9 @@ export class EvidenceFailure extends Error {
 
 export function evidenceKind(title: string): EvidenceKind | null {
   const value = title.trim().toLowerCase();
+
+  if (value === electricalItems[0].title.toLowerCase())
+    return "electrical_classification";
 
   if (value.includes("construction year")) return "construction_year";
 
@@ -742,6 +751,49 @@ export async function resolveLiveEvidence(
   const signal = AbortSignal.timeout(90_000);
 
   switch (kind) {
+    case "electrical_classification": {
+      const result = classifyElectricalScope(context.input.processedText);
+
+      const provenance = [
+        {
+          source: ELECTRICAL_RULE_SOURCE,
+          method: "database" as const,
+          observedAt: now,
+          reference:
+            "ESV scope rule checked against saved input; not live site evidence",
+        },
+      ];
+
+      if (result.classification === "unresolved")
+        return {
+          status: "unresolved",
+          reason: result.reason,
+          missingInformation: [
+            {
+              field: "electrical_scope",
+              label: "Detailed electrical scope",
+              reason: result.reason,
+            },
+          ],
+          provenance,
+        };
+
+      return {
+        status: "resolved",
+        finding: {
+          kind: "electrical_classification",
+          ...result,
+          classification: result.classification,
+          summary: `${result.classification === "prescribed" ? "Prescribed" : "Non-prescribed"} electrical work: ${result.reason}`,
+          observedAt: now,
+          source: ELECTRICAL_RULE_SOURCE,
+          coverage:
+            "Bounded ESV scope rule applied to saved job text. This does not establish installation, testing, inspection, certification or site safety.",
+        },
+        provenance,
+      };
+    }
+
     case "construction_year":
       return await constructionYear(context, fetcher, now, signal);
     case "air_quality":

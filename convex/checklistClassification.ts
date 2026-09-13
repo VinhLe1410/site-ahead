@@ -1,4 +1,5 @@
 import { ConvexError, v } from "convex/values";
+import { electricalItemKind } from "../shared/electrical";
 import { internal } from "./_generated/api";
 import { internalMutation } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
@@ -135,10 +136,17 @@ export const save = internalMutation({
       membership.organizationId !== context.job.organizationId ||
       classificationSnapshot(context) !== state.classification.snapshot;
 
+    const expectedKind =
+      item === null ? undefined : electricalItemKind(item.title);
+
     const failure = stale
       ? "saved_context_changed"
       : (args.failure ??
-        (args.category === undefined ? "missing_model_category" : undefined));
+        (args.category === undefined
+          ? "missing_model_category"
+          : expectedKind !== undefined && args.category !== expectedKind
+            ? "electrical_item_category_mismatch"
+            : undefined));
 
     if (failure !== undefined) {
       await ctx.db.patch("checklistAgentStates", state._id, {

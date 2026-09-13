@@ -1,4 +1,8 @@
 import { v } from "convex/values";
+import {
+  electricalFindingValidator,
+  simulatedDeliveryFindingValidator,
+} from "./electricalContracts";
 
 export const constructionFindingValidator = v.object({
   kind: v.literal("construction_year"),
@@ -73,6 +77,8 @@ export const roadFindingValidator = v.object({
 });
 
 export const agentFindingValidator = v.union(
+  electricalFindingValidator,
+  simulatedDeliveryFindingValidator,
   constructionFindingValidator,
   airFindingValidator,
   roadFindingValidator,

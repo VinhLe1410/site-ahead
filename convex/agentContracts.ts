@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { agentFindingValidator } from "./evidenceContracts";
+import { electricalRequestDraftValidator } from "./electricalContracts";
 
 export const formKeyValidator = v.union(
   v.literal("building-permit-request"),
@@ -23,6 +24,10 @@ export const jobAgentFieldsValidator = v.object({
   contractorPhone: v.optional(v.string()),
   contractorLicence: v.optional(v.string()),
   clientName: v.optional(v.string()),
+  clientEmail: v.optional(v.string()),
+  inspectorName: v.optional(v.string()),
+  inspectorEmail: v.optional(v.string()),
+  siteAccess: v.optional(v.string()),
   plannedStartDate: v.optional(v.string()),
 });
 
@@ -59,6 +64,7 @@ export const agentProvenanceValidator = evidenceProvenanceValidator
       v.literal("manual"),
       v.literal("database"),
       v.literal("demo_data"),
+      v.literal("simulation"),
     ),
   });
 
@@ -117,6 +123,7 @@ export const checklistAgentStateValidator = v.object({
   updatedAt: v.number(),
   finding: v.optional(agentFindingValidator),
   draft: v.optional(agentDraftValidator),
+  requestDraft: v.optional(electricalRequestDraftValidator),
   provenance: v.array(agentProvenanceValidator),
   missingInformation: v.array(missingFieldValidator),
   nextAction: v.string(),

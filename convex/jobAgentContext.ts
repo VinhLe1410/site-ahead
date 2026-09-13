@@ -160,6 +160,10 @@ export const setFields = mutation({
       "contractorPhone",
       "contractorLicence",
       "clientName",
+      "clientEmail",
+      "inspectorName",
+      "inspectorEmail",
+      "siteAccess",
       "plannedStartDate",
     ] as const;
 
@@ -173,11 +177,14 @@ export const setFields = mutation({
       fields[key] = value === "" ? undefined : value;
     }
 
-    if (
-      fields.contractorEmail !== undefined &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.contractorEmail)
-    )
-      throw new ConvexError("Provide a valid contractor email address.");
+    for (const email of [
+      fields.contractorEmail,
+      fields.clientEmail,
+      fields.inspectorEmail,
+    ]) {
+      if (email !== undefined && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+        throw new ConvexError("Provide a valid email address.");
+    }
 
     if (fields.plannedStartDate !== undefined) {
       const date = new Date(`${fields.plannedStartDate}T00:00:00.000Z`);

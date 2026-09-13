@@ -13,6 +13,7 @@ const sourceLabels = {
   manual: "Contractor-confirmed information",
   live_api: "Live data",
   demo_data: "Fictional demo data",
+  simulation: "PoC simulation — no email sent",
 };
 
 function progressMessage(value: string) {

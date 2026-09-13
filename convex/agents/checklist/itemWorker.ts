@@ -23,6 +23,8 @@ import {
 } from "../shared/observability";
 
 const toolDescriptions = {
+  electrical_classification:
+    "Apply the supported ESV prescribed/non-prescribed scope rules to the detailed saved job text. Return matched scope and rule or explicit ambiguity. Never infer testing, inspection, certification or completion.",
   construction_year:
     "Look up the saved site's construction year in DataVic. Only a successful no-match/absent-year lookup may use its validated contractor-confirmed year. Returns validated finding or explicit missing information.",
   air_quality:
