@@ -1,0 +1,154 @@
+[
+  {
+    "id": "TC01_EXCAVATION_STORMWATER",
+    "category": "excavation_and_trenching",
+    "transcript": "G'day mate, this is Marcus Vance calling. We're at 84 Glenferrie Road in Malvern. I'm after a quote to dig out a 35-metre trench for our new plumbing and stormwater drainage down the side alley to the front easement. Needs to be about 600 mil deep. The side access between the house and fence is pretty narrow—probably around 1 metre clearance—so we'll need a micro-digger or 1.7-tonne mini excavator with rubber tracks to avoid chewing up the driveway. Need it done before the plumbers arrive next Tuesday. Give me a call back on 0418 332 901.",
+    "groundTruth": {
+      "jobType": "excavation_and_trenching",
+      "expectedLocationTokens": ["84", "Glenferrie", "Malvern"],
+      "expectedDescriptionKeywords": [
+        "trench",
+        "stormwater",
+        "600",
+        "narrow",
+        "excavator"
+      ]
+    }
+  },
+  {
+    "id": "TC02_EXCAVATION_RETAINING_WALL",
+    "category": "excavation_and_trenching",
+    "transcript": "Hi there, Dave here from 42 Banksia Crescent over in Ringwood North. We're doing a big backyard renovation and need a site cut and trenching for a 15-meter concrete sleeper retaining wall footing along the rear boundary. Soil is heavy clay and there's a couple of small tree stumps to dig out too. Looking to get this booked in in two weeks.",
+    "groundTruth": {
+      "jobType": "excavation_and_trenching",
+      "expectedLocationTokens": ["42", "Banksia", "Ringwood North"],
+      "expectedDescriptionKeywords": [
+        "retaining wall",
+        "site cut",
+        "footing",
+        "clay",
+        "stumps"
+      ]
+    }
+  },
+  {
+    "id": "TC03_EXCAVATION_POST_HOLES",
+    "category": "excavation_and_trenching",
+    "transcript": "Hey guys, need someone with an auger attachment on a mini digger at 19 Somerset St, Richmond. Need 12 post holes drilled for a high timber boundary fence, 450mm diameter down to 900mm depth. Access is straight off the back lane so easy in and out.",
+    "groundTruth": {
+      "jobType": "excavation_and_trenching",
+      "expectedLocationTokens": ["19", "Somerset", "Richmond"],
+      "expectedDescriptionKeywords": [
+        "post holes",
+        "auger",
+        "fence",
+        "450mm",
+        "900mm"
+      ]
+    }
+  },
+  {
+    "id": "TC04_ELECTRICAL_SWITCHBOARD_RCD",
+    "category": "electrical_work",
+    "transcript": "Hello, this is Brenda Hughes at 14 Carrington Avenue, Mosman. We need an electrician to replace our old main switchboard. It has the original porcelain re-wireable fuses and no safety switches, and we keep losing power in the kitchen whenever the oven and kettle run at once. We also want to wire up an outdoor sub-board and weather-rated power points for a new pool pump out back. Looking to book someone in within the next 2 to 3 weeks.",
+    "groundTruth": {
+      "jobType": "electrical_work",
+      "expectedLocationTokens": ["14", "Carrington", "Mosman"],
+      "expectedDescriptionKeywords": [
+        "switchboard",
+        "fuses",
+        "safety switches",
+        "pool pump",
+        "sub-board"
+      ]
+    }
+  },
+  {
+    "id": "TC05_ELECTRICAL_EV_CHARGER",
+    "category": "electrical_work",
+    "transcript": "Good morning. My name is Liam Patel, address is 205 Brunswick Street, Fitzroy. We've just taken delivery of a Tesla and need a 3-phase 11kW wall connector installed in the garage. The main switchboard is in the front hallway about 15 meters away, so cable will need to be run through the roof cavity. Ready to go immediately.",
+    "groundTruth": {
+      "jobType": "electrical_work",
+      "expectedLocationTokens": ["205", "Brunswick", "Fitzroy"],
+      "expectedDescriptionKeywords": [
+        "EV",
+        "charger",
+        "wall connector",
+        "3-phase",
+        "garage",
+        "cable"
+      ]
+    }
+  },
+  {
+    "id": "TC06_ELECTRICAL_POWER_OUTAGE_TRIPPING",
+    "category": "electrical_work",
+    "transcript": "Emergency job if possible: 73 Kooyong Road, Caulfield North. Half our house has lost power, the safety switch tripped and won't reset even with all appliances unplugged. Smelled a bit of burning plastic near the hallway meter box.",
+    "groundTruth": {
+      "jobType": "electrical_work",
+      "expectedLocationTokens": ["73", "Kooyong", "Caulfield North"],
+      "expectedDescriptionKeywords": [
+        "power",
+        "safety switch",
+        "reset",
+        "meter box",
+        "burning"
+      ]
+    }
+  },
+  {
+    "id": "TC07_EDGE_MISSING_ADDRESS",
+    "category": "edge_cases",
+    "transcript": "G'day, looking for a quote to dig a 20-meter ditch for an electrical conduit from my shed to the granny flat in the back garden. Can you give me an estimate per metre?",
+    "groundTruth": {
+      "jobType": "excavation_and_trenching",
+      "expectedLocationTokens": ["not provided"],
+      "expectedDescriptionKeywords": ["conduit", "ditch", "shed", "granny flat"]
+    }
+  },
+  {
+    "id": "TC08_EDGE_OTHER_TRADE_PLUMBING",
+    "category": "edge_cases",
+    "transcript": "Hi, I have a burst copper water pipe spraying water under our bathroom subfloor at 12 Elm Grove, Kew. Need a plumber urgently to shut it off and re-pipe the line.",
+    "groundTruth": {
+      "jobType": "other",
+      "expectedLocationTokens": ["12", "Elm", "Kew"],
+      "expectedDescriptionKeywords": [
+        "burst",
+        "water pipe",
+        "bathroom",
+        "plumber"
+      ]
+    }
+  },
+  {
+    "id": "TC09_EDGE_MESSY_VOICEMAIL_RAMBLE",
+    "category": "excavation_and_trenching",
+    "transcript": "Oh hi, uh yeah... look, my brother-in-law said you blokes do earthworks. We're over in Box Hill South, number 5 Wembley Avenue. Basically we bought this spa and the delivery guys said they won't put it down unless the ground is completely leveled out with a compacted crushed rock pad. It's about 3 by 3 metres in the corner of the lawn. Call me back on 0400 123 456.",
+    "groundTruth": {
+      "jobType": "excavation_and_trenching",
+      "expectedLocationTokens": ["5", "Wembley", "Box Hill South"],
+      "expectedDescriptionKeywords": [
+        "spa",
+        "leveled",
+        "crushed rock",
+        "earthworks"
+      ]
+    }
+  },
+  {
+    "id": "TC10_EDGE_CROSS_DISCIPLINE_SOLAR",
+    "category": "electrical_work",
+    "transcript": "Hi, we are at 88 Marine Parade, Elwood. We have solar panels on the roof and want to add a 10kWh home battery storage system and replace our switchboard enclosure with a smart meter. Let me know when you can come out for an inspection.",
+    "groundTruth": {
+      "jobType": "electrical_work",
+      "expectedLocationTokens": ["88", "Marine", "Elwood"],
+      "expectedDescriptionKeywords": [
+        "battery",
+        "solar",
+        "switchboard",
+        "smart meter"
+      ]
+    }
+  }
+]

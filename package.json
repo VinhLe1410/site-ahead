@@ -18,6 +18,8 @@
     "openspec": "openspec",
     "openspec:refresh": "node tools/openspec-skills.mjs --refresh && oxfmt --write .claude/commands/opsx",
     "openspec:check": "node tools/openspec-skills.mjs --check && openspec validate --all --strict --no-interactive",
+    "eval:intake": "node tools/eval-intake.ts",
+    "eval:audio": "node tools/eval-audio-intake.ts",
     "preview": "vite preview",
     "prepare": "husky"
   },
