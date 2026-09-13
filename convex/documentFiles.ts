@@ -140,3 +140,50 @@ export const download = httpAction(async (ctx, request) => {
     });
   }
 });
+
+export const downloadDraft = httpAction(async (ctx, request) => {
+  if ((await ctx.auth.getUserIdentity()) === null)
+    return new Response("Sign in to download drafts.", {
+      status: 401,
+      headers,
+    });
+
+  try {
+    const itemId = new URL(request.url).searchParams.get("itemId");
+
+    if (itemId === null) throw new ConvexError("Choose a checklist item.");
+
+    const draft = await ctx.runQuery(
+      internal.requestDocuments.downloadContext,
+      { itemId },
+    );
+
+    const file = await ctx.storage.get(draft.storageId);
+
+    if (file === null) throw new ConvexError("This draft is unavailable.");
+
+    const filename = encodeURIComponent(draft.filename).replace(
+      /['()*]/g,
+      (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
+    );
+
+    return new Response(file, {
+      headers: {
+        ...headers,
+        "Content-Type": draft.contentType,
+        "Content-Disposition": `attachment; filename*=UTF-8''${filename}`,
+      },
+    });
+  } catch (error) {
+    if (error instanceof ConvexError)
+      return new Response(getErrorMessage(error, "Draft access denied."), {
+        status: 403,
+        headers,
+      });
+
+    return new Response("The draft download failed. Please try again.", {
+      status: 500,
+      headers,
+    });
+  }
+});

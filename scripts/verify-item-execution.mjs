@@ -58,12 +58,12 @@ async function main() {
 
       const eligible = saved.states.filter(
         (state) =>
-          saved.items.find((item) => item._id === state.itemId)?.kind ===
-          "automated",
+          saved.items.find((item) => item._id === state.itemId)?.kind !==
+          "on_site",
       );
 
       if (
-        eligible.length === 3 &&
+        eligible.length === 5 &&
         eligible.every(
           (state) =>
             !state.queued &&
@@ -108,8 +108,28 @@ async function main() {
     );
     assert.ok(
       saved.states
-        .filter((state) => !completed.includes(state))
+        .filter(
+          (state) =>
+            saved.items.find((item) => item._id === state.itemId)?.kind ===
+            "on_site",
+        )
         .every((state) => state.threadId === undefined),
+    );
+
+    const unsupportedRequests = saved.states.filter(
+      (state) =>
+        saved.items.find((item) => item._id === state.itemId)?.kind ===
+        "third_party",
+    );
+
+    assert.equal(unsupportedRequests.length, 2);
+    assert.ok(
+      unsupportedRequests.every(
+        (state) =>
+          state.threadId &&
+          state.execution === "failed" &&
+          state.error === "request_pinned_source_missing",
+      ),
     );
 
     const tools = await run("agents/checklist/verification:executionTools", {

@@ -412,7 +412,7 @@ test("expected dispatch recovers a successful classification with no enqueue and
     });
     const newer = await readState();
     expect(newer).toMatchObject({
-      currentStep: "manual_request",
+      currentStep: "ready",
       classification: { dispatchPending: false },
     });
     await t.mutation(internal.checklistClassification.expire, {

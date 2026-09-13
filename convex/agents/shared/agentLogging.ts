@@ -48,6 +48,8 @@ export type AgentLog = {
   traceId?: string;
   toolId?: string;
   skillId?: string;
+  sourceVersionId?: string;
+  fieldNames?: string[];
   count?: number;
 };
 
@@ -68,6 +70,11 @@ export function logAgentStage(event: AgentLog) {
     traceId: identifier(event.traceId),
     toolId: identifier(event.toolId),
     skillId: identifier(event.skillId),
+    sourceVersionId: identifier(event.sourceVersionId),
+    fieldNames: event.fieldNames
+      ?.slice(0, 30)
+      .map((field) => identifier(field))
+      .filter((field) => field !== undefined),
     count: Number.isSafeInteger(event.count) ? event.count : undefined,
   });
 }

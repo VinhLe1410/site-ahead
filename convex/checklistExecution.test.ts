@@ -551,7 +551,7 @@ test("automatic dispatch rejects job edits after classification while explicit r
   expect(run?.context.job.addressText).toBe("Changed address");
 });
 
-test("third-party execution is left pending for manual handling in this checkpoint", async () => {
+test("third-party execution claims one persistent thread and keeps checklist pending", async () => {
   const { t, items, enqueue, drain, states, staff } = await setup();
 
   const item = await t.run(async (ctx) => {
@@ -577,11 +577,11 @@ test("third-party execution is left pending for manual handling in this checkpoi
     return current!;
   });
 
-  expect(await enqueue(item)).toBe(false);
+  expect(await enqueue(item)).toBe(true);
   await staff.mutation(api.checklistExecution.retry, { itemId: item._id });
   await drain();
-  expect((await states())[0].threadId).toBeUndefined();
-  expect((await states())[0].execution).toBe("idle");
+  expect((await states())[0].threadId).toBeDefined();
+  expect((await states())[0].execution).toBe("running");
   expect(
     (await t.run((ctx) => ctx.db.get("checklistItems", item._id)))?.status,
   ).toBe("pending");

@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { z } from "zod";
 import { agentFindingValidator } from "../../evidenceContracts";
 import {
-  agentProvenanceValidator,
+  evidenceProvenanceValidator,
   missingFieldValidator,
   validateConstructionYear,
 } from "../../agentContracts";
@@ -38,19 +38,19 @@ export type EvidenceFetch = (
 
 export type EvidenceFinding = Infer<typeof agentFindingValidator>;
 
-export type EvidenceProvenance = Infer<typeof agentProvenanceValidator>;
+export type EvidenceProvenance = Infer<typeof evidenceProvenanceValidator>;
 
 export const evidenceResultValidator = v.union(
   v.object({
     status: v.literal("resolved"),
     finding: agentFindingValidator,
-    provenance: v.array(agentProvenanceValidator),
+    provenance: v.array(evidenceProvenanceValidator),
   }),
   v.object({
     status: v.literal("unresolved"),
     reason: v.string(),
     missingInformation: v.array(missingFieldValidator),
-    provenance: v.array(agentProvenanceValidator),
+    provenance: v.array(evidenceProvenanceValidator),
   }),
 );
 

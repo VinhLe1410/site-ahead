@@ -21,7 +21,7 @@ export const run = internalAction({
     for (const supplied of args.items) {
       if (
         !result.classifications.some(
-          (item) => item.id === supplied._id && item.category === "automated",
+          (item) => item.id === supplied._id && item.category !== "on_site",
         )
       )
         continue;

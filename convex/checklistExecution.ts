@@ -50,7 +50,7 @@ async function currentContext(
     membership?.state !== "active" ||
     membership.organizationId !== context.job.organizationId ||
     context.item.status !== "pending" ||
-    context.item.kind !== "automated" ||
+    context.item.kind === "on_site" ||
     state.snapshot !== executionSnapshot(context)
   )
     return null;
@@ -67,7 +67,7 @@ export async function enqueueItem(
 
   if (
     item.status !== "pending" ||
-    item.kind !== "automated" ||
+    item.kind === "on_site" ||
     state === null ||
     state.classification.status !== "succeeded" ||
     state.execution === "running" ||
@@ -286,7 +286,9 @@ export const drain = internalMutation({
       });
       await ctx.scheduler.runAfter(
         0,
-        internal.agents.checklist.itemWorker.run,
+        context.item.kind === "third_party"
+          ? internal.agents.requests.requestWorker.run
+          : internal.agents.checklist.itemWorker.run,
         { item: context.item, runId },
       );
       await ctx.scheduler.runAfter(
@@ -318,21 +320,26 @@ export const getRun = internalQuery({
     }),
     v.null(),
   ),
-  handler: async (ctx, args) => {
-    const state = await itemAgentState(ctx.db, args.itemId);
-
-    if (
-      state === null ||
-      state.execution !== "running" ||
-      state.runId !== args.runId ||
-      (state.deadlineAt ?? 0) <= Date.now()
-    )
-      return null;
-    const context = await currentContext(ctx, state);
-
-    return context === null ? null : { context, state };
-  },
+  handler: async (ctx, args) => await loadExecutionRun(ctx, args),
 });
+
+export async function loadExecutionRun(
+  ctx: QueryCtx,
+  args: { itemId: Id<"checklistItems">; runId: string },
+) {
+  const state = await itemAgentState(ctx.db, args.itemId);
+
+  if (
+    state === null ||
+    state.execution !== "running" ||
+    state.runId !== args.runId ||
+    (state.deadlineAt ?? 0) <= Date.now()
+  )
+    return null;
+  const context = await currentContext(ctx, state);
+
+  return context === null ? null : { context, state };
+}
 
 export const step = internalMutation({
   args: {
@@ -344,6 +351,9 @@ export const step = internalMutation({
       v.literal("api_call"),
       v.literal("model"),
       v.literal("persistence"),
+      v.literal("skill_selection"),
+      v.literal("form_read"),
+      v.literal("form_fill"),
     ),
   },
   returns: v.boolean(),

@@ -39,7 +39,7 @@ export const agentExecutionValidator = v.union(
   v.literal("failed"),
 );
 
-export const agentProvenanceValidator = v.object({
+export const evidenceProvenanceValidator = v.object({
   source: v.string(),
   method: v.union(
     v.literal("live_api"),
@@ -50,6 +50,17 @@ export const agentProvenanceValidator = v.object({
   reference: v.optional(v.string()),
   suppliedBy: v.optional(v.id("users")),
 });
+
+export const agentProvenanceValidator = evidenceProvenanceValidator
+  .omit("method")
+  .extend({
+    method: v.union(
+      v.literal("live_api"),
+      v.literal("manual"),
+      v.literal("database"),
+      v.literal("demo_data"),
+    ),
+  });
 
 export const missingFieldValidator = v.object({
   field: v.string(),
@@ -65,6 +76,8 @@ export const agentDraftValidator = v.object({
   contentType: v.string(),
   size: v.number(),
   savedAt: v.number(),
+  sourceSha256: v.optional(v.string()),
+  sha256: v.optional(v.string()),
 });
 
 export const agentClassificationValidator = v.object({

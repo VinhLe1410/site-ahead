@@ -172,7 +172,7 @@ export const save = internalMutation({
         status: "succeeded",
         dispatchPending:
           state.classification.dispatchPending === true &&
-          args.category === "automated",
+          args.category !== "on_site",
         traceId: args.traceId,
         snapshot: classificationSnapshot({
           ...context,
@@ -184,9 +184,7 @@ export const save = internalMutation({
         state.threadId === undefined
           ? args.category === "on_site"
             ? "human_check"
-            : args.category === "third_party"
-              ? "manual_request"
-              : "ready"
+            : "ready"
           : state.currentStep,
       error: state.threadId === undefined ? undefined : state.error,
       updatedAt: Date.now(),
@@ -194,9 +192,7 @@ export const save = internalMutation({
         state.threadId === undefined
           ? args.category === "on_site"
             ? "Complete this check manually."
-            : args.category === "third_party"
-              ? "Handle this request manually. Request drafts are planned for a follow-up."
-              : "Ready for item processing."
+            : "Ready for item processing."
           : state.nextAction,
     });
 

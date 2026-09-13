@@ -22,6 +22,8 @@ import type * as agents_requests_buildingPermitSkill from "../agents/requests/bu
 import type * as agents_requests_occupancyPermitDocx from "../agents/requests/occupancyPermitDocx.js";
 import type * as agents_requests_occupancyPermitSkill from "../agents/requests/occupancyPermitSkill.js";
 import type * as agents_requests_requestProfile from "../agents/requests/requestProfile.js";
+import type * as agents_requests_requestSkills from "../agents/requests/requestSkills.js";
+import type * as agents_requests_requestWorker from "../agents/requests/requestWorker.js";
 import type * as agents_shared_agentLogging from "../agents/shared/agentLogging.js";
 import type * as agents_shared_observability from "../agents/shared/observability.js";
 import type * as agents_shared_observabilitySmokeTest from "../agents/shared/observabilitySmokeTest.js";
@@ -43,6 +45,7 @@ import type * as itemAgentData from "../itemAgentData.js";
 import type * as jobAgentContext from "../jobAgentContext.js";
 import type * as jobs from "../jobs.js";
 import type * as organizations from "../organizations.js";
+import type * as requestDocuments from "../requestDocuments.js";
 import type * as users from "../users.js";
 
 import type {
@@ -66,6 +69,8 @@ declare const fullApi: ApiFromModules<{
   "agents/requests/occupancyPermitDocx": typeof agents_requests_occupancyPermitDocx;
   "agents/requests/occupancyPermitSkill": typeof agents_requests_occupancyPermitSkill;
   "agents/requests/requestProfile": typeof agents_requests_requestProfile;
+  "agents/requests/requestSkills": typeof agents_requests_requestSkills;
+  "agents/requests/requestWorker": typeof agents_requests_requestWorker;
   "agents/shared/agentLogging": typeof agents_shared_agentLogging;
   "agents/shared/observability": typeof agents_shared_observability;
   "agents/shared/observabilitySmokeTest": typeof agents_shared_observabilitySmokeTest;
@@ -87,6 +92,7 @@ declare const fullApi: ApiFromModules<{
   jobAgentContext: typeof jobAgentContext;
   jobs: typeof jobs;
   organizations: typeof organizations;
+  requestDocuments: typeof requestDocuments;
   users: typeof users;
 }>;
 
