@@ -6,6 +6,7 @@ import { getErrorMessage } from "../../../../shared/errors";
 import { useDocumentTransfer } from "@/components/documents/use-document-transfer";
 import { RequestError } from "@/components/layout/request-error";
 import { Button } from "@/components/ui/button";
+import { RoadFindingDetails } from "./road-finding-details";
 
 const sourceLabels = {
   database: "Saved job information",
@@ -118,10 +119,21 @@ export function ItemAgentProgress({
       )}
       {state?.finding && (
         <div className="space-y-1">
+          {(busy ||
+            state.execution !== "finished" ||
+            item.status !== "done") && (
+            <p className="text-xs font-medium text-muted-foreground">
+              Earlier saved result; this item is not currently resolved by this
+              result.
+            </p>
+          )}
           <p>{state.finding.summary}</p>
           <p className="text-xs text-muted-foreground">
             {state.finding.coverage}
           </p>
+          {state.finding.kind === "road_closures" && (
+            <RoadFindingDetails finding={state.finding} />
+          )}
         </div>
       )}
       {state && state.missingInformation.length > 0 && (
