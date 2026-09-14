@@ -190,6 +190,28 @@ test("Electrical drafts label general examples and keep protected fields human-o
   ).toBeNull();
 });
 
+test.each([
+  "Don't replace the complete residential main switchboard and consumer mains.",
+  "Don’t replace the complete residential main switchboard and consumer mains.",
+  "Replace the complete residential main switchboard and consumer mains only if inspection shows it is needed.",
+])(
+  "does not prepare a prescribed inspector request for uncertain scope: %s",
+  async (processedText) => {
+    const f = await electricalFixture(electricalItems[2].title);
+
+    const result = prepareElectricalRequest(
+      {
+        ...f.context,
+        input: { ...f.context.input, processedText },
+      },
+      Date.now(),
+    );
+
+    expect(result.draft).toBeNull();
+    expect(result.missingInformation[0]?.field).toBe("electrical_scope");
+  },
+);
+
 test("saved general facts win and a draft without fallbacks records no demo provenance", async () => {
   const f = await electricalFixture();
 
