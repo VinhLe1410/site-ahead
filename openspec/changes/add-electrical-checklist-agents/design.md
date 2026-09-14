@@ -30,6 +30,8 @@ The user explicitly selected simulation after being asked about email-provider s
 
 Extend existing item controls with copyable draft email/field values, destination links and missing-information guidance. Extend Job information only for the trusted fields needed by these two skills. Add a scoped upload and explicit certificate/recipient confirmation control for delivery. Preserve manual checklist changes, current-state summary checks, retries and existing download controls.
 
+The user's compact-review feedback supersedes repeated visible/copy labels: retain source provenance in saved output, but show one short example-details notice. Strip only the known legacy marker from the review copy. Email review uses an editable subject/body and no duplicate field list; COES shows editable verified portal fields with reference fields collapsed. Copied emails include one example notice; portal copies contain only their values. Edits are local to the open view, explicitly labeled as not saved, and reset when the saved draft version changes. Guidance and missing-field explanations use native disclosure controls instead of hover-only content so touch and keyboard users can access them. Carpentry downloads retain their source documents, with completion guidance collapsed.
+
 ## Risks / Trade-offs
 
 - [Public guide may differ from authenticated portal screens] → Cite the inspected guide/version, avoid invented exact labels and expose any unverified fields as guidance or missing information.

@@ -25,3 +25,7 @@ Task 4.2 was completed once browser control became available. Browser copy, dest
 
 - [x] 5.1 Fill general Electrical draft values with labeled demo defaults, preserve saved values and human-only fields, and provide planned work-description wording; verify provenance and copied labels.
 - [x] 5.2 Save the supplied contractor name/email on the Carlton job, regenerate both requests using the existing threads, and verify populated drafts, unchanged address and pending human work; run quality checks and commit the update.
+
+## 6. Compact request review
+
+- [x] 6.1 Replace duplicate email fields with an editable message, show editable portal values, consolidate example labels, and collapse supporting guidance for third-party drafts. Verify editing/copying, disclosure controls, reopening and quality checks.

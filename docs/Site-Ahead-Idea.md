@@ -147,6 +147,8 @@ The separately approved `add-electrical-checklist-agents` extension adds the eig
 
 Electrical demo feedback additionally authorizes labeled fictional general data for its two request drafts. Saved job addresses and contractor details take precedence. Missing general customer/contact information and proposed scheduling/access details may use demo defaults; signatures, licences, inspector selection, actual test results and certification facts remain human-controlled. Generated defaults never become confirmed job data or delivery recipients.
 
+The user subsequently approved compact third-party review: editable email/portal copy, no duplicate email field list, and expandable supporting guidance. For Electrical review, one short example-details notice replaces repeated DEMO DATA markers; saved field provenance remains available. Edits affect copied text locally and are explicitly not saved after closing the view. This display/copy decision supersedes the earlier requirement to repeat labels on every copied value.
+
 ## Step 5: Where AI actually helps
 
 - Speech-to-text: ElevenLabs Scribe turning a spoken client message into text, as an alternative to pasting a chat transcript.
