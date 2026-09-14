@@ -12,6 +12,7 @@ import {
   ELECTRICAL_RULE_SOURCE,
   electricalItems,
 } from "../../../shared/electrical";
+import { parseRoadLocality } from "../../../shared/address";
 
 export const SOURCES = {
   electrical_classification: ELECTRICAL_RULE_SOURCE,
@@ -89,6 +90,54 @@ export function evidenceKind(title: string): EvidenceKind | null {
 
 function normalize(value: string) {
   return value.toUpperCase().replace(/[.,]/g, "").replace(/\s+/g, " ").trim();
+}
+
+function roadLocation(context: ItemContext, now: number) {
+  const fields = context.job.agentContext;
+  const manualRoadName = fields?.roadName?.trim();
+  const manualLocality = fields?.locality?.trim();
+  let parsed = null;
+  let parsedSource: "saved_job_address" | "saved_job_brief" | undefined;
+
+  if (!manualRoadName || !manualLocality) {
+    parsed = parseRoadLocality(context.job.addressText);
+
+    if (parsed !== null) parsedSource = "saved_job_address";
+    else {
+      parsed = parseRoadLocality(context.input.processedText);
+
+      if (parsed !== null) parsedSource = "saved_job_brief";
+    }
+  }
+
+  const roadName = manualRoadName ?? parsed?.roadName;
+  const locality = manualLocality ?? parsed?.locality;
+
+  if (!roadName || !locality) return null;
+
+  const provenance: EvidenceProvenance[] = [];
+
+  if (manualRoadName || manualLocality) {
+    provenance.push({
+      source:
+        manualRoadName && manualLocality
+          ? "confirmed_job_road_and_locality"
+          : "confirmed_job_location_fields",
+      method: "manual",
+      observedAt: fields?.suppliedAt ?? now,
+      suppliedBy: fields?.suppliedBy,
+    });
+  }
+
+  if (parsed && (!manualRoadName || !manualLocality)) {
+    provenance.push({
+      source: parsedSource ?? "saved_job_address",
+      method: "database",
+      observedAt: now,
+    });
+  }
+
+  return { roadName, locality, provenance };
 }
 
 async function fetchJson<T>(
@@ -577,9 +626,9 @@ async function roadClosures(
   signal: AbortSignal,
 ): Promise<EvidenceResult> {
   const source = SOURCES.road_closures;
-  const fields = context.job.agentContext;
+  const location = roadLocation(context, now);
 
-  if (!fields?.roadName?.trim() || !fields.locality?.trim())
+  if (location === null)
     return missing(
       "confirmed_road_and_locality_required",
       "roadLocation",
@@ -631,8 +680,9 @@ async function roadClosures(
       if (
         !data.closedRoadName ||
         !data.startIntersectionLocality ||
-        normalize(data.closedRoadName) !== normalize(fields.roadName) ||
-        normalize(data.startIntersectionLocality) !== normalize(fields.locality)
+        normalize(data.closedRoadName) !== normalize(location.roadName) ||
+        normalize(data.startIntersectionLocality) !==
+          normalize(location.locality)
       )
         continue;
 
@@ -715,12 +765,12 @@ async function roadClosures(
     status: "resolved",
     finding: {
       kind: "road_closures",
-      summary: `${records.size} published closure or restriction records match ${fields.roadName}, ${fields.locality}.`,
+      summary: `${records.size} published closure or restriction records match ${location.roadName}, ${location.locality}.`,
       observedAt,
       fetchedAt: now,
       scope: "exact_road_and_locality",
-      roadName: fields.roadName,
-      locality: fields.locality,
+      roadName: location.roadName,
+      locality: location.locality,
       completeSnapshot: true,
       matchCount: records.size,
       records: [...records.values()],
@@ -730,12 +780,7 @@ async function roadClosures(
     },
     provenance: [
       { source, method: "live_api", observedAt },
-      {
-        source: "confirmed_job_road_and_locality",
-        method: "manual",
-        observedAt: fields.suppliedAt,
-        suppliedBy: fields.suppliedBy,
-      },
+      ...location.provenance,
     ],
   };
 }
