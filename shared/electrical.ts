@@ -60,6 +60,7 @@ export function classifyElectricalScope(
 ): ElectricalClassification {
   const normalized = scope
     .toLowerCase()
+    .replace(/n[’']t\b/g, " not")
     .replace(/[’']/g, "")
     .replace(/[-–—]/g, " ")
     .replace(/\s+/g, " ")
@@ -69,7 +70,10 @@ export function classifyElectricalScope(
     /\b(?:cancelled|canceled|not approved|not proceeding|do not proceed|no longer required)\b/.test(
       normalized,
     ) ||
-    /\b(?:not|no|without|exclude|excluding|avoid|maybe|possibly|may|could|if|whether)\b[^.;!?]{0,90}\b(?:replac\w*|main switchboard|consumer\w* mains)\b/.test(
+    /\b(?:not|no|never|cannot|without|exclude|excluding|avoid|maybe|possibly|may|could|if|whether|unless|depending on|subject to)\b[^.;!?]{0,90}\b(?:replac\w*|main switchboard|consumer\w* mains)\b/.test(
+      normalized,
+    ) ||
+    /\b(?:replac\w*|main switchboard|consumer\w* mains)\b[^.;!?]*\b(?:if|unless|depending on|subject to)\b/.test(
       normalized,
     );
 
