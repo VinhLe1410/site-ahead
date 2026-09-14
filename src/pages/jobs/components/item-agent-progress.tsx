@@ -53,6 +53,7 @@ export function ItemAgentProgress({
     currentItemOutput(context, item, state);
 
   const humanOnly = item.kind === "on_site" && !classificationFailed;
+  const hasRequest = Boolean(state?.draft || state?.requestDraft);
 
   if (humanOnly || (state === undefined && item.status === "done")) return null;
 
@@ -122,9 +123,8 @@ export function ItemAgentProgress({
       {state?.draft && (
         <div className="space-y-2">
           <p className="leading-6 text-muted-foreground">
-            Demo draft. Nothing submitted or approved. Council and form
-            suitability are unverified. Review the details and complete the
-            human fields before use.
+            Review the form and complete the blank fields before submitting.
+            Includes example details; check council and form suitability.
             {(!draft || item.status === "done") &&
               " This file is from an earlier saved run."}
           </p>
@@ -142,11 +142,12 @@ export function ItemAgentProgress({
       )}
       {state?.requestDraft && (
         <ElectricalRequestDraft
+          key={`${item._id}:${state.requestDraft.savedAt}`}
           draft={state.requestDraft}
           current={Boolean(draft) && item.status === "pending"}
         />
       )}
-      {nextAction && (
+      {nextAction && !hasRequest && (
         <p className="text-muted-foreground">{progressMessage(nextAction)}</p>
       )}
       {(state?.error || state?.classification.error) && (
@@ -175,7 +176,28 @@ export function ItemAgentProgress({
           )}
         </div>
       )}
-      {state && state.missingInformation.length > 0 && (
+      {hasRequest && (
+        <details className="text-muted-foreground">
+          <summary className="cursor-pointer font-medium text-foreground">
+            {state?.requestDraft?.skillKey === "coes-portal"
+              ? "Before you submit"
+              : "Before you send"}
+            {Boolean(state?.missingInformation.length) &&
+              ` · ${state?.missingInformation.length} items to complete`}
+          </summary>
+          {nextAction && <p className="mt-2">{progressMessage(nextAction)}</p>}
+          <ul className="mt-2 list-disc space-y-2 pl-5">
+            {state?.missingInformation.map((field) => (
+              <li key={field.field}>
+                <span className="font-medium">{field.label}</span>
+                {field.reason !== state.nextAction &&
+                  `: ${progressMessage(field.reason)}`}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      {state && !hasRequest && state.missingInformation.length > 0 && (
         <div>
           <p className="font-medium">Needs your attention</p>
           <ul className="mt-1 list-disc space-y-1 pl-5 text-muted-foreground">

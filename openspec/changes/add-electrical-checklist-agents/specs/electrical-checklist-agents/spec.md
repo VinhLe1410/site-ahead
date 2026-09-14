@@ -59,7 +59,7 @@ The system SHALL provide a form-specific inspector-booking skill and a COES port
 
 ### Requirement: Useful labeled Electrical demo drafts
 
-The two Electrical request skills SHALL fill missing general customer/contact information and proposed scheduling/access details using a consistent fictional demo profile. Saved values SHALL take precedence, and the site address SHALL always come from the saved job. Demo fields SHALL carry explicit provenance and visible labels retained when copied. Draft work descriptions SHALL remain grounded in saved scope and explicitly describe planned work for electrician review. Signatures, declarations, licences, inspector selection, actual testing/completion and certificate references SHALL remain human-controlled. Fictional values SHALL NOT be stored as confirmed job context or used to confirm certificate delivery.
+The two Electrical request skills SHALL fill missing general customer/contact information and proposed scheduling/access details using a consistent fictional demo profile. Saved values SHALL take precedence, and the site address SHALL always come from the saved job. Demo fields SHALL retain explicit provenance in saved output. The review view SHALL use one short example-details notice instead of repeated DEMO DATA labels in editable text. Copied emails SHALL retain one short example-details notice; individually copied portal values SHALL contain only the editable value. Draft work descriptions SHALL remain grounded in saved scope and explicitly describe planned work for electrician review. Signatures, declarations, licences, inspector selection, actual testing/completion and certificate references SHALL remain human-controlled. Fictional values SHALL NOT be stored as confirmed job context or used to confirm certificate delivery.
 
 #### Scenario: General information is absent
 
@@ -72,6 +72,17 @@ The two Electrical request skills SHALL fill missing general customer/contact in
 - **WHEN** a member saves a real general value and retries the request
 - **THEN** the new draft uses that value with saved-data provenance and removes its demo label
 - **AND** unrelated checklist items, automated evidence and delivery confirmation remain governed by their existing rules
+
+### Requirement: Compact draft review
+
+Email requests SHALL expose one editable subject and body with a copy action, without repeating their fields below the message. Portal requests SHALL expose editable values under verified field labels, with supporting information available on demand. Guidance, missing-field explanations and sources SHALL remain accessible through expandable controls that work with keyboard and touch. The view SHALL explain that edits affect copied text and are not persisted after closing. Changes SHALL NOT update confirmed job information or submit a request.
+
+#### Scenario: Edit and copy a request
+
+- **WHEN** a member changes an email subject/body or a portal value and copies it
+- **THEN** the clipboard contains their edited text and repeated DEMO DATA markers are absent
+- **AND** they can expand completion guidance while the default view remains compact
+- **AND** reopening or regenerating loads the saved agent draft rather than claiming the local edits were saved
 
 ### Requirement: Safe integration with current Agent state
 
