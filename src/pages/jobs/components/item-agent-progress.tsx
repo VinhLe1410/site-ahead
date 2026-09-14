@@ -6,15 +6,17 @@ import { getErrorMessage } from "../../../../shared/errors";
 import { useDocumentTransfer } from "@/components/documents/use-document-transfer";
 import { RequestError } from "@/components/layout/request-error";
 import { Button } from "@/components/ui/button";
-import type { SnapshotContext } from "../../../../shared/item-agent-snapshots";
+import type { BriefContext } from "../job-brief-summary";
 import { currentItemOutput } from "../job-brief-summary";
 import { RoadFindingDetails } from "./road-finding-details";
+import { ElectricalRequestDraft } from "./electrical-request-draft";
 
 const sourceLabels = {
   database: "Saved job information",
   manual: "Contractor-confirmed information",
   live_api: "Live data",
   demo_data: "Fictional demo data",
+  simulation: "PoC simulation — no email sent",
 };
 
 function progressMessage(value: string) {
@@ -38,7 +40,7 @@ export function ItemAgentProgress({
 }: {
   item: Doc<"checklistItems">;
   state: Doc<"checklistAgentStates"> | undefined;
-  context: Omit<SnapshotContext, "item">;
+  context: BriefContext;
 }) {
   const retry = useMutation(api.checklistExecution.retry);
   const { downloadDraft } = useDocumentTransfer();
@@ -66,7 +68,8 @@ export function ItemAgentProgress({
             ? "Failed"
             : item.status === "done"
               ? "Marked done"
-              : (state?.finding || state?.draft) && !current
+              : (state?.finding || state?.draft || state?.requestDraft) &&
+                  !current
                 ? "Earlier output · Needs review"
                 : state?.execution === "waiting"
                   ? "Waiting for you"
@@ -136,6 +139,12 @@ export function ItemAgentProgress({
             Download draft
           </Button>
         </div>
+      )}
+      {state?.requestDraft && (
+        <ElectricalRequestDraft
+          draft={state.requestDraft}
+          current={Boolean(draft) && item.status === "pending"}
+        />
       )}
       {nextAction && (
         <p className="text-muted-foreground">{progressMessage(nextAction)}</p>
@@ -210,7 +219,7 @@ export function ItemAgentProgress({
             ? "Please wait..."
             : classificationFailed
               ? "Retry classification"
-              : state?.draft
+              : state?.draft || state?.requestDraft
                 ? "Regenerate draft"
                 : failed
                   ? "Retry check"

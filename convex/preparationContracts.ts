@@ -8,7 +8,7 @@ export const DISMISSAL_LIMIT = 100;
 
 export const MESSAGE_LIMIT = 4_000;
 
-export const PREPARATION_PROMPT_VERSION = "carpentry-preparation-v1";
+export const PREPARATION_PROMPT_VERSION = "job-preparation-v2";
 
 export const preparationStatusValidator = v.union(
   v.literal("pending"),
@@ -65,13 +65,6 @@ export const jobPreparationValidator = v.object({
   dismissedActions: v.array(v.string()),
   message: v.optional(preparationMessageValidator),
 });
-
-export function supportsPreparation(categoryTitle: string | null) {
-  return (
-    categoryTitle?.trim().toLowerCase().replace(/\s+/g, " ") ===
-    "carpentry & renovation"
-  );
-}
 
 export function clientMessageSnapshot(
   entries: PreparationEntry[],

@@ -89,8 +89,7 @@ export function PreVisitPreparation({ jobId }: { jobId: Id<"jobs"> }) {
         )}
         {data && !data.supported && (
           <p className="text-sm text-muted-foreground">
-            Preparation guidance is currently available for Carpentry &amp;
-            Renovation jobs.
+            Preparation guidance is unavailable. Refresh the page to try again.
           </p>
         )}
         {data?.contextError && <RequestError message={data.contextError} />}

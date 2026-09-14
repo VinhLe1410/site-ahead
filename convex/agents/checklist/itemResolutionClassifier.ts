@@ -91,7 +91,7 @@ export const classifyChecklistItems = internalAction({
               output: "array",
               schema: modelClassificationSchema,
               schemaName: "checklist_item_classifications",
-              prompt: `Classify into automated (Construction year, Air Quality, Road Closure), third_party (requests for permits, consents, occupancy/final inspection), or on_site (human assessment such as asbestos). Return one result per item. There are no Powerlines checks in this scope. Input data: ${JSON.stringify(claimed.map(({ item, jobType }) => ({ id: item._id, item: item.title, job_type: jobType })))}`,
+              prompt: `Classify into automated (Construction year, Air Quality, Road Closure, Classify electrical work as prescribed or non-prescribed, Send the completed COES to the client), third_party (requests for permits, consents, occupancy/final inspection, Book a Licensed Electrical Inspector, Prepare COES information for ESVConnect), or on_site (human assessment such as asbestos; electrician installation testing; safety-switch/RCD coverage; confirm required independent inspection is completed). Sending the completed COES is a supported automated simulation after explicit human confirmation; preparing COES information is a third_party draft. Return one result per item. There are no Powerlines checks in this scope. Input data: ${JSON.stringify(claimed.map(({ item, jobType }) => ({ id: item._id, item: item.title, job_type: jobType })))}`,
               abortSignal: AbortSignal.timeout(60_000),
               maxRetries: 0,
               experimental_telemetry: {

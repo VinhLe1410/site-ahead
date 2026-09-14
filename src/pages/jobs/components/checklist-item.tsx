@@ -3,7 +3,7 @@ import { useMutation } from "convex/react";
 import { MessageSquareIcon } from "lucide-react";
 import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
-import type { SnapshotContext } from "../../../../shared/item-agent-snapshots";
+import type { BriefContext } from "../job-brief-summary";
 import { getErrorMessage } from "../../../../shared/errors";
 import { RequestError } from "@/components/layout/request-error";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { checklistKindLabels } from "../job-labels";
 import { currentItemOutput } from "../job-brief-summary";
 
 function itemSummary(
-  context: Omit<SnapshotContext, "item">,
+  context: BriefContext,
   item: Doc<"checklistItems">,
   state: Doc<"checklistAgentStates"> | undefined,
   loading: boolean,
@@ -31,6 +31,17 @@ function itemSummary(
 
   if (item.status === "done" && finding) {
     switch (finding.kind) {
+      case "electrical_classification":
+        return {
+          text: `${finding.classification.replace(/_/g, " ")} work`,
+          caveat:
+            "Based on the saved scope. Confirm the actual work before use.",
+        };
+      case "simulated_certificate_delivery":
+        return {
+          text: "Delivery simulated",
+          caveat: "PoC only — no email sent.",
+        };
       case "construction_year":
         return {
           text: `${finding.constructionYear} · ${finding.resolution === "manual_fallback" ? "Contractor-confirmed" : "DataVic"}`,
@@ -64,7 +75,7 @@ function itemSummary(
 
   if (item.kind === "on_site") return { text: "Human check required" };
 
-  if (state?.finding || state?.draft)
+  if (state?.finding || state?.draft || state?.requestDraft)
     return { text: "Earlier output · Needs review" };
 
   if (state?.execution === "waiting") return { text: "Needs information" };
@@ -82,7 +93,7 @@ export function ChecklistItem({
 }: {
   item: Doc<"checklistItems">;
   agentState: Doc<"checklistAgentStates"> | undefined;
-  context: Omit<SnapshotContext, "item">;
+  context: BriefContext;
   loading: boolean;
   selected: boolean;
   onOpen: (trigger: HTMLButtonElement, editNote?: boolean) => void;

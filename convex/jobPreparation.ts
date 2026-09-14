@@ -78,7 +78,7 @@ export const get = query({
 
     return {
       record,
-      supported: context.supported,
+      supported: true,
       stale,
       staleEntryIds,
       messageStale:
@@ -191,7 +191,6 @@ export const regenerateMessage = mutation({
       );
 
     if (
-      !context.supported ||
       context.error ||
       record.entries.some(
         (entry) =>

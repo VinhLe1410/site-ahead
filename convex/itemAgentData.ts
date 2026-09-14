@@ -23,6 +23,18 @@ export async function invalidateItemWork(
   ctx: MutationCtx,
   itemId: Id<"checklistItems">,
 ) {
+  const certificate = await ctx.db
+    .query("electricalCertificates")
+    .withIndex("by_itemId", (q) => q.eq("itemId", itemId))
+    .unique();
+
+  if (certificate?.confirmedAt !== undefined)
+    await ctx.db.patch("electricalCertificates", certificate._id, {
+      recipient: undefined,
+      confirmedBy: undefined,
+      confirmedAt: undefined,
+      confirmationKey: undefined,
+    });
   const state = await itemAgentState(ctx.db, itemId);
 
   if (state === null) return;
@@ -55,6 +67,17 @@ export async function invalidateItemWork(
       classification,
       updatedAt: Date.now(),
     });
+  } else if (
+    state.requestDraft !== undefined ||
+    state.finding?.kind === "electrical_classification" ||
+    state.finding?.kind === "simulated_certificate_delivery"
+  ) {
+    await ctx.db.patch("checklistAgentStates", state._id, {
+      snapshot: undefined,
+      nextAction:
+        "Saved information changed. Review the earlier output and process this item again.",
+      updatedAt: Date.now(),
+    });
   }
 }
 
@@ -62,6 +85,16 @@ export async function removeItemWork(
   ctx: MutationCtx,
   itemId: Id<"checklistItems">,
 ) {
+  const certificate = await ctx.db
+    .query("electricalCertificates")
+    .withIndex("by_itemId", (q) => q.eq("itemId", itemId))
+    .unique();
+
+  if (certificate) {
+    await ctx.storage.delete(certificate.storageId);
+    await ctx.db.delete("electricalCertificates", certificate._id);
+  }
+
   const state = await itemAgentState(ctx.db, itemId);
 
   if (state === null) return;

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Doc } from "../../../../convex/_generated/dataModel";
-import type { SnapshotContext } from "../../../../shared/item-agent-snapshots";
+import type { BriefContext } from "../job-brief-summary";
 import { ArrowUpRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { summarizeJobBrief } from "../job-brief-summary";
@@ -12,7 +12,7 @@ export function JobNextActions({
   states,
   onOpenItem,
 }: {
-  context: Omit<SnapshotContext, "item">;
+  context: BriefContext;
   items: Doc<"checklistItems">[];
   states: Doc<"checklistAgentStates">[] | undefined;
   onOpenItem: (itemId: string, trigger: HTMLButtonElement) => void;

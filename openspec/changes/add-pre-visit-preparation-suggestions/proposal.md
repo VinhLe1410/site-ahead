@@ -8,10 +8,10 @@ Category templates miss preparation needs specific to a customer's description. 
 - Each suggestion explains the action, its benefit before visiting and the description detail that triggered it. Omit already answered questions, duplicates and weak suggestions rather than filling a quota.
 - Let organization members directly check off, reopen or dismiss preparation items, without an acceptance step. Persist the results with the job.
 - Draft an editable, saved client message containing only pending preparation questions the client can answer. Members can explicitly regenerate and copy the message; nothing is sent and drafting never completes an item.
-- Use trade-informed guidance, initially for the current Carpentry & Renovation demo. Unsupported categories explain the limitation rather than claiming specialist coverage.
+- Make preparation available for every job, including Electrical, custom categories and missing categories. Use saved scope for grounded general guidance and retain conditional Carpentry examples without inventing specialist rules.
 - Keep preparation tasks separate from the three existing resolution categories and their agents. No new voice requirement, message sending, research tools, regulatory determinations or automatic completion.
 
-This user-requested extension preserves the idea document's bounded intake approach and existing item agents. The agreed workflow is automatic preparation, a three-item current list, direct checkoff and a copy-only client message, initially for Carpentry & Renovation.
+This user-requested extension preserves the bounded intake approach and existing item agents. The user subsequently extended preparation to every job while keeping main's existing compact UI. This does not expand automated provider or form-skill coverage.
 
 ## Capabilities
 

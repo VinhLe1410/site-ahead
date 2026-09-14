@@ -2,10 +2,7 @@ import { ConvexError } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import type { QueryCtx } from "./_generated/server";
 import { executionSnapshot } from "../shared/item-agent-snapshots";
-import {
-  PREPARATION_CONTEXT_LIMIT,
-  supportsPreparation,
-} from "./preparationContracts";
+import { PREPARATION_CONTEXT_LIMIT } from "./preparationContracts";
 
 async function fingerprint(value: string) {
   const digest = await crypto.subtle.digest(
@@ -43,8 +40,6 @@ export async function loadPreparationContext(
     (!category || category.organizationId !== job.organizationId)
   )
     throw new ConvexError("Job category not found");
-
-  const supported = supportsPreparation(category?.title ?? null);
 
   const authoritative = {
     description: input.processedText,
@@ -96,7 +91,7 @@ export async function loadPreparationContext(
         : null;
 
   return {
-    supported,
+    categoryTitle: category?.title ?? null,
     checklistTitles: items.map((item) => item.title),
     description: input.processedText,
     sourceText,

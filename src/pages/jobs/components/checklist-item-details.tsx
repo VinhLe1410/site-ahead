@@ -7,11 +7,13 @@ import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import { RequestError } from "@/components/layout/request-error";
 import { Button } from "@/components/ui/button";
-import type { SnapshotContext } from "../../../../shared/item-agent-snapshots";
+import type { BriefContext } from "../job-brief-summary";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { ChecklistKindBadge } from "./checklist-kind-badge";
 import { ItemAgentProgress } from "./item-agent-progress";
+import { isCertificateDelivery } from "../../../../shared/electrical";
+import { CertificateDeliveryControls } from "./certificate-delivery-controls";
 
 export function ChecklistItemDetails({
   item,
@@ -27,7 +29,7 @@ export function ChecklistItemDetails({
   item: Doc<"checklistItems">;
   documents: DocumentSummary[];
   agentState: Doc<"checklistAgentStates"> | undefined;
-  context: Omit<SnapshotContext, "item">;
+  context: BriefContext;
   editNote: boolean;
   loading: boolean;
   noteDraft: string | undefined;
@@ -112,6 +114,16 @@ export function ChecklistItemDetails({
         </p>
       ) : (
         <ItemAgentProgress item={item} state={agentState} context={context} />
+      )}
+      {!loading && isCertificateDelivery(item.title) && (
+        <CertificateDeliveryControls
+          item={item}
+          busy={Boolean(
+            agentState?.queued ||
+            agentState?.execution === "running" ||
+            agentState?.classification.status === "running",
+          )}
+        />
       )}
       {item.kind === "on_site" &&
         agentState?.classification.status !== "failed" && (

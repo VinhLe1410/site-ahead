@@ -48,7 +48,6 @@ export async function claimPreparation(
 ) {
   const context = await loadPreparationContext(ctx.db, job);
 
-  if (!context.supported) return;
   const record = await preparationRecord(ctx.db, job._id);
   const now = Date.now();
 
@@ -146,6 +145,7 @@ export const getRunContext = internalQuery({
       ready: v.boolean(),
       sourceText: v.string(),
       description: v.string(),
+      categoryTitle: v.union(v.string(), v.null()),
       availableSlots: v.number(),
       exclusions: v.array(v.string()),
       completed: v.array(preparationEntryValidator),
@@ -169,11 +169,10 @@ export const getRunContext = internalQuery({
 
     return {
       ready:
-        context.fingerprint === record.run.contextFingerprint &&
-        !context.error &&
-        context.supported,
+        context.fingerprint === record.run.contextFingerprint && !context.error,
       sourceText: context.error ? "" : context.sourceText,
       description: context.error ? "" : context.description,
+      categoryTitle: context.categoryTitle,
       availableSlots: PREPARATION_LIMIT - completed.length,
       exclusions: exclusions(record, context),
       completed,

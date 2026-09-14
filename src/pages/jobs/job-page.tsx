@@ -73,6 +73,7 @@ function JobDetails({
   );
 
   const context = {
+    certificates: data.certificates,
     job: data.job,
     input: data.input,
     category: data.categoryTitle ? { title: data.categoryTitle } : null,

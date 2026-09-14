@@ -155,6 +155,7 @@ export const get = query({
       categoryTitle: v.union(v.string(), v.null()),
       checklist: v.array(schema.doc("checklistItems")),
       documents: v.array(documentSummaryValidator),
+      certificates: v.array(schema.doc("electricalCertificates")),
     }),
     v.null(),
   ),
@@ -209,6 +210,16 @@ export const get = query({
       categoryTitle,
       checklist,
       documents: await checklistDocuments(ctx.db, organizationId, checklist),
+      certificates: (
+        await Promise.all(
+          checklist.map((item) =>
+            ctx.db
+              .query("electricalCertificates")
+              .withIndex("by_itemId", (q) => q.eq("itemId", item._id))
+              .unique(),
+          ),
+        )
+      ).filter((certificate) => certificate !== null),
     };
   },
 });

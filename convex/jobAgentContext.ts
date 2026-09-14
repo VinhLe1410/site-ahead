@@ -19,12 +19,16 @@ import {
 } from "./itemAgentData";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { isCertificateDelivery } from "../shared/electrical";
 
 export const itemContextValidator = v.object({
   item: schema.doc("checklistItems"),
   job: schema.doc("jobs"),
   input: schema.doc("inputs"),
   category: v.union(schema.doc("categories"), v.null()),
+  certificate: v.optional(
+    v.union(schema.doc("electricalCertificates"), v.null()),
+  ),
 });
 
 export type ItemContext = Infer<typeof itemContextValidator>;
@@ -52,7 +56,18 @@ export async function loadItemContext(
   )
     return null;
 
-  return { item, job, input, category };
+  const certificate = isCertificateDelivery(item.title)
+    ? await db
+        .query("electricalCertificates")
+        .withIndex("by_itemId", (q) => q.eq("itemId", item._id))
+        .unique()
+    : undefined;
+
+  const context: ItemContext = { item, job, input, category };
+
+  if (certificate !== undefined) context.certificate = certificate;
+
+  return context;
 }
 
 export const get = internalQuery({
@@ -89,7 +104,13 @@ async function invalidateChangedContext(
   for (const item of items) {
     const state = await itemAgentState(ctx.db, item._id);
 
-    if (state?.execution !== "running" && !state?.queued) continue;
+    if (
+      state?.execution !== "running" &&
+      !state?.queued &&
+      !state?.requestDraft &&
+      state?.finding?.kind !== "simulated_certificate_delivery"
+    )
+      continue;
     const context = await loadItemContext(ctx.db, item);
 
     if (
@@ -160,6 +181,10 @@ export const setFields = mutation({
       "contractorPhone",
       "contractorLicence",
       "clientName",
+      "clientEmail",
+      "inspectorName",
+      "inspectorEmail",
+      "siteAccess",
       "plannedStartDate",
     ] as const;
 
@@ -173,11 +198,14 @@ export const setFields = mutation({
       fields[key] = value === "" ? undefined : value;
     }
 
-    if (
-      fields.contractorEmail !== undefined &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.contractorEmail)
-    )
-      throw new ConvexError("Provide a valid contractor email address.");
+    for (const email of [
+      fields.contractorEmail,
+      fields.clientEmail,
+      fields.inspectorEmail,
+    ]) {
+      if (email !== undefined && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+        throw new ConvexError("Provide a valid email address.");
+    }
 
     if (fields.plannedStartDate !== undefined) {
       const date = new Date(`${fields.plannedStartDate}T00:00:00.000Z`);

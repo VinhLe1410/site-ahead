@@ -4,7 +4,9 @@ import {
   type SnapshotContext,
 } from "../../../shared/item-agent-snapshots";
 
-type BriefContext = Omit<SnapshotContext, "item">;
+export type BriefContext = Omit<SnapshotContext, "item" | "certificate"> & {
+  certificates?: Doc<"electricalCertificates">[];
+};
 
 type BriefEntry = { itemId: string; title: string; detail: string };
 
@@ -22,6 +24,9 @@ function findingSummary(
   finding: NonNullable<Doc<"checklistAgentStates">["finding"]>,
 ) {
   switch (finding.kind) {
+    case "electrical_classification":
+    case "simulated_certificate_delivery":
+      return finding.summary;
     case "construction_year":
       return `${finding.constructionYear} (${finding.pre1990 ? "before 1990" : "1990 or later"}); ${finding.resolution === "manual_fallback" ? "contractor-confirmed year after DataVic had no usable year" : "DataVic exact-address record"}.`;
     case "air_quality":
@@ -48,7 +53,13 @@ export function currentItemOutput(
   const current =
     state?.snapshot !== undefined &&
     state.snapshot ===
-      executionSnapshot({ ...context, item: { ...item, status: "pending" } });
+      executionSnapshot({
+        ...context,
+        item: { ...item, status: "pending" },
+        certificate: context.certificates?.find(
+          (certificate) => certificate.itemId === item._id,
+        ),
+      });
 
   const finding =
     current &&
@@ -67,7 +78,7 @@ export function currentItemOutput(
     state?.classification.status === "succeeded" &&
     state.execution === "waiting" &&
     item.kind === "third_party"
-      ? state.draft
+      ? (state.requestDraft ?? state.draft)
       : undefined;
 
   const nextAction =
@@ -171,6 +182,24 @@ export function summarizeJobBrief(
     }
 
     if (draft) {
+      if ("skillKey" in draft) {
+        summary.drafts.push({
+          ...entry,
+          detail:
+            draft.skillKey === "coes-portal"
+              ? "COES portal information prepared. No completed work, certification or submission is established."
+              : "Inspector enquiry prepared. No email has been sent and no appointment is established.",
+        });
+        summary.actions.push({
+          ...entry,
+          priority: 3,
+          detail:
+            state?.nextAction ??
+            "Review the draft and its missing information before manual use.",
+        });
+        continue;
+      }
+
       summary.drafts.push({
         ...entry,
         detail:
@@ -199,7 +228,7 @@ export function summarizeJobBrief(
       detail:
         missing.length > 0
           ? `Provide or confirm: ${missing.join(", ")}. Then process this item again.`
-          : state?.finding || state?.draft
+          : state?.finding || state?.draft || state?.requestDraft
             ? "Earlier output is available, but this item remains unresolved. Review the saved job information and process it again."
             : item.kind === "third_party"
               ? "Prepare the request, then review its requirements and arrange the appropriate third party. This item remains pending."

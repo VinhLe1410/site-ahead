@@ -28,6 +28,10 @@ import {
 } from "./agents/checklist/liveEvidence";
 import { schema } from "./schema";
 import { logAgentStage } from "./agents/shared/agentLogging";
+import {
+  electricalRequestKind,
+  isCertificateDelivery,
+} from "../shared/electrical";
 
 export const ITEM_CONCURRENCY = 3;
 
@@ -286,9 +290,13 @@ export const drain = internalMutation({
       });
       await ctx.scheduler.runAfter(
         0,
-        context.item.kind === "third_party"
-          ? internal.agents.requests.requestWorker.run
-          : internal.agents.checklist.itemWorker.run,
+        isCertificateDelivery(context.item.title)
+          ? internal.agents.checklist.certificateDeliveryWorker.run
+          : context.item.kind === "third_party"
+            ? electricalRequestKind(context.item.title) !== null
+              ? internal.agents.requests.electricalRequestWorker.run
+              : internal.agents.requests.requestWorker.run
+            : internal.agents.checklist.itemWorker.run,
         { item: context.item, runId },
       );
       await ctx.scheduler.runAfter(

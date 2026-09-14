@@ -8,7 +8,7 @@ Installed Convex is 1.45.0. OpenAI, AI SDK and Zod are already installed. Follow
 
 **Goals:** A small persistent preparation list, direct manual completion, and an editable copy-only client message. Keep provider execution bounded and preserve human changes during refresh.
 
-**Non-Goals:** New trades, runtime skill marketplace, external research, legal lookup, sending messages, automatic completion, agent dispatch for preparation, or changes to checklist/Job Brief totals.
+**Non-Goals:** Additional automated trade checks or form skills, runtime skill marketplace, external research, legal lookup, sending messages, automatic completion, agent dispatch for preparation, or changes to checklist/Job Brief totals.
 
 ## Decisions
 
@@ -22,7 +22,7 @@ Alternative: append `on_site` checklist items. Rejected because preparation happ
 
 ### Automatic start with atomic run and freshness guards
 
-After saving a supported new job, atomically claim its preparation record and schedule one ordinary action. Existing jobs expose explicit generate/refresh. Unsupported categories do not call a model. Context is loaded server-side from the saved description, address, category, confirmed fields, checklist and current findings with provenance. Bound source size and fail visibly rather than truncating silently.
+After saving any new job, atomically claim its preparation record and schedule one ordinary action. Existing jobs expose explicit generate/refresh. Custom and missing categories use the same path. Context is loaded server-side from the saved description, address, category, confirmed fields, checklist and current findings with provenance. Bound source size and fail visibly rather than truncating silently.
 
 Canonical SHA-256 context fingerprints keep source text transient and exclude execution timestamps and fictional form defaults. Include only valid current findings, using `executionSnapshot` with item status normalized to pending because successful automated saves use that snapshot before completion. Exclude busy, failed or stale agent output. Retain each completed task's original fingerprint so refresh never conceals stale grounding.
 
@@ -32,7 +32,7 @@ Alternative: automatic regeneration on every checklist change. Rejected to avoid
 
 ### One bounded generation call with trade guidance
 
-Use `convex/agents/preparation/recommendPreparation.ts` and versioned `carpentryPreparationGuidance.ts`. Select the supported demo trade through an explicit normalized category-title mapping. Use one structured-output AI SDK/OpenAI Responses call with the existing GPT-5.5 model pattern at medium reasoning, a 60-second timeout per call, no provider retries and existing payload-minimized tracing. Only the bounded initial-context recovery described above can schedule a second call. No Agent thread or workflow is required for this bounded call.
+Use `convex/agents/preparation/recommendPreparation.ts` and versioned `preparationGuidance.ts`. Ground general preparation in the saved scope for every category, retaining conditional Carpentry examples. Category names do not establish specialist requirements. Bump the prompt version to mark prior output stale. Use one structured-output AI SDK/OpenAI Responses call with the existing GPT-5.5 model pattern at medium reasoning, a 60-second timeout per call, no provider retries and existing payload-minimized tracing. Only the bounded initial-context recovery described above can schedule a second call. No Agent thread or workflow is required for this bounded call.
 
 The value rubric permits zero suggestions and asks for concrete before-visit actions, job-specific rationale and exact supporting description excerpts. Omit generic advice, known answers and semantic duplicates. Each item also contains a concise client question or null when the action is internal. Validate count, field bounds, nonblank values, exact excerpt grounding and normalized duplicate actions server-side. Semantic quality remains a model responsibility verified with contrasting live examples. Do not fabricate a fallback list on failure.
 
@@ -51,7 +51,7 @@ Add `PreVisitPreparation` beside the existing checklist and brief. Use generated
 - Weak but plausible suggestions → Author trade guidance and a usefulness rubric, allow zero, and record live examples without claiming professional validation.
 - Job edits or concurrent actions → Canonical fingerprints, revisions, atomic claims and scheduled expiry protect saved decisions.
 - A generated list may become stale as independent agents finish → One bounded initial retry, then visible manual refresh; no repeated regeneration loop.
-- Organization-authored category titles → Explicit supported mapping rather than guessed expertise.
+- Organization-authored or missing categories → Ground preparation in saved scope rather than guessed expertise.
 - A manually edited message can contain obsolete questions → Preserve it visibly as stale and offer explicit regeneration for contractor review.
 
 ## Migration Plan

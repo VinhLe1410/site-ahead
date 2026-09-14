@@ -22,6 +22,10 @@ const contextFields = [
   { name: "roadName", label: "Road name", type: "text" },
   { name: "locality", label: "Suburb or locality", type: "text" },
   { name: "clientName", label: "Applicant or client name", type: "text" },
+  { name: "clientEmail", label: "Confirmed client email", type: "email" },
+  { name: "inspectorName", label: "Chosen inspector name", type: "text" },
+  { name: "inspectorEmail", label: "Chosen inspector email", type: "email" },
+  { name: "siteAccess", label: "Confirmed site access", type: "text" },
   { name: "contractorName", label: "Contractor name", type: "text" },
   { name: "contractorEmail", label: "Contractor email", type: "email" },
   { name: "contractorPhone", label: "Contractor phone", type: "text" },
@@ -80,6 +84,10 @@ function JobContextFields({ job }: { job: Doc<"jobs"> }) {
             roadName: text(form, "roadName"),
             locality: text(form, "locality"),
             clientName: text(form, "clientName"),
+            clientEmail: text(form, "clientEmail"),
+            inspectorName: text(form, "inspectorName"),
+            inspectorEmail: text(form, "inspectorEmail"),
+            siteAccess: text(form, "siteAccess"),
             contractorName: text(form, "contractorName"),
             contractorEmail: text(form, "contractorEmail"),
             contractorPhone: text(form, "contractorPhone"),
@@ -106,9 +114,10 @@ function JobContextFields({ job }: { job: Doc<"jobs"> }) {
       <form onSubmit={(event) => void save(event, false)} className="space-y-4">
         <p className="text-sm text-muted-foreground">
           The property address comes from this job. Supply confirmed details
-          here; missing general form details may use clearly labeled demo data.
-          Coordinates are used for air readings; road and locality are used for
-          traffic checks.
+          here. Drafts may use clearly labeled fictional general values when
+          information is missing. Licences, inspector selection and
+          certification details require your confirmation. Coordinates are used
+          for air readings; road and locality are used for traffic checks.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           {contextFields.map((field) => (
