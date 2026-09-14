@@ -16,7 +16,7 @@ The Electrical Work category SHALL contain eight items: classify prescribed vers
 
 ### Requirement: Evidence-based electrical work classification
 
-The classification check SHALL evaluate saved detailed work scope against supported ESV guidance, save the finding, matched scope and source, and mark done only after that result is persisted. Category or title alone SHALL NOT establish that work is prescribed. Ambiguous, conflicting or unsupported work descriptions SHALL remain pending with an explanation. Live road checks SHALL retain exact saved road/locality relevance and existing failure and coverage behavior.
+The classification check SHALL evaluate saved detailed work scope against supported ESV guidance, save the finding, matched scope and source, and mark done only after that result is persisted. Category or title alone SHALL NOT establish that work is prescribed. Ambiguous, conflicting or unsupported work descriptions SHALL remain pending with an explanation. Live road checks SHALL retain exact saved road/locality relevance and existing failure and coverage behavior. Explicitly confirmed Job information road/locality fields SHALL take precedence; when they are absent, the check MAY conservatively derive a road/locality pair from the saved site address and then the saved brief. An address that cannot be parsed confidently SHALL remain unresolved with the existing missing-location reason.
 
 #### Scenario: Complete switchboard and mains replacement
 
@@ -29,6 +29,12 @@ The classification check SHALL evaluate saved detailed work scope against suppor
 - **WHEN** scope is only “electrical repairs”, negates replacement or describes a potentially excluded single-component replacement
 - **THEN** the system does not automatically treat it as the prescribed demo scope
 - **AND** uncertainty is visible and the item remains pending unless a supported classification is established
+
+#### Scenario: Derive road location from saved job input
+
+- **WHEN** a job has no confirmed Job information road/locality fields but its saved address or brief contains a numbered road and locality, such as `198 Berkeley Street, Carlton`
+- **THEN** the Road Closure check uses that exact derived pair for its live feed filter and records database provenance for the source text
+- **AND** it preserves the existing unresolved outcome when neither saved text contains a confident pair
 
 ### Requirement: Two structured Electrical request skills
 

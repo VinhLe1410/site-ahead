@@ -318,6 +318,60 @@ test("road evidence retains exact matching records and rejects incomplete pagina
   ).rejects.toThrow("road_pagination_repeated_cursor");
 });
 
+test("road evidence derives a location from the saved address when context is absent", async () => {
+  const saved = await context("Road Closure");
+  delete saved.job.agentContext;
+  saved.job.addressText = "198 Berkeley Street, Carlton";
+  saved.input.processedText =
+    "The client requested work at 198 Berkeley Street, Carlton.";
+
+  const fetcher: EvidenceFetch = async () =>
+    Response.json({
+      state: { ts: now - 1000, items: {} },
+      meta: { cursor: "-1" },
+    });
+
+  expect(
+    await resolveLiveEvidence("road_closures", saved, fetcher, now),
+  ).toMatchObject({
+    status: "resolved",
+    finding: {
+      roadName: "Berkeley Street",
+      locality: "Carlton",
+      matchCount: 0,
+    },
+    provenance: [
+      { source: SOURCES.road_closures, method: "live_api" },
+      { source: "saved_job_address", method: "database" },
+    ],
+  });
+});
+
+test("road evidence can derive a location from the saved brief when the address field is vague", async () => {
+  const saved = await context("Road Closure");
+  delete saved.job.agentContext;
+  saved.job.addressText = "Carlton, Victoria";
+  saved.input.processedText =
+    "The client requested work at 198 Berkeley Street, Carlton.";
+
+  const fetcher: EvidenceFetch = async () =>
+    Response.json({
+      state: { ts: now - 1000, items: {} },
+      meta: { cursor: "-1" },
+    });
+
+  expect(
+    await resolveLiveEvidence("road_closures", saved, fetcher, now),
+  ).toMatchObject({
+    status: "resolved",
+    finding: { roadName: "Berkeley Street", locality: "Carlton" },
+    provenance: [
+      { source: SOURCES.road_closures, method: "live_api" },
+      { source: "saved_job_brief", method: "database" },
+    ],
+  });
+});
+
 test("road zero-match finding requires complete scoped snapshot; unrelated tools are rejected", async () => {
   const saved = await context("Road Closure");
 
@@ -339,6 +393,8 @@ test("road zero-match finding requires complete scoped snapshot; unrelated tools
     },
   });
   delete saved.job.agentContext;
+  saved.job.addressText = "A site in Victoria";
+  saved.input.processedText = "No road details were supplied.";
   expect(
     await resolveLiveEvidence("road_closures", saved, fetcher, now),
   ).toMatchObject({
